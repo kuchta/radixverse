@@ -1,0 +1,8 @@
+{
+    // "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"yaml.schemas": {
+		"https://json.schemastore.org/github-workflow.json": "file:///Users/kuchta/Projects/radixverse/.github/workflows/deploy.yml"
+	},
+}
