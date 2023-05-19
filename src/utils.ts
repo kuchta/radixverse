@@ -2,7 +2,7 @@ export type Radix = {
 	name: string
 	system: "standard" | "bijective" | "balanced"
 	radix: bigint
-	digits: string,
+	digits: string
 	low: number
 	high: number
 	enabled: boolean
@@ -50,7 +50,7 @@ export const radixes = [ ...Array(35) ].flatMap((_, i) => {
 			digits: v === 27 ? belBase27 : balBase19.slice(9 - half, 10 + half),
 			low: -half,
 			high: half,
-			enabled:  [ 3, 9, 13, 19, 27 ].includes(v),
+			enabled:  [ 3, 9, 19, 27 ].includes(v),
 		})
 	}
 	return ret
@@ -110,12 +110,12 @@ export function str2num(str: string, radix: Radix): bigint {
 	const low = radix.low
 	const r = radix.radix
 
-	let n = 0n
-	for (const d of s) {
+	const n = Array.from(s).reduce((acc, d) => {
 		const v = digits.indexOf(d)
 		if (v < 0) throw new Error(`str2num(${str}): Unrecognized digit character: ${d}`)
-		n = n * r + BigInt((bal ? low : 0) + v)
-	}
+		acc = acc * r + BigInt((bal ? low : 0) + v)
+		return acc
+	}, 0n)
 
 	return neg ? -n : n
 }

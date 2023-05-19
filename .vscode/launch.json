@@ -9,7 +9,6 @@
 			"type": "node",
 			"request": "launch",
 			"args": [ "${relativeFile}" ],
-			// "runtimeArgs": [ "--loader", "ts-node/esm" ],
 			"runtimeArgs": [ "--loader", "tsx" ],
 			"cwd": "${workspaceRoot}",
 			"internalConsoleOptions": "openOnSessionStart"

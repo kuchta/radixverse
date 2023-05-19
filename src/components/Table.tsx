@@ -22,7 +22,7 @@ export const Table = memo(({ tab, radix, numbers, rows, cols, low, high, mainRow
 	console.log(`Table(${tab}-${radix.name}): `, { numbers })
 	return <div className="card overflow-hidden bg-white shadow-xl m-4">
 		<div className="card-title self-center badge badge-lg badge-outline m-2">{radix.name}</div>
-		<div className="card-body overflow-scroll p-2">
+		<div className="card-body overflow-y-auto p-2">
 			<table className="table text-sm">
 				<tbody>{ [ ...Array(rows) ].map((_, row) =>
 					<tr key={`row-${row}`} className={`row${row === mainRow ? ' active' : ''}`}>{ numbers.slice(row * cols, row * cols + cols).map((number, index) =>
@@ -40,7 +40,7 @@ export const Table = memo(({ tab, radix, numbers, rows, cols, low, high, mainRow
 	return ret
 })
 
-function renderValue({ val, low, high, radix }: { val: number; low: number; high: number; radix: Radix }) {
+function renderValue({ val, low, high, radix }: { val: number, low: number, high: number, radix: Radix }) {
 	if (isNaN(val)) return <span></span>
 	const point = low === 0 ? val : val - low
 	const space = low === 0 ? high : high - low
