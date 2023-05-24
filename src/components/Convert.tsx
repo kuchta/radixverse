@@ -1,19 +1,18 @@
-import { useState, memo, useEffect } from 'react'
+import React, { useState, memo, useEffect } from 'react'
 
 import { Radix, num2str, str2num, areRadixesEqual } from '../utils'
 
 
 function Convert({ tab, radixes }: { tab: string, radixes: Radix[] }) {
 	const [ value, setValue ] = useState(0n)
-	const [ currentRadix, setCurrentRadix ] = useState('10')
 
 	const keyDown = (e: KeyboardEvent) => {
 		switch (e.key) {
 			case '0': setValue(0n); break
 			case '+':
-			case '=': setValue((v) => v + 1n); break
+			case '=': setValue(v => v + 1n); break
 			case '-':
-			case '_': setValue((v) => v - 1n); break
+			case '_': setValue(v => v - 1n); break
 		}
 	}
 
@@ -24,12 +23,9 @@ function Convert({ tab, radixes }: { tab: string, radixes: Radix[] }) {
 
 	const updateValue = (v: bigint, radix?: Radix) => {
 		setValue(v)
-		if (radix && radix.name !== currentRadix) {
-			setCurrentRadix(radix.name)
-		}
 	}
 
-	console.log('Convert: ', { radixes })
+	// console.log('Convert: ', { radixes })
 
 	return <div className="flex flex-col gap-1 items-start relative w-full text-[3vh] mx-0 my-[3vh] pl-[3vw]">
 		<div className="flex flex-row gap-1">
@@ -37,20 +33,19 @@ function Convert({ tab, radixes }: { tab: string, radixes: Radix[] }) {
 			<button className="btn btn-circle btn-sm" onClick={() => updateValue(0n)}>␡</button>
 			<button className="btn btn-circle btn-sm" onClick={() => updateValue(value - 1n)}>-</button>
 		</div>
-		{ radixes.map((radix, index) =>
-			<div key={radix.name} className="">
+		{radixes.map((radix, index) =>
+			<div key={radix.name}>
 				<span key={radix.name} className="flex flex-row gap-1 items-center float-left">
 					<button className="btn btn-sm btn-circle" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
 					<button className="btn btn-sm btn-circle" onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
 					<button className="btn btn-sm btn-circle" onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
 					<span className="text-[1.2em]">=</span>
 				</span>
-				<NumberContainerMemo
+				<NumberContainer
 					value={value}
 					radix={radix}
 					radixIndex={index}
 					numRadixes={radixes.length}
-					currentRadix={currentRadix}
 					updateValue={updateValue} />
 			</div>
 		)}
@@ -59,45 +54,44 @@ function Convert({ tab, radixes }: { tab: string, radixes: Radix[] }) {
 
 export default memo(Convert, areRadixesEqual)
 
-const NumberContainerMemo = memo(NumberContainer, (prevProps, props) => {
-	const editing = prevProps.radix.name === props.currentRadix
-	const focused = !document.activeElement || document.activeElement.classList.contains("number")
-	return editing && focused
-})
-
-function NumberContainer(props: {
+function NumberContainer({ value, radix, radixIndex, numRadixes, updateValue }: {
 	value: bigint,
 	radix: Radix,
 	radixIndex: number,
 	numRadixes: number
-	currentRadix: string,
 	updateValue: (v: bigint, radix: Radix) => void
 }) {
+	const [ v, setV ] = useState(num2str(value, radix))
 
-	// console.log('NumberContainer:', props)
+	useEffect(() => setV(num2str(value, radix)), [ value, radix ])
 
-	const str = num2str(props.value, props.radix)
+	const handleInput: React.FormEventHandler<HTMLSpanElement> = e => {
+		try {
+			const s = e.currentTarget.innerText.trimEnd().toUpperCase()
+			const n = str2num(s, radix)
+			updateValue(n, radix)
+		} catch (error) {
+			console.error(error)
+			e.currentTarget.innerText = v
+		}
+		moveCursorToEnd(e.currentTarget)
+	}
 
 	return <>
-		<span className="number break-all text-[1.2em] uppercase outline-none"
-			spellCheck={false}
+		<span
+			className="number break-all text-[1.2em] uppercase outline-none"
 			tabIndex={1}
 			contentEditable={true}
 			suppressContentEditableWarning={true}
-			style={{ color: `hsl(${props.radixIndex / props.numRadixes * 300} 80% 40%)` }}
-			onInput={e => props.updateValue(str2num((e.target as HTMLDivElement).innerText, props.radix), props.radix)}
-			// onFocus={e => { e.target.style.color = `hsl(${props.radixIndex / props.numRadixes * 300}, 80% 40%)` }}
-			onBlur={e => {
-				if (e.target.innerText === '') {
-					props.updateValue(0n, props.radix)
-					e.target.innerText = '0'
-				}
-			}}>
-			{str}
+			onInput={handleInput}
+			spellCheck={false}
+			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}
+		>
+			{v}
 		</span>
 		<span>
-			<sub className="text-[0.4em]">{props.radix.name}</sub>
-			<sup className="text-[0.4em]">({str.length})</sup>
+			<sub className="text-[0.4em]">{radix.name}</sub>
+			<sup className="text-[0.4em]">({v.length})</sup>
 		</span>
 	</>
 }
@@ -112,4 +106,17 @@ function shl(value: bigint, radix: Radix) {
 
 function shr(value: bigint, radix: Radix) {
 	return str2num(num2str(value, radix).slice(0, -1), radix)
+}
+
+function moveCursorToEnd(ref: Node) {
+	if (window.getSelection && document.createRange) {
+		const range = document.createRange()
+		range.selectNodeContents(ref)
+		range.collapse(false)
+		const sel = window.getSelection()
+		if (sel) {
+			sel.removeAllRanges()
+			sel.addRange(range)
+		}
+	}
 }

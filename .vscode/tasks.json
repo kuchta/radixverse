@@ -10,9 +10,24 @@
 		},
 		{
 			"type": "npm",
-			"script": "preview",
+			"script": "check",
 			"problemMatcher": [
-				"$vite"
+				"$tsc"
+			]
+		},
+		{
+			"type": "npm",
+			"script": "check-watch",
+			"group": "build",
+			"problemMatcher": [
+				"$tsc-watch"
+			]
+		},
+		{
+			"type": "npm",
+			"script": "lint",
+			"problemMatcher": [
+				"$eslint-compact"
 			]
 		},
 		{
@@ -25,10 +40,15 @@
 		},
 		{
 			"type": "npm",
-			"script": "lint",
+			"script": "preview",
 			"problemMatcher": [
-				"$eslint-compact"
+				"$vite"
 			]
+		},
+		{
+			"type": "npm",
+			"script": "pre-commit",
+			"problemMatcher": [],
 		}
 	]
 }

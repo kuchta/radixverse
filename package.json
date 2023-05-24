@@ -10,6 +10,7 @@
 	"scripts": {
 		"start": "vite --host",
 		"check": "tsc",
+		"check-watch": "tsc --watch",
 		"lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
 		"test": "tsx --test src/**/*.tests.ts",
 		"build": "vite build",

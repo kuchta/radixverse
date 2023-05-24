@@ -32,7 +32,8 @@ export const radixes = [ ...Array(35) ].flatMap((_, i) => {
 		low: 0,
 		high: v - 1,
 		enabled: [ 2, 3, 9, 10, 12, 27 ].includes(v)
-	}, {
+	}]
+	if (v < 36) ret.push({
 		name: `bij${v}`,
 		system: "bijective",
 		radix,
@@ -40,7 +41,7 @@ export const radixes = [ ...Array(35) ].flatMap((_, i) => {
 		low: 1,
 		high: v,
 		enabled: [ 9, 10, 26 ].includes(v),
-	}]
+	})
 	if (v & 1 && (v <= 19 || v === 27)) {
 		const half = (v - 1) / 2
 		ret.push({
@@ -72,47 +73,52 @@ export function num2str(num: bigint, radix: Radix): string {
 
 	const bij = radix.system === 'bijective'
 	const bal = radix.system === 'balanced'
+	const r = radix.radix
 
 	const ret: string[] = []
 	let d: number
-	let q: bigint
 	while (n > 0n) {
 		if (bij) {
-			q = n % radix.radix === 0n ? n / radix.radix - 1n : n / radix.radix
-			d = Number(n - q * radix.radix)
+			const q = n % r === 0n ? n / r - 1n : n / r
+			d = Number(n - q * r)
 			n = q
 		} else {
-			d = Number(n % radix.radix)
+			d = Number(n % r)
 			if (bal) {
 				if (d > radix.high) {
-					d -= Number(radix.radix)
+					d -= Number(r)
 					n += BigInt(radix.high)
 				}
 				if (neg) d = -d
 				d += radix.high
 			}
-			n /= radix.radix
+			n /= r
 		}
 		ret.unshift(radix.digits[d])
 	}
 
-	if (neg && radix.system !== 'balanced')
+	if (neg && !bal)
 		ret.unshift('-')
 
 	return ret.join('')
 }
 
 export function str2num(str: string, radix: Radix): bigint {
+	if (str === '0') {
+		return 0n
+	}
+
 	const neg = str.startsWith('-')
 	const s = neg ? str.slice(1) : str
 	const digits = radix.digits
 	const bal = radix.system === 'balanced'
+	const bij = radix.system === 'bijective'
 	const low = radix.low
 	const r = radix.radix
 
 	const n = Array.from(s).reduce((acc, d) => {
 		const v = digits.indexOf(d)
-		if (v < 0) throw new Error(`str2num(${str}): Unrecognized digit character: ${d}`)
+		if (v < (bij ? 1 : 0)) throw new Error(`str2num(${str}, ${radix.digits}): Unrecognized digit character: ${d}`)
 		acc = acc * r + BigInt((bal ? low : 0) + v)
 		return acc
 	}, 0n)
