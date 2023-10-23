@@ -3,7 +3,7 @@ import React, { useState, memo, useEffect } from 'react'
 import { Radix, num2str, str2num, areRadixesEqual } from '../utils'
 
 
-function Convert({ tab, radixes }: { tab: string, radixes: Radix[] }) {
+function Convert({ radixes }: { radixes: Radix[] }) {
 	const [ value, setValue ] = useState(0n)
 
 	const keyDown = (e: KeyboardEvent) => {
@@ -21,7 +21,7 @@ function Convert({ tab, radixes }: { tab: string, radixes: Radix[] }) {
 		return () => document.removeEventListener('keydown', keyDown)
 	}, [])
 
-	const updateValue = (v: bigint, radix?: Radix) => {
+	const updateValue = (v: bigint) => {
 		setValue(v)
 	}
 
@@ -35,10 +35,10 @@ function Convert({ tab, radixes }: { tab: string, radixes: Radix[] }) {
 		</div>
 		{radixes.map((radix, index) =>
 			<div key={radix.name}>
-				<span key={radix.name} className="flex flex-row gap-1 items-center float-left">
-					<button className="btn btn-sm btn-circle" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
-					<button className="btn btn-sm btn-circle" onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
-					<button className="btn btn-sm btn-circle" onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
+				<span className="flex flex-row gap-1 items-center float-left" key={radix.name}>
+					<button className="btn btn-sm btn-circle" onClick={() => updateValue(filling_shl(value, radix))}>⋘</button>
+					<button className="btn btn-sm btn-circle" onClick={() => updateValue(shl(value, radix))}>≪</button>
+					<button className="btn btn-sm btn-circle" onClick={() => updateValue(shr(value, radix))}>≫</button>
 					<span className="text-[1.2em]">=</span>
 				</span>
 				<NumberContainer
@@ -59,7 +59,7 @@ function NumberContainer({ value, radix, radixIndex, numRadixes, updateValue }: 
 	radix: Radix,
 	radixIndex: number,
 	numRadixes: number
-	updateValue: (v: bigint, radix: Radix) => void
+	updateValue: (v: bigint) => void
 }) {
 	const [ v, setV ] = useState(num2str(value, radix))
 
@@ -69,7 +69,7 @@ function NumberContainer({ value, radix, radixIndex, numRadixes, updateValue }: 
 		try {
 			const s = e.currentTarget.innerText.trimEnd().toUpperCase()
 			const n = str2num(s, radix)
-			updateValue(n, radix)
+			updateValue(n)
 		} catch (error) {
 			console.error(error)
 			e.currentTarget.innerText = v

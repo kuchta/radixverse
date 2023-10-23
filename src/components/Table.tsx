@@ -9,7 +9,7 @@ export function Tables({ children }: { children: JSX.Element[] }) {
 	</div>
 }
 
-export const Table = memo(({ tab, radix, numbers, rows, cols, low, high, mainRow }: {
+function Table({ tab, radix, numbers, rows, cols, low, high, mainRow }: {
 	tab: string,
 	radix: Radix,
 	numbers: number[],
@@ -18,15 +18,16 @@ export const Table = memo(({ tab, radix, numbers, rows, cols, low, high, mainRow
 	low: number,
 	high: number
 	mainRow?: number,
-}) => {
-	console.log(`Table(${tab}-${radix.name}): `, { numbers })
+}) {
+	// console.log(`Table(${tab}-${radix.name}): `, { numbers })
+
 	return <div className="card overflow-hidden bg-white shadow-xl m-4">
 		<div className="card-title self-center badge badge-lg badge-outline m-2">{radix.name}</div>
 		<div className="card-body overflow-y-auto p-2">
-			<table className="table text-sm">
+			<table className="table table-xs text-sm w-auto">
 				<tbody>{ [ ...Array(rows) ].map((_, row) =>
-					<tr key={`row-${row}`} className={`row${row === mainRow ? ' active' : ''}`}>{ numbers.slice(row * cols, row * cols + cols).map((number, index) =>
-						<td key={`col-${index}`} className="text-right px-[2px] py-[2px]">
+					<tr className={`hover row${row === mainRow ? ' active' : ''}`} key={`row-${row}`}>{ numbers.slice(row * cols, row * cols + cols).map((number, index) =>
+						<td className="text-right px-[2px] py-[2px]" key={`col-${index}`}>
 							{ renderValue({ val: number, low, high, radix }) }
 						</td>)}
 					</tr>)}
@@ -34,9 +35,14 @@ export const Table = memo(({ tab, radix, numbers, rows, cols, low, high, mainRow
 			</table>
 		</div>
 	</div>
-}, ({ numbers: oldNumbers }, { numbers: newNumbers, tab, radix }) => {
-	const ret = oldNumbers.length === newNumbers.length && oldNumbers.every((n, i) => isNaN(n) ? isNaN(newNumbers[i]) : n === newNumbers[i])
-	// console.log(`memo(Table(${tab}-${radix.name})): `, { ret, oldNumbers, newNumbers })
+}
+
+export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: newRadix, numbers: newNumbers, tab }) => {
+	const ret = oldRadix.name === newRadix.name
+		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
+		&& oldNumbers.length === newNumbers.length
+		&& oldNumbers.every((n, i) => isNaN(n) ? isNaN(newNumbers[i]) : n === newNumbers[i])
+	// console.log(`areNumbersEqual(${tab}-${newRedix.name}): `, ret)
 	return ret
 })
 
