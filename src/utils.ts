@@ -1,13 +1,3 @@
-export type Radix = {
-	name: string
-	system: 'standard' | 'bijective' | 'balanced'
-	radix: bigint
-	chars: string[]
-	low: number
-	high: number
-	enabled: boolean
-}
-
 const zero = '0'
 const base9 = '123456789'
 const base10 = zero + base9
@@ -19,24 +9,69 @@ const base27 = zero + base26
 const balBase27 = 'ABCDEFGHIJKLM' + zero + 'NOPQRSTUVWXYZ'
 // const base36 = base10 + base26
 const balBase36 = baseMinus26 + baseMinus9 + base10 + base26
-export const baseChars = s2a(balBase36)
 // const base36cz = 'AÁBCČDĎEÉFGHIÍJKLMNŇOÓPQRŘSŠTŤUÚVXZŽ'
 // const base42 = [ ' ', 'A', 'Á', 'B', 'C', 'Č', 'D', 'Ď', 'E', 'É', 'Ě', 'F', 'G', 'H', 'Ch', 'I', 'Í', 'J', 'K', 'L', 'M', 'N', 'Ň', 'O', 'Ó', 'P', 'Q', 'R', 'Ř', 'S', 'Š', 'T', 'Ť', 'U', 'Ú', 'Ů', 'V', 'W', 'X', 'Y', 'Ý', 'Z', 'Ž' ]
 
+const LS_THEME = 'theme'
+const LS_CHARS = 'chars'
+const LS_RADIXES = 'radixes'
 
-export function s2a(s: string) {
-	return [...new Intl.Segmenter().segment(s)].map(s => s.segment)
+export const defaultChars = balBase36
+export const defaultCharsArray = s2a(defaultChars)
+
+export type Radix = {
+	name: string
+	system: 'standard' | 'bijective' | 'balanced'
+	radix: bigint
+	chars: string[]
+	low: number
+	high: number
+	enabled: boolean
 }
 
-export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, { radixes: newRadixes}: { radixes: Radix[] }) {
-	const ret = oldRadixes.length === newRadixes.length
-		&& oldRadixes.every((radix, i) => radix.name === newRadixes[i].name
-			&& radix.chars.every((char, j) => char === newRadixes[i].chars[j]))
-	// console.log(`areRadixesEqual(${tab}): `, ret)
-	return ret
+export function getThemeLS() {
+	return localStorage.getItem(LS_THEME)
 }
 
-export function createRadixes(chars = baseChars) {
+export function setThemeLS(theme: string) {
+	document.documentElement.setAttribute('data-theme', theme)
+	localStorage.setItem(LS_THEME, theme)
+}
+
+export function getCharsLS() {
+	return localStorage.getItem(LS_CHARS)
+}
+
+export function setCharsLS(chars?: string) {
+	if (chars) {
+		localStorage.setItem(LS_CHARS, chars)
+	} else {
+		localStorage.removeItem(LS_CHARS)
+	}
+}
+
+export function getRadixesLS() {
+	const item = localStorage.getItem(LS_RADIXES)
+	if (!item) {
+		return
+	}
+
+	const radixes = JSON.parse(item) as Radix[]
+	return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name))
+}
+
+export function setRadixesLS(radixes: Radix[]) {
+	const rs = radixes.map(r => ({ name: r.name, radix: Number(r.radix), system: r.system, chars: r.chars, enabled: r.enabled }))
+	localStorage.setItem(LS_RADIXES, JSON.stringify(rs))
+}
+
+export function s2a(s: string): string[]
+export function s2a(s: string | undefined): string[] | undefined
+export function s2a(s: string | undefined): string[] | undefined {
+	return s ? [...new Intl.Segmenter().segment(s)].map(s => s.segment) : undefined
+}
+
+export function createRadixes(chars = defaultCharsArray) {
 	return [ ...Array(35) ].flatMap((_, i) => {
 		const radix = i + 2
 		const ret = [ createRadix(radix, 'standard', chars) ]
@@ -46,7 +81,7 @@ export function createRadixes(chars = baseChars) {
 	})
 }
 
-export function createRadix(radix: number, system: Radix["system"], chars = baseChars, enabled?: boolean) {
+export function createRadix(radix: number, system: Radix["system"], chars = defaultCharsArray, enabled?: boolean, name?: string) {
 	if (radix < 0 || radix > (system === 'standard' ? 36 : 35)) throw new Error(`getRadix: Radix(${system}) of out range: ${radix}`)
 	if (system === 'balanced' && radix % 2 === 0) throw new Error(`getRadix: Radix(${system}) must be even: ${radix}`)
 
@@ -56,10 +91,10 @@ export function createRadix(radix: number, system: Radix["system"], chars = base
 	if (system === 'standard') {
 		if (chars.length === radix) zeroAt = 0
 		ret = {
-			name: `${radix}`,
+			name: name ?? `${radix}`,
 			system: 'standard',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === baseChars ? s2a(base27) : chars.slice(zeroAt, zeroAt + radix),
+			chars: radix === 27 && chars === defaultCharsArray ? s2a(base27) : chars.slice(zeroAt, zeroAt + radix),
 			low: 0,
 			high: radix - 1,
 			enabled: enabled != undefined ? enabled : [ 2, 6, 9, 10, 12, 18, 27, 36 ].includes(radix)
@@ -67,10 +102,10 @@ export function createRadix(radix: number, system: Radix["system"], chars = base
 	} else if (system === 'bijective') {
 		if (chars.length === radix + 1) zeroAt = 0
 		ret = {
-			name: `bij${radix}`,
+			name: name ?? `bij-${radix}`,
 			system: 'bijective',
 			radix: BigInt(radix),
-			chars: radix === 26 && chars === baseChars ? s2a(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
+			chars: radix === 26 && chars === defaultCharsArray ? s2a(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
 			low: 1,
 			high: radix,
 			enabled: enabled != undefined ? enabled : [ 9, 10, 26, 35 ].includes(radix),
@@ -78,16 +113,24 @@ export function createRadix(radix: number, system: Radix["system"], chars = base
 	} else {
 		const half = (radix - 1) / 2
 		ret = {
-			name: `bal${radix}`,
+			name: name ?? `bal-${radix}`,
 			system: 'balanced',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === baseChars ? s2a(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
+			chars: radix === 27 && chars === defaultCharsArray ? s2a(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
 			low: -half,
 			high: half,
 			enabled: enabled != undefined ? enabled : [ 3, 9, 19, 27 ].includes(radix),
 		}
 	}
 
+	return ret
+}
+
+export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, { radixes: newRadixes}: { radixes: Radix[] }) {
+	const ret = oldRadixes.length === newRadixes.length
+		&& oldRadixes.every((radix, i) => radix.name === newRadixes[i].name
+			&& radix.chars.every((char, j) => char === newRadixes[i].chars[j]))
+	// console.log(`areRadixesEqual(${tab}): `, ret)
 	return ret
 }
 
