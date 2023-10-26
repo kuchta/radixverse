@@ -15,12 +15,11 @@ function Multiply({ radixes }: { radixes: Radix[] }) {
 			const lowest = low >= 0 ? low : low * high
 			const highest = high * high
 			const arr = [ NaN, ...Array.from({ length: (high - (low - 1)) }, (_, i) => i + low) ]
-			const rows = arr.length
-			const numbers = arr.flatMap(row => arr.map(col => {
+			const numbers = arr.map(row => arr.map(col => {
 				if (isNaN(row) && isNaN(col)) return NaN
 				return isNaN(row) || isNaN(col) ? isNaN(row) ? col : row : row * col
 			}))
-			return <Table key={`multiply-${radix.name}`} tab="multiply" radix={radix} numbers={numbers} rows={rows} cols={rows} low={lowest} high={highest}/>
+			return <Table key={`multiply-${radix.name}`} tab="multiply" radix={radix} numbers={numbers} low={lowest} high={highest}/>
 		})}
 	</Tables>
 }

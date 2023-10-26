@@ -10,15 +10,16 @@ function Show({ radixes }: { radixes: Radix[] }) {
 	return <Tables>
 		{ radixes.map(radix => {
 			const { system, low, high } = radix
-			const bijective = system === 'bijective'
-			const balanced = system === 'balanced'
-			const rows = high - (bijective ? 0 : low) + 1
+			const bij = system === 'bijective'
+			const bal = system === 'balanced'
+			const my = system === 'my'
+			const rows = high - (bij ? 0 : low) + 1
 			const cols = high - low + 1
-			const highest = balanced ? (high - low) * (high + 1) : bijective ? high * (high + 1) : high === 1 ? 3 : (high + 1) * (high + 1) - 1
-			const lowest = balanced ? -highest : low
-			const mainRow = balanced ? Math.trunc(rows / 2) : 0
-			const numbers = [ ...Array(cols * rows) ].map((_, i) => i + lowest)
-			return <Table key={`show-${radix.name}`} tab="show" radix={radix} numbers={numbers} rows={rows} cols={cols} low={lowest} high={highest} mainRow={mainRow}/>
+			const highest = my ? high * (cols + 1) : bal ? (high - low) * (high + 1) : bij ? high * (high + 1) : high === 1 ? 3 : (high + 1) * (high + 1) - 1
+			const lowest = my ? low * (cols + 1) : bal ? -highest : low
+			const mainRow = my ? Math.trunc(rows / 2) - 1 : bal ? Math.trunc(rows / 2) : 0
+			const numbers = [ ...Array(rows) ].map((_, i) => [ ...Array(cols) ].map((_, j) => (i * cols) + j + lowest))
+			return <Table key={`show-${radix.name}`} tab="show" radix={radix} numbers={numbers} low={lowest} high={highest} mainRow={mainRow}/>
 		})}
 	</Tables>
 }

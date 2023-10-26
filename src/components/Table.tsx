@@ -9,12 +9,10 @@ export function Tables({ children }: { children: JSX.Element[] }) {
 	</div>
 }
 
-function Table({ tab, radix, numbers, rows, cols, low, high, mainRow }: {
+function Table({ tab, radix, numbers, low, high, mainRow }: {
 	tab: string,
 	radix: Radix,
-	numbers: number[],
-	rows: number,
-	cols: number,
+	numbers: number[][],
 	low: number,
 	high: number
 	mainRow?: number,
@@ -25,10 +23,10 @@ function Table({ tab, radix, numbers, rows, cols, low, high, mainRow }: {
 		<div className="card-title self-center badge badge-lg badge-outline m-2">{radix.name}</div>
 		<div className="card-body overflow-y-auto p-2">
 			<table className="table table-xs text-sm w-auto">
-				<tbody>{ [ ...Array(rows) ].map((_, row) =>
-					<tr className={`hover row${row === mainRow ? ' active' : ''}`} key={`row-${row}`}>{ numbers.slice(row * cols, row * cols + cols).map((number, index) =>
-						<td className="text-right px-[2px] py-[2px]" key={`col-${index}`}>
-							{ renderValue({ val: number, low, high, radix }) }
+				<tbody>{ numbers.map((row, rowIndex) =>
+					<tr className={`hover row${rowIndex === mainRow ? ' active' : ''}`} key={`row-${rowIndex}`}>{ row.map((number, colIndex) =>
+						<td className="text-right px-[2px] py-[2px]" key={`col-${colIndex}`}>
+							{ renderValue(number, low, high, radix) }
 						</td>)}
 					</tr>)}
 				</tbody>
@@ -41,12 +39,12 @@ export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: ne
 	const ret = oldRadix.name === newRadix.name
 		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
 		&& oldNumbers.length === newNumbers.length
-		&& oldNumbers.every((n, i) => isNaN(n) ? isNaN(newNumbers[i]) : n === newNumbers[i])
+		&& oldNumbers.every((row, i) => row.every((n, j) => isNaN(n) ? isNaN(newNumbers[i][j]) : n === newNumbers[i][j]))
 	// console.log(`areNumbersEqual(${tab}-${newRedix.name}): `, ret)
 	return ret
 })
 
-function renderValue({ val, low, high, radix }: { val: number, low: number, high: number, radix: Radix }) {
+function renderValue(val: number, low: number, high: number, radix: Radix) {
 	if (isNaN(val)) return <span></span>
 	const point = low === 0 ? val : val - low
 	const space = low === 0 ? high : high - low

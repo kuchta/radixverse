@@ -21,7 +21,7 @@ export const defaultCharsArray = s2a(defaultChars)
 
 export type Radix = {
 	name: string
-	system: 'standard' | 'bijective' | 'balanced'
+	system: 'standard' | 'bijective' | 'balanced' | 'my'
 	radix: bigint
 	chars: string[]
 	low: number
@@ -77,12 +77,13 @@ export function createRadixes(chars = defaultCharsArray) {
 		const ret = [ createRadix(radix, 'standard', chars) ]
 		if (radix < 36) ret.push(createRadix(radix, 'bijective', chars))
 		if (radix & 1) ret.push(createRadix(radix, 'balanced', chars))
+		// if (radix % 2 === 0) ret.push(createRadix(radix, 'my', chars))
 		return ret
 	})
 }
 
 export function createRadix(radix: number, system: Radix["system"], chars = defaultCharsArray, enabled?: boolean, name?: string) {
-	if (radix < 0 || radix > (system === 'standard' ? 36 : 35)) throw new Error(`getRadix: Radix(${system}) of out range: ${radix}`)
+	if (radix < 0 || radix > (system === 'standard' || system === 'my' ? 36 : 35)) throw new Error(`getRadix: Radix(${system}) of out range: ${radix}`)
 	if (system === 'balanced' && radix % 2 === 0) throw new Error(`getRadix: Radix(${system}) must be even: ${radix}`)
 
 	let ret: Radix
@@ -97,7 +98,7 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			chars: radix === 27 && chars === defaultCharsArray ? s2a(base27) : chars.slice(zeroAt, zeroAt + radix),
 			low: 0,
 			high: radix - 1,
-			enabled: enabled != undefined ? enabled : [ 2, 6, 9, 10, 12, 18, 27, 36 ].includes(radix)
+			enabled: enabled != undefined ? enabled : [ 2, 3, 6, 9, 10, 12, 19, 27 ].includes(radix)
 		}
 	} else if (system === 'bijective') {
 		if (chars.length === radix + 1) zeroAt = 0
@@ -108,9 +109,9 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			chars: radix === 26 && chars === defaultCharsArray ? s2a(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
 			low: 1,
 			high: radix,
-			enabled: enabled != undefined ? enabled : [ 9, 10, 26, 35 ].includes(radix),
+			enabled: enabled != undefined ? enabled : [ 6, 9, 10, 26 ].includes(radix),
 		}
-	} else {
+	} else if (system === 'balanced') {
 		const half = (radix - 1) / 2
 		ret = {
 			name: name ?? `bal-${radix}`,
@@ -121,6 +122,19 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			high: half,
 			enabled: enabled != undefined ? enabled : [ 3, 9, 19, 27 ].includes(radix),
 		}
+	} else if (system === 'my') {
+		const half = radix / 2
+		ret = {
+			name: name ?? `my-${radix}`,
+			system: 'my',
+			radix: BigInt(radix),
+			chars: chars.slice(zeroAt - half + 1, zeroAt + half + 1),
+			low: -half + 1,
+			high: half,
+			enabled: enabled != undefined ? enabled : [ 2, 4, 6, 8, 10, 12, 18, 20, 26, 28 ].includes(radix),
+		}
+	} else {
+		throw new Error('createRadix: Unknown system:', system)
 	}
 
 	return ret

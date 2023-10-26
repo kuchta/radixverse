@@ -21,6 +21,8 @@ export default function App() {
 	const [ radixes, _setRadixes ] = useState(getRadixesLS() ?? createRadixes())
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(v => v.enabled))
 
+	// console.log('App: ', { enabledRadixes })
+
 	const setRadixes: SetRadixes = (command) => {
 		// console.log('setRadixes:', command)
 
@@ -84,8 +86,6 @@ export default function App() {
 		_setRadixes(newRadixes)
 		setEnabledRadixes(newRadixes.filter(v => v.enabled))
 	}
-
-	// console.log('App: ', { enabledRadixes })
 
 	return <div className="font-mono">
 		<Header radixes={radixes} setRadixes={setRadixes}/>
