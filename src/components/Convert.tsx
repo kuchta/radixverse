@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect } from 'react'
+import React, { useState, memo, useEffect, useRef } from 'react'
 
 import { Radix, num2str, str2num, areRadixesEqual } from '../utils'
 
@@ -7,8 +7,10 @@ function Convert({ radixes }: { radixes: Radix[] }) {
 	const [ value, setValue ] = useState(0n)
 
 	const keyDown = (e: KeyboardEvent) => {
+		// console.log('keyDown:', e)
 		switch (e.key) {
-			case '0': setValue(0n); break
+			case 'Backspace':
+			case 'Delete': setValue(0n); break
 			case '+':
 			case '=': setValue(v => v + 1n); break
 			case '-':
@@ -62,19 +64,41 @@ function NumberContainer({ value, radix, radixIndex, numRadixes, updateValue }: 
 	updateValue: (v: bigint) => void
 }) {
 	const [ v, setV ] = useState(num2str(value, radix))
+	const ref = useRef<HTMLSpanElement>(null)
+	const [ position, setPosition ] = useState<number>()
 
-	useEffect(() => setV(num2str(value, radix)), [ value, radix ])
+	useEffect(() => {
+		if (position == undefined) {
+			setV(num2str(value, radix))
+		}
+	}, [ value, radix ])
+
+	useEffect(() => {
+		if (position != undefined && ref.current) {
+			setCaretPosition(ref.current, position)
+		}
+	}, [ v ])
 
 	const handleInput: React.FormEventHandler<HTMLSpanElement> = e => {
+		e.stopPropagation()
+
+		const s = e.currentTarget.innerText.trim().toUpperCase()
+		if (s === '') return
+
+		let position = getCaretPosition()
 		try {
-			const s = e.currentTarget.innerText.trimEnd().toUpperCase()
 			const n = str2num(s, radix)
+			setV(s)
 			updateValue(n)
 		} catch (error) {
 			console.error(error)
 			e.currentTarget.innerText = v
+			if (position && ref.current) {
+				position -= 1
+				setCaretPosition(ref.current, position)
+			}
 		}
-		moveCursorToEnd(e.currentTarget)
+		setPosition(position)
 	}
 
 	return <>
@@ -83,8 +107,10 @@ function NumberContainer({ value, radix, radixIndex, numRadixes, updateValue }: 
 			tabIndex={1}
 			contentEditable={true}
 			suppressContentEditableWarning={true}
-			onInput={handleInput}
 			spellCheck={false}
+			onInput={handleInput}
+			onBlur={() => setPosition(undefined)}
+			ref={ref}
 			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}
 		>
 			{v}
@@ -108,15 +134,16 @@ function shr(value: bigint, radix: Radix) {
 	return str2num(num2str(value, radix).slice(0, -1), radix)
 }
 
-function moveCursorToEnd(ref: Node) {
-	if (window.getSelection && document.createRange) {
-		const range = document.createRange()
-		range.selectNodeContents(ref)
-		range.collapse(false)
-		const sel = window.getSelection()
-		if (sel) {
-			sel.removeAllRanges()
-			sel.addRange(range)
-		}
+function getCaretPosition() {
+	const sel = window.getSelection()
+	if (sel) {
+		return sel.getRangeAt(0).startOffset
+	}
+}
+
+function setCaretPosition(node: Node, position: number) {
+	const sel = window.getSelection()
+	if (sel) {
+		sel.setPosition(node.childNodes[0], position)
 	}
 }

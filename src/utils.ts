@@ -24,6 +24,7 @@ export type Radix = {
 	system: 'standard' | 'bijective' | 'balanced' | 'my'
 	radix: bigint
 	chars: string[]
+	zeroAt: number
 	low: number
 	high: number
 	enabled: boolean
@@ -96,6 +97,7 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			system: 'standard',
 			radix: BigInt(radix),
 			chars: radix === 27 && chars === defaultCharsArray ? s2a(base27) : chars.slice(zeroAt, zeroAt + radix),
+			zeroAt: 0,
 			low: 0,
 			high: radix - 1,
 			enabled: enabled != undefined ? enabled : [ 2, 3, 6, 9, 10, 12, 19, 27 ].includes(radix)
@@ -107,6 +109,7 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			system: 'bijective',
 			radix: BigInt(radix),
 			chars: radix === 26 && chars === defaultCharsArray ? s2a(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
+			zeroAt: 0,
 			low: 1,
 			high: radix,
 			enabled: enabled != undefined ? enabled : [ 6, 9, 10, 26 ].includes(radix),
@@ -118,6 +121,7 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			system: 'balanced',
 			radix: BigInt(radix),
 			chars: radix === 27 && chars === defaultCharsArray ? s2a(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
+			zeroAt: half,
 			low: -half,
 			high: half,
 			enabled: enabled != undefined ? enabled : [ 3, 9, 19, 27 ].includes(radix),
@@ -129,6 +133,7 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			system: 'my',
 			radix: BigInt(radix),
 			chars: chars.slice(zeroAt - half + 1, zeroAt + half + 1),
+			zeroAt: half - 1,
 			low: -half + 1,
 			high: half,
 			enabled: enabled != undefined ? enabled : [ 2, 4, 6, 8, 10, 12, 18, 20, 26, 28 ].includes(radix),
@@ -144,7 +149,7 @@ export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, {
 	const ret = oldRadixes.length === newRadixes.length
 		&& oldRadixes.every((radix, i) => radix.name === newRadixes[i].name
 			&& radix.chars.every((char, j) => char === newRadixes[i].chars[j]))
-	// console.log(`areRadixesEqual(${tab}): `, ret)
+	// console.log(`areRadixesEqual(${tab}):`, ret)
 	return ret
 }
 
@@ -189,7 +194,7 @@ export function num2str(num: bigint, radix: Radix): string {
 }
 
 export function str2num(str: string, radix: Radix): bigint {
-	if (str === '0') {
+	if (str === radix.chars[radix.zeroAt]) {
 		return 0n
 	}
 
@@ -203,7 +208,7 @@ export function str2num(str: string, radix: Radix): bigint {
 
 	const n = Array.from(s).reduce((acc, d) => {
 		const v = chars.indexOf(d)
-		if (v < (bij ? 1 : 0)) throw new Error(`str2num(${str}, ${radix.chars}): Unrecognized digit character: ${d}`)
+		if (v < (bij ? 1 : 0)) throw new Error(`str2num("${str}", "${radix.chars.join('')}"): Unrecognized digit character: "${d}"`)
 		acc = acc * r + BigInt((bal ? low : 0) + v)
 		return acc
 	}, 0n)
