@@ -17,7 +17,7 @@ const LS_CHARS = 'chars'
 const LS_RADIXES = 'radixes'
 
 export const defaultChars = balBase36
-export const defaultCharsArray = s2a(defaultChars)
+export const defaultCharsArray = str2arr(defaultChars)
 
 export type Radix = {
 	name: string
@@ -31,7 +31,7 @@ export type Radix = {
 }
 
 export function getThemeLS() {
-	return localStorage.getItem(LS_THEME)
+	return localStorage.getItem(LS_THEME) ?? undefined
 }
 
 export function setThemeLS(theme: string) {
@@ -40,7 +40,7 @@ export function setThemeLS(theme: string) {
 }
 
 export function getCharsLS() {
-	return localStorage.getItem(LS_CHARS)
+	return localStorage.getItem(LS_CHARS) ?? undefined
 }
 
 export function setCharsLS(chars?: string) {
@@ -66,9 +66,17 @@ export function setRadixesLS(radixes: Radix[]) {
 	localStorage.setItem(LS_RADIXES, JSON.stringify(rs))
 }
 
-export function s2a(s: string): string[]
-export function s2a(s: string | undefined): string[] | undefined
-export function s2a(s: string | undefined): string[] | undefined {
+export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, { radixes: newRadixes}: { radixes: Radix[] }) {
+	const ret = oldRadixes.length === newRadixes.length
+		&& oldRadixes.every((radix, i) => radix.name === newRadixes[i].name
+			&& radix.chars.every((char, j) => char === newRadixes[i].chars[j]))
+	// console.log(`areRadixesEqual(${tab}):`, ret)
+	return ret
+}
+
+export function str2arr(s: string): string[]
+export function str2arr(s: string | undefined): string[] | undefined
+export function str2arr(s: string | undefined): string[] | undefined {
 	return s ? [...new Intl.Segmenter().segment(s)].map(s => s.segment) : undefined
 }
 
@@ -83,9 +91,14 @@ export function createRadixes(chars = defaultCharsArray) {
 	})
 }
 
+export function updateRadixes(radixes: Radix[], chars = defaultCharsArray) {
+	return radixes.map(r => createRadix(Number(r.radix), r.system, chars, r.enabled, r.name))
+}
+
 export function createRadix(radix: number, system: Radix["system"], chars = defaultCharsArray, enabled?: boolean, name?: string) {
 	if (radix < 0 || radix > (system === 'standard' || system === 'my' ? 36 : 35)) throw new Error(`getRadix: Radix(${system}) of out range: ${radix}`)
-	if (system === 'balanced' && radix % 2 === 0) throw new Error(`getRadix: Radix(${system}) must be even: ${radix}`)
+	if (system === 'balanced' && radix % 2 === 0) throw new Error(`getRadix: Radix(${system}) must be odd: ${radix}`)
+	if (system === 'my' && radix % 2 !== 0) throw new Error(`getRadix: Radix(${system}) must be even: ${radix}`)
 
 	let ret: Radix
 	let zeroAt = Math.trunc(chars.length / 2)
@@ -96,7 +109,7 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			name: name ?? `${radix}`,
 			system: 'standard',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === defaultCharsArray ? s2a(base27) : chars.slice(zeroAt, zeroAt + radix),
+			chars: radix === 27 && chars === defaultCharsArray ? str2arr(base27) : chars.slice(zeroAt, zeroAt + radix),
 			zeroAt: 0,
 			low: 0,
 			high: radix - 1,
@@ -108,11 +121,11 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			name: name ?? `bij-${radix}`,
 			system: 'bijective',
 			radix: BigInt(radix),
-			chars: radix === 26 && chars === defaultCharsArray ? s2a(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
+			chars: radix === 26 && chars === defaultCharsArray ? str2arr(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
 			zeroAt: 0,
 			low: 1,
 			high: radix,
-			enabled: enabled != undefined ? enabled : [ 6, 9, 10, 26 ].includes(radix),
+			enabled: enabled != undefined ? enabled : [ 6, 9, 10, 12, 26 ].includes(radix),
 		}
 	} else if (system === 'balanced') {
 		const half = (radix - 1) / 2
@@ -120,13 +133,14 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			name: name ?? `bal-${radix}`,
 			system: 'balanced',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === defaultCharsArray ? s2a(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
+			chars: radix === 27 && chars === defaultCharsArray ? str2arr(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
 			zeroAt: half,
 			low: -half,
 			high: half,
 			enabled: enabled != undefined ? enabled : [ 3, 9, 19, 27 ].includes(radix),
 		}
 	} else if (system === 'my') {
+		if (chars.length === radix) zeroAt -= 1
 		const half = radix / 2
 		ret = {
 			name: name ?? `my-${radix}`,
@@ -136,7 +150,7 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 			zeroAt: half - 1,
 			low: -half + 1,
 			high: half,
-			enabled: enabled != undefined ? enabled : [ 2, 4, 6, 8, 10, 12, 18, 20, 26, 28 ].includes(radix),
+			enabled: enabled != undefined ? enabled : [ 2, 4, 6, 8, 10, 12, 16, 18, 20, 22, 24, 30, 36 ].includes(radix),
 		}
 	} else {
 		throw new Error('createRadix: Unknown system:', system)
@@ -145,49 +159,44 @@ export function createRadix(radix: number, system: Radix["system"], chars = defa
 	return ret
 }
 
-export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, { radixes: newRadixes}: { radixes: Radix[] }) {
-	const ret = oldRadixes.length === newRadixes.length
-		&& oldRadixes.every((radix, i) => radix.name === newRadixes[i].name
-			&& radix.chars.every((char, j) => char === newRadixes[i].chars[j]))
-	// console.log(`areRadixesEqual(${tab}):`, ret)
-	return ret
-}
-
 export function num2str(num: bigint, radix: Radix): string {
 	if (num === 0n) {
-		return radix.chars[radix.system === 'balanced' ? radix.high : 0]
+		return radix.chars[radix.zeroAt]
 	}
 
 	const neg = num < 0n
 	let n = neg ? -num : num
 
 	const bij = radix.system === 'bijective'
+	const my = radix.system === 'my'
 	const bal = radix.system === 'balanced'
 	const r = radix.radix
+	const rh = BigInt(radix.high)
+	const za = BigInt(radix.zeroAt)
 
 	const ret: string[] = []
-	let d: number
+	let d: bigint
 	while (n > 0n) {
+		d = n % r
 		if (bij) {
-			const q = n % r === 0n ? n / r - 1n : n / r
-			d = Number(n - q * r)
+			const q = d === 0n ? n / r - 1n : n / r
+			d = n - q * r
 			n = q
 		} else {
-			d = Number(n % r)
-			if (bal) {
-				if (d > radix.high) {
-					d -= Number(r)
-					n += BigInt(radix.high)
+			if (bal || my) {
+				if (d > rh || my && neg && d === rh) {
+					d -= r
+					n += rh
 				}
 				if (neg) d = -d
-				d += radix.high
+				d = za + d
 			}
 			n /= r
 		}
-		ret.unshift(radix.chars[d])
+		ret.unshift(radix.chars[Number(d)])
 	}
 
-	if (neg && !bal)
+	if (neg && !(bal || my))
 		ret.unshift('-')
 
 	return ret.join('')
@@ -200,17 +209,16 @@ export function str2num(str: string, radix: Radix): bigint {
 
 	const neg = str.startsWith('-')
 	const s = neg ? str.slice(1) : str
-	const chars = radix.chars
-	const bal = radix.system === 'balanced'
 	const bij = radix.system === 'bijective'
-	const low = radix.low
+	const bal = radix.system === 'balanced' || radix.system === 'my'
 	const r = radix.radix
+	const chars = radix.chars
+	const low = radix.low
 
 	const n = Array.from(s).reduce((acc, d) => {
 		const v = chars.indexOf(d)
 		if (v < (bij ? 1 : 0)) throw new Error(`str2num("${str}", "${radix.chars.join('')}"): Unrecognized digit character: "${d}"`)
-		acc = acc * r + BigInt((bal ? low : 0) + v)
-		return acc
+		return acc * r + BigInt((bal ? low : 0) + v)
 	}, 0n)
 
 	return neg ? -n : n

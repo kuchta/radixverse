@@ -1,7 +1,7 @@
 import { FormEventHandler, useState } from 'react'
 import themes from 'daisyui/src/theming/themes'
 
-import { SetRadixes } from './App'
+import { WhoToggle, SetRadixes } from './App'
 import { Radix, defaultChars, getCharsLS, getThemeLS, setThemeLS } from '../utils'
 
 
@@ -16,11 +16,11 @@ export default function Header({ radixes, setRadixes }: {
 	const [ expanded, setExpanded ] = useState(false)
 	const [ inputChars, setInputChars ] = useState(allChars)
 
-	// console.log('Header: ', { theme })
+	// console.log('Header: ', radixes.filter(v => v.enabled))
 
 	const setTheme = (theme: string) => {
-		_setTheme(theme)
 		setThemeLS(theme)
+		_setTheme(theme)
 	}
 
 	const setRadixChars: FormEventHandler<HTMLFormElement> = (e) => {
@@ -44,24 +44,15 @@ export default function Header({ radixes, setRadixes }: {
 				}
 			} else {
 				const r = radixes.find(r => r.name === radix)!
-				setRadixes({ what: 'set-chars', who: r, chars: e.type === 'submit' ? chars : undefined })
+				const newRadixes = setRadixes({ what: 'set-chars', who: r, chars: e.type === 'submit' ? chars : undefined })
 				if (e.type === 'reset') {
-					setInputChars(r?.chars.join(''))
+					setInputChars(newRadixes.find(r => r.name === radix)!.chars.join(''))
 				}
 			}
 		} catch (error) {
 			alert(error)
 		}
 	}
-
-	const button = (radix: Radix) =>
-		<button
-			className={`btn btn-xs btn-outline ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
-			key={radix.name}
-			onClick={() => setRadixes({ what: 'toggle', who: radix })}
-		>
-			{ String(radix.radix) }
-		</button>
 
 	return (
 		<header>
@@ -83,12 +74,15 @@ export default function Header({ radixes, setRadixes }: {
 				<div className="z-50">
 					<ul className="menu menu-horizontal justify-end">
 						<li>
-							<a className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} onClick={() => setExpanded(!expanded)}>Settings</a></li>
+							<a className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} onClick={() => setExpanded(!expanded)}>Settings</a>
+						</li>
 						<li>
 							<details>
 								<summary>Themes</summary>
-								<ul className="p-2 bg-base-100">
-									{themeNames.map(t => <li key={t}><a className={t === theme ? 'active': ''} onClick={() => setTheme(t)}>{t[0].toUpperCase() + t.slice(1)}</a></li>)}
+								<ul className="p-2 bg-base-100">{ themeNames.map(t =>
+									<li key={t}>
+										<a className={t === theme ? 'active': ''} onClick={() => setTheme(t)}>{t[0].toUpperCase() + t.slice(1)}</a>
+									</li>)}
 								</ul>
 							</details>
 						</li>
@@ -100,83 +94,93 @@ export default function Header({ radixes, setRadixes }: {
 					<div className="card card-bordered">
 						<div className="card-actions justify-center items-center p-2">
 							<form className="card card-bordered flex-row justify-items-center items-center gap-1 p-2" onReset={setRadixChars} onSubmit={setRadixChars}>
-								<select className="text-sm rounded-md bg-base-100" name="radix" defaultValue="all"
+								<select
+									className="text-sm rounded-md bg-base-100"
+									name="radix"
+									defaultValue="all"
 									onChange={e => setInputChars(e.target.value === 'all' ? allChars : radixes.find(r => r.name === e.target.value)!.chars.join('')) }
 								>
 									<option value="all">All</option>
 									{ radixes.map(radix => <option key={radix.name}>{radix.name}</option>) }
 								</select>
-								<textarea className="resize-none bg-base-100 leading-4 h-[5em] w-[12rem] md:h-[2em] md:w-[29em] xl:h-[1em] xl:w-[57em] p-0"
+								<textarea
+									className="resize-none bg-base-100 leading-4 h-[5em] w-[12rem] md:h-[2em] md:w-[29em] xl:h-[1em] xl:w-[57em] p-0"
 									name="chars"
 									value={inputChars}
 									onChange={e => setInputChars(e.target.value)}
 								/>
 								<span className="flex flex-col gap-1 lg:gap-0 lg:flex-row lg:join justify-center">
-									<button className="btn btn-xs btn-outline btn-success join-item" type="reset" >Reset</button>
-									<button className="btn btn-xs btn-outline btn-error join-item" type="submit" >Set</button>
+									<button className="btn btn-xs btn-outline btn-success join-item" type="reset">Reset</button>
+									<button className="btn btn-xs btn-outline btn-error join-item" type="submit">Set</button>
 								</span>
 							</form>
 						</div>
 						<div className="flex flex-row flex-wrap justify-center items-center gap-2">
-							<span className="join">
-								<button className="btn btn-xs btn-outline btn-success join-item" onClick={() => setRadixes({ what: 'toggle', who: 'all', enabled: true })}>Add</button>
-								<span className="btn btn-xs btn-outline pointer-events-none join-item cursor-default">All</span>
-								<button className="btn btn-xs btn-outline btn-error join-item" onClick={() => setRadixes({ what: 'toggle', who: 'all', enabled: false })}>Remove</button>
-							</span>
-							<span className="join">
-								<button className="btn btn-xs btn-outline btn-success join-item" onClick={() => setRadixes({ what: 'toggle', who: 'odd', enabled: true })}>Add</button>
-								<span className="btn btn-xs btn-outline pointer-events-none join-item cursor-default">Odd</span>
-								<button className="btn btn-xs btn-outline btn-error join-item" onClick={() => setRadixes({ what: 'toggle', who: 'odd', enabled: false })}>Remove</button>
-							</span>
-							<span className="join">
-								<button className="btn btn-xs btn-outline btn-success join-item" onClick={() => setRadixes({ what: 'toggle', who: 'even', enabled: true })}>Add</button>
-								<span className="btn btn-xs btn-outline pointer-events-none join-item cursor-default">Even</span>
-								<button className="btn btn-xs btn-outline btn-error join-item" onClick={() => setRadixes({ what: 'toggle', who: 'even', enabled: false })}>Remove</button>
-							</span>
+							<RadixesSelect who="all" setRadixes={setRadixes} />
+							<RadixesSelect who="odd" setRadixes={setRadixes} />
+							<RadixesSelect who="even" setRadixes={setRadixes} />
 						</div>
 						<div className="card md:flex-row p-1">
-							<div className="flex flex-col">
-								<div className="flex flex-col items-center">
-									<div className="card card-bordered p-1 m-1">
-										<div className="flex justify-between items-center gap-2">
-											<button className="btn btn-xs btn-outline btn-success m-1" onClick={() => setRadixes({ what: 'toggle', who: 'standard', enabled: true })}>Add</button>
-											<div className="card-title">Standard</div>
-											<button className="btn btn-xs btn-outline btn-error m-1" onClick={() => setRadixes({ what: 'toggle', who: 'standard', enabled: false })}>Remove</button>
-										</div>
-										<div className="card-actions flex-row justify-center">
-											{ radixes.filter(r => r.system === "standard").map(radix => button(radix)) }
-										</div>
-									</div>
-								</div>
-							</div>
-							<div className="flex flex-col items-center">
-								<div className="card card-bordered p-1 m-1">
-									<div className="flex justify-between items-center gap-2">
-										<button className="btn btn-xs btn-outline btn-success m-1" onClick={() => setRadixes({ what: 'toggle', who: 'bijective', enabled: true })}>Add</button>
-										<div className="card-title">Bijective</div>
-										<button className="btn btn-xs btn-outline btn-error m-1" onClick={() => setRadixes({ what: 'toggle', who: 'bijective', enabled: false })}>Remove</button>
-									</div>
-									<div className="card-actions flex-row justify-center">
-										{ radixes.filter(r => r.system === "bijective").map(radix => button(radix)) }
-									</div>
-								</div>
-							</div>
-							<div className="flex flex-col items-center">
-								<div className="card card-bordered p-1 m-1">
-									<div className="flex justify-between items-center gap-2">
-										<button className="btn btn-xs btn-outline btn-success m-1" onClick={() => setRadixes({ what: 'toggle', who: 'balanced', enabled: true })}>Add</button>
-										<div className="card-title">Balanced</div>
-										<button className="btn btn-xs btn-outline btn-error m-1" onClick={() => setRadixes({ what: 'toggle', who: 'balanced', enabled: false })}>Remove</button>
-									</div>
-									<div className="card-actions flex-row justify-center">
-										{ radixes.filter(r => r.system === "balanced").map(radix => button(radix)) }
-									</div>
-								</div>
-							</div>
+							<RadixSelect who="standard" radixes={radixes} setRadixes={setRadixes}/>
+							<RadixSelect who="bijective" radixes={radixes} setRadixes={setRadixes}/>
+							<RadixSelect who="balanced" radixes={radixes} setRadixes={setRadixes}/>
 						</div>
 					</div>
 				</div>
 			</div>
 		</header>
+	)
+}
+
+function RadixesSelect({ who, setRadixes }: { who: WhoToggle, setRadixes: SetRadixes }) {
+	return (
+		<span className="join">
+			<button
+				className="btn btn-xs btn-outline btn-success join-item"
+				onClick={() => setRadixes({ what: 'toggle', who, enabled: true })}
+			>
+				Add
+			</button>
+			<span className="btn btn-xs btn-outline pointer-events-none join-item cursor-default">{ who }</span>
+			<button
+				className="btn btn-xs btn-outline btn-error join-item"
+				onClick={() => setRadixes({ what: 'toggle', who, enabled: false })}
+			>
+				Remove
+			</button>
+		</span>
+	)
+}
+
+function RadixSelect({ who, radixes, setRadixes }: { who: Radix["system"], radixes: Radix[], setRadixes: SetRadixes }) {
+	return (
+		<div className="flex flex-col items-center">
+			<div className="card card-bordered p-1 m-1">
+				<div className="flex justify-between items-center gap-2">
+					<button
+						className="btn btn-xs btn-outline btn-success m-1"
+						onClick={() => setRadixes({ what: 'toggle', who, enabled: true })}
+					>
+						Add
+					</button>
+					<div className="card-title">{ who.charAt(0).toUpperCase() + who.slice(1) }</div>
+					<button
+						className="btn btn-xs btn-outline btn-error m-1"
+						onClick={() => setRadixes({ what: 'toggle', who, enabled: false })}
+					>
+						Remove
+					</button>
+				</div>
+				<div className="card-actions flex-row justify-center">{ radixes.filter(r => r.system === who).map(radix =>
+					<button
+						className={`btn btn-xs btn-outline ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
+						key={radix.name}
+						onClick={() => setRadixes({ what: 'toggle', who: radix })}
+					>
+						{ String(radix.radix) }
+					</button>) }
+				</div>
+			</div>
+		</div>
 	)
 }
