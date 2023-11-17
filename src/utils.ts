@@ -95,7 +95,7 @@ export function updateRadixes(radixes: Radix[], chars = defaultCharsArray) {
 	return radixes.map(r => createRadix(Number(r.radix), r.system, chars, r.enabled, r.name))
 }
 
-export function createRadix(radix: number, system: Radix["system"], chars = defaultCharsArray, enabled?: boolean, name?: string) {
+export function createRadix(radix: number, system: Radix["system"] = "standard", chars = defaultCharsArray, enabled?: boolean, name?: string) {
 	if (radix < 0 || radix > (system === 'standard' || system === 'my' ? 36 : 35)) throw new Error(`getRadix: Radix(${system}) of out range: ${radix}`)
 	if (system === 'balanced' && radix % 2 === 0) throw new Error(`getRadix: Radix(${system}) must be odd: ${radix}`)
 	if (system === 'my' && radix % 2 !== 0) throw new Error(`getRadix: Radix(${system}) must be even: ${radix}`)

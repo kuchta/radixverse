@@ -1,9 +1,10 @@
-extends: [ "eslint:recommended", "plugin:@typescript-eslint/recommended" ]
+extends: [ eslint:recommended, plugin:@typescript-eslint/recommended ]
 parser: "@typescript-eslint/parser"
 plugins: [ "@typescript-eslint" ]
 root: true
 rules:
+    no-mixed-spaces-and-tabs: [ error, smart-tabs ]
+    import/no-anonymous-default-export: off
     "@typescript-eslint/no-non-null-assertion": off
     "@typescript-eslint/no-unused-vars": warn
-    "import/no-anonymous-default-export": off
     "@typescript-eslint/no-explicit-any": warn

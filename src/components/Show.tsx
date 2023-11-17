@@ -15,10 +15,16 @@ function Show({ radixes }: { radixes: Radix[] }) {
 			const my = system === 'my'
 			const rows = high - (bij ? 0 : low) + 1
 			const cols = high - low + 1
-			const highest = my ? high * (cols + 1) : bal ? (high - low) * (high + 1) : bij ? high * (high + 1) : high === 1 ? 3 : (high + 1) * (high + 1) - 1
-			const lowest = my ? low * (cols + 1) : bal ? -highest : low
-			const mainRow = my ? Math.trunc(rows / 2) - 1 : bal ? Math.trunc(rows / 2) : 0
-			const numbers = [ ...Array(rows) ].map((_, i) => [ ...Array(cols) ].map((_, j) => (i * cols) + j + lowest))
+			const highest = my ? high * (cols + 1)
+						  : bal ? (high - low) * (high + 1)
+						  : bij ? high * (high + 1)
+						  : high === 1 ? 3
+						  : (high + 1) * (high + 1) - 1
+			const lowest = my ? low * (cols + 1)
+						 : bal ? -highest
+						 : low
+			const mainRow = my ? rows / 2 - 1 : bal ? Math.trunc(rows / 2) : 0
+			const numbers = Array.from(Array(rows), (_, i) => Array.from(Array(cols), (_, j) => (i * cols) + j + lowest))
 			return <Table key={`show-${radix.name}`} tab="show" radix={radix} numbers={numbers} low={lowest} high={highest} mainRow={mainRow}/>
 		})}
 	</Tables>

@@ -25,7 +25,7 @@ function Table({ tab, radix, numbers, low, high, mainRow }: {
 			<table className="table table-xs text-sm w-auto">
 				<tbody>{ numbers.map((row, rowIndex) =>
 					<tr className={`hover row${rowIndex === mainRow ? ' active' : ''}`} key={`row-${rowIndex}`}>{ row.map((number, colIndex) =>
-						<td className="text-right px-[2px] py-[2px]" key={`col-${colIndex}`}>
+						<td className="text-right px-[2px] py-[2px] w-8" key={`col-${colIndex}`}>
 							{ renderValue(number, low, high, radix) }
 						</td>)}
 					</tr>)}
@@ -39,7 +39,9 @@ export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: ne
 	const ret = oldRadix.name === newRadix.name
 		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
 		&& oldNumbers.length === newNumbers.length
-		&& oldNumbers.every((row, i) => row.every((n, j) => isNaN(n) ? isNaN(newNumbers[i][j]) : n === newNumbers[i][j]))
+		&& oldNumbers.every((row, i) =>
+			row.every((n, j) =>
+				isNaN(n) ? isNaN(newNumbers[i][j]) : n === newNumbers[i][j]))
 	// console.log(`areNumbersEqual(${tab}-${newRedix.name}): `, ret)
 	return ret
 })

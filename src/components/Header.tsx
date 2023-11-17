@@ -6,7 +6,8 @@ import { Radix, defaultChars, getCharsLS, getThemeLS, setThemeLS } from '../util
 
 
 let allChars = getCharsLS() ?? defaultChars
-const themeNames = Object.keys(themes).sort().map(t => t.split('=')[1].slice(0, -1))
+
+const themeNames = Object.keys(themes).sort()
 
 export default function Header({ radixes, setRadixes }: {
 	radixes: Radix[],
@@ -17,6 +18,8 @@ export default function Header({ radixes, setRadixes }: {
 	const [ inputChars, setInputChars ] = useState(allChars)
 
 	// console.log('Header: ', radixes.filter(v => v.enabled))
+
+	const toggleSettings = () => setExpanded(!expanded)
 
 	const setTheme = (theme: string) => {
 		setThemeLS(theme)
@@ -58,7 +61,7 @@ export default function Header({ radixes, setRadixes }: {
 		<header>
 			<nav className="navbar bg-base-100">
 				<div className="flex-1">
-					<button className="text-left text-4xl w-fit p-0 pl-4 pr-12" onClick={() => setExpanded(!expanded)}>
+					<button className="text-left text-4xl w-fit p-0 pl-4 pr-12" onClick={toggleSettings}>
 						<span style={{ color: `hsl(0 80% 40%)`}}>R</span>
 						<span style={{ color: `hsl(36 80% 40%)`}}>a</span>
 						<span style={{ color: `hsl(72 80% 40%)`}}>d</span>
@@ -74,14 +77,14 @@ export default function Header({ radixes, setRadixes }: {
 				<div className="z-50">
 					<ul className="menu menu-horizontal justify-end">
 						<li>
-							<a className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} onClick={() => setExpanded(!expanded)}>Settings</a>
+							<button tabIndex={0} className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} onClick={toggleSettings}>Settings</button>
 						</li>
 						<li>
 							<details>
 								<summary>Themes</summary>
 								<ul className="p-2 bg-base-100">{ themeNames.map(t =>
 									<li key={t}>
-										<a className={t === theme ? 'active': ''} onClick={() => setTheme(t)}>{t[0].toUpperCase() + t.slice(1)}</a>
+										<a className={t === theme ? 'active': ''} onClick={() => setTheme(t)}>{ capitalize(t) }</a>
 									</li>)}
 								</ul>
 							</details>
@@ -141,7 +144,7 @@ function RadixesSelect({ who, setRadixes }: { who: WhoToggle, setRadixes: SetRad
 			>
 				Add
 			</button>
-			<span className="btn btn-xs btn-outline pointer-events-none join-item cursor-default">{ who }</span>
+			<span className="btn btn-xs btn-outline pointer-events-none join-item cursor-default">{ capitalize(who) }</span>
 			<button
 				className="btn btn-xs btn-outline btn-error join-item"
 				onClick={() => setRadixes({ what: 'toggle', who, enabled: false })}
@@ -163,7 +166,7 @@ function RadixSelect({ who, radixes, setRadixes }: { who: Radix["system"], radix
 					>
 						Add
 					</button>
-					<div className="card-title">{ who.charAt(0).toUpperCase() + who.slice(1) }</div>
+					<div className="card-title">{ capitalize(who) }</div>
 					<button
 						className="btn btn-xs btn-outline btn-error m-1"
 						onClick={() => setRadixes({ what: 'toggle', who, enabled: false })}
@@ -183,4 +186,8 @@ function RadixSelect({ who, radixes, setRadixes }: { who: Radix["system"], radix
 			</div>
 		</div>
 	)
+}
+
+function capitalize(string: string) {
+	return string.charAt(0).toUpperCase() + string.slice(1)
 }

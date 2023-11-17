@@ -96,17 +96,17 @@ export default function App() {
 
 	return <div className="font-mono">
 		<Header radixes={radixes} setRadixes={setRadixes}/>
-		<div className="tabs justify-center mb-4">
-			<button className={`tab tab-bordered ${activeTab === 0 ? 'tab-active' : ''}`}  onClick={() => setActiveTab(0)}>
+		<div className="tabs tabs-bordered justify-center mb-4">
+			<button className={`tab ${activeTab === 0 ? 'tab-active' : ''}`}  onClick={() => setActiveTab(0)}>
 				Show
 			</button>
-			<button className={`tab tab-bordered ${activeTab === 1 ? 'tab-active' : ''}`} onClick={() => setActiveTab(1)}>
+			<button className={`tab ${activeTab === 1 ? 'tab-active' : ''}`} onClick={() => setActiveTab(1)}>
 				Add
 			</button>
-			<button className={`tab tab-bordered ${activeTab === 2 ? 'tab-active' : ''}`} onClick={() => setActiveTab(2)}>
+			<button className={`tab ${activeTab === 2 ? 'tab-active' : ''}`} onClick={() => setActiveTab(2)}>
 				Multiply
 			</button>
-			<button className={`tab tab-bordered ${activeTab === 3 ? 'tab-active' : ''}`} onClick={() => setActiveTab(3)}>
+			<button className={`tab ${activeTab === 3 ? 'tab-active' : ''}`} onClick={() => setActiveTab(3)}>
 				Convert
 			</button>
 		</div>
