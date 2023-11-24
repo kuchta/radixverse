@@ -5,29 +5,8 @@ import Show from './Show'
 import Add from './Add'
 import Multiply from './Multiply'
 import Convert from './Convert'
-import {
-	Radix,
-	defaultChars,
-	defaultCharsArray,
-	createRadixes,
-	updateRadixes,
-	createRadix,
-	getCharsLS,
-	setCharsLS,
-	getRadixesLS,
-	setRadixesLS,
-	str2arr
-} from '../utils'
+import { Radix, createRadixes, getCharsLS, getRadixesLS, setRadixesLS, str2arr } from '../utils'
 
-
-export type WhoToggle = 'all' | 'odd' | 'even' | Radix["system"]
-export type WhoSetChars = 'all' | Radix["system"]
-
-export type SetRadixes = (command: {
-	who: WhoToggle, what: 'toggle', enabled: boolean } | {
-	who: Radix, what: 'toggle' } | {
-	who: WhoSetChars, what: 'set-chars', chars?: string } | {
-	who: Radix, what: 'set-chars', chars?: string }) => Radix[]
 
 export default function App() {
 	const [ activeTab, setActiveTab ] = useState(0)
@@ -36,62 +15,10 @@ export default function App() {
 
 	// console.log('App: ', { enabledRadixes })
 
-	const setRadixes: SetRadixes = (command) => {
-		let newRadixes = radixes
-
-		// console.log('setRadixes start:', { command, enabledRadixes: newRadixes.filter(v => v.enabled).length })
-
-		switch (command.who) {
-			case 'all':
-				if (command.what === 'toggle') {
-					radixes.forEach(r => r.enabled = command.enabled)
-				} else if (command.what === 'set-chars') {
-					const chars = str2arr(command.chars)
-					if (chars && chars.length !== defaultCharsArray.length) {
-						throw new Error(`Invalid number of chars provided: ${chars.length}, expected: ${defaultCharsArray.length}`)
-					}
-					setCharsLS(command.chars && command.chars !== defaultChars ? command.chars : undefined)
-					newRadixes = updateRadixes(radixes, chars)
-				}
-				break
-			case 'odd':
-				radixes.forEach(r => { if (r.radix % 2n === 1n) r.enabled = command.enabled })
-				break
-			case 'even':
-				radixes.forEach(r => { if (r.radix % 2n === 0n) r.enabled = command.enabled })
-				break
-			case 'standard':
-			case 'bijective':
-			case 'balanced':
-			case 'my':
-				if (command.what === 'toggle') {
-					radixes.forEach(r => { if (r.system === command.who) r.enabled = command.enabled })
-				}
-				break
-			default:
-				if (command.what === 'toggle') {
-					command.who.enabled = !command.who.enabled
-				} else if (command.what === 'set-chars') {
-					const i = radixes.findIndex(r => r.name === command.who.name)
-					const oldRadix = radixes[i]
-					const chars = str2arr(command.chars)
-					if (chars != undefined) {
-						if (chars.length !== oldRadix.chars.length) {
-							throw new Error(`Invalid number of chars provided: ${chars.length}, expected: ${oldRadix.chars.length}`)
-						}
-					}
-					const newRadix = createRadix(Number(oldRadix.radix), oldRadix.system, chars, oldRadix.enabled)
-					radixes[i] = newRadix
-				}
-		}
-
-		// console.log('setRadixes end:', { enabledRadixes: newRadixes.filter(v => v.enabled).length })
-
-		setRadixesLS(newRadixes)
-		_setRadixes(newRadixes)
-		setEnabledRadixes(newRadixes.filter(v => v.enabled))
-
-		return newRadixes
+	const setRadixes = (radixes: Radix[]) => {
+		setRadixesLS(radixes)
+		_setRadixes(radixes)
+		setEnabledRadixes(radixes.filter(v => v.enabled))
 	}
 
 	return <div className="font-mono">

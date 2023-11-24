@@ -113,7 +113,7 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			zeroAt: 0,
 			low: 0,
 			high: radix - 1,
-			enabled: enabled != undefined ? enabled : [ 2, 3, 6, 9, 10, 12, 19, 27 ].includes(radix)
+			enabled: enabled != undefined ? enabled : [ 2, 3, 6, 9, 10, 12, 27 ].includes(radix)
 		}
 	} else if (system === 'bijective') {
 		if (chars.length === radix + 1) zeroAt = 0
@@ -125,7 +125,7 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			zeroAt: 0,
 			low: 1,
 			high: radix,
-			enabled: enabled != undefined ? enabled : [ 6, 9, 10, 12, 26 ].includes(radix),
+			enabled: enabled != undefined ? enabled : [ 9, 26 ].includes(radix),
 		}
 	} else if (system === 'balanced') {
 		const half = (radix - 1) / 2

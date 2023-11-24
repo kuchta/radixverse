@@ -7,7 +7,7 @@
 		"ignoreDeprecations": "5.0",
 		"isolatedModules": true,
 		"jsx": "react-jsx",
-		"lib": ["dom", "dom.iterable", "esnext"],
+		"lib": [ "DOM", "esnext" ],
 		"module": "ESNext",
 		"moduleResolution": "node",
 		"noEmit": true,

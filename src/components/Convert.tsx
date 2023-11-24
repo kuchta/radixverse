@@ -48,7 +48,7 @@ function Convert({ radixes }: { radixes: Radix[] }) {
 			<button className="btn btn-circle btn-sm" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
 			<button className="btn btn-circle btn-sm" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
 		</div>
-		{radixes.map((radix, index) =>
+		{ radixes.map((radix, index) =>
 			<div key={radix.name}>
 				<span className="flex flex-row gap-1 items-center float-left" key={radix.name}>
 					<button className="btn btn-sm btn-circle" onClick={() => updateValue(filling_shl(value, radix))}>⋘</button>
@@ -78,26 +78,27 @@ function Number({ value, radix, radixIndex, numRadixes, updateValue }: {
 }) {
 	const [ v, setV ] = useState(num2str(value, radix))
 	const ref = useRef<HTMLSpanElement>(null)
-	const [ position, setPosition ] = useState<number>()
+	const [ editing, setEditing ] = useState(false)
 
 	useEffect(() => {
-		if (position == undefined) {
-			setV(num2str(value, radix))
-		}
+		if (!editing) setV(num2str(value, radix))
 	}, [ value, radix ])
 
-	useEffect(() => {
-		if (position != undefined && ref.current) {
-			setCaretPosition(ref.current, position)
-		}
-	}, [ v ])
+	const setCaretPosition = (position: number) => {
+		setTimeout(() => {
+			// console.log('position:', position)
+			if (ref.current) {
+				window.getSelection()?.setPosition(ref.current.childNodes[0], position)
+			}
+		}, 0)
+	}
 
 	const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
 		// console.log('handleInput:', e)
 
 		e.stopPropagation()
 
-		const s = e.currentTarget.innerText.trim().toUpperCase()
+		const s = e.currentTarget.innerText //.trim().toUpperCase()
 		if (s === '') return
 
 		let position = getCaretPosition()
@@ -108,12 +109,31 @@ function Number({ value, radix, radixIndex, numRadixes, updateValue }: {
 		} catch (error) {
 			console.error(error)
 			e.currentTarget.innerText = v
-			if (position && ref.current) {
-				position -= 1
-				setCaretPosition(ref.current, position)
-			}
+			position -= 1
 		}
-		setPosition(position)
+		setCaretPosition(position)
+	}
+
+	const handlePaste = (e: React.ClipboardEvent<HTMLSpanElement>) => {
+		// console.log('handlePaste:', e)
+
+		e.preventDefault()
+
+		let position = getCaretPosition()
+		try {
+			const range = window.getSelection()?.getRangeAt(0)
+			const selectionRange = range ? range.endOffset - range.startOffset : 0
+			const s = e.clipboardData.getData('text').toUpperCase().replaceAll(new RegExp(`[^${radix.chars.join('')}]`, 'g'), '')
+			// @ts-expect-error https://github.com/microsoft/TypeScript/issues/56533
+			const newV = [].toSpliced.call(v, position, selectionRange, s).join('')
+			const n = str2num(newV, radix)
+			setV(newV)
+			updateValue(n)
+			position += s.length
+		} catch (error) {
+			console.error(error)
+		}
+		setCaretPosition(position)
 	}
 
 	return <>
@@ -123,9 +143,11 @@ function Number({ value, radix, radixIndex, numRadixes, updateValue }: {
 			contentEditable={true}
 			suppressContentEditableWarning={true}
 			spellCheck={false}
+			onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.blur() } else e.stopPropagation() }}
 			onInput={handleInput}
-			onKeyDown={(e) => { if (e.key === 'Escape') { e.currentTarget.blur() } else e.stopPropagation() }}
-			onBlur={() => setPosition(undefined)}
+			onPaste={handlePaste}
+			onFocus={() => setEditing(true)}
+			onBlur={() => setEditing(false)}
 			ref={ref}
 			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}
 		>
@@ -151,15 +173,5 @@ function shr(value: bigint, radix: Radix) {
 }
 
 function getCaretPosition() {
-	const sel = window.getSelection()
-	if (sel) {
-		return sel.getRangeAt(0).startOffset
-	}
-}
-
-function setCaretPosition(node: Node, position: number) {
-	const sel = window.getSelection()
-	if (sel) {
-		sel.setPosition(node.childNodes[0], position)
-	}
+	return window.getSelection()?.getRangeAt(0).startOffset ?? 0
 }
