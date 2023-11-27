@@ -4,9 +4,9 @@ import { Radix, num2str } from '../utils'
 
 
 export function Tables({ children }: { children: JSX.Element[] }) {
-	return <div className="flex flex-wrap items-center justify-center">
+	return <main className="flex flex-wrap items-center justify-center">
 		{ children }
-	</div>
+	</main>
 }
 
 function Table({ tab, radix, numbers, low, high, mainRow }: {

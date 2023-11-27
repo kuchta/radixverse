@@ -9,9 +9,9 @@ function Multiply({ radixes }: { radixes: Radix[] }) {
 
 	return <Tables>
 		{ radixes.map(radix => {
-			const { high } = radix
-			let { low } = radix
-			if (high + low > 2) low = 2
+			let { low, high } = radix
+			if (low >= 0) low = 2
+			if (low >= 0 && high < 3) high = 3
 			const lowest = low >= 0 ? low : low * high
 			const highest = high * high
 			const arr = [ NaN, ...Array.from(Array(high - (low - 1)), (_, i) => i + low) ]

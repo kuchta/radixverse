@@ -9,9 +9,9 @@ function Add({ radixes }: { radixes: Radix[] }) {
 
 	return <Tables>
 		{ radixes.map(radix => {
-			const { high } = radix
-			let { low } = radix
-			if (high + low > 2) low = 2
+			let { low, high } = radix
+			if (high + low > 0) low = 1
+			if (low >= 0 && high < 3) high = 2
 			const lowest = low >= 0 ? low : low + low
 			const highest = high + high
 			const arr = [ NaN, ...Array.from(Array(high - (low - 1)), (_, i) => i + low) ]

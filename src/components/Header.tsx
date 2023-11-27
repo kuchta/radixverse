@@ -3,14 +3,14 @@ import themes from 'daisyui/src/theming/themes'
 
 import {
 	Radix,
-	createRadix,
 	defaultChars,
 	defaultCharsArray,
-	getCharsLS,
 	getThemeLS,
-	setCharsLS,
 	setThemeLS,
+	getCharsLS,
+	setCharsLS,
 	str2arr,
+	createRadix,
 	updateRadixes,
 } from '../utils'
 
@@ -29,7 +29,7 @@ export default function Header({ radixes, setRadixes }: {
 	radixes: Radix[],
 	setRadixes: (radixes: Radix[]) => void,
 }) {
-	const [ theme, _setTheme ] = useState(getThemeLS)
+	const [ theme, setTheme ] = useState(getThemeLS)
 	const [ expanded, setExpanded ] = useState(false)
 	const [ inputChars, setInputChars ] = useState(allChars)
 
@@ -37,9 +37,9 @@ export default function Header({ radixes, setRadixes }: {
 
 	const toggleSettings = () => setExpanded(!expanded)
 
-	const setTheme = (theme: string) => {
+	const updateTheme = (theme: string) => {
 		setThemeLS(theme)
-		_setTheme(theme)
+		setTheme(theme)
 	}
 
 	const changeRadixes: ChangeRadixes = (command) => {
@@ -128,7 +128,7 @@ export default function Header({ radixes, setRadixes }: {
 	}
 
 	return <header>
-		<nav className="navbar bg-base-100">
+		<div className="navbar bg-base-100">
 			<div className="flex-1">
 				<button className="text-left text-4xl w-fit p-0 pl-4 pr-12" onClick={toggleSettings}>
 					<span style={{ color: `hsl(0 80% 40%)`}}>R</span>
@@ -153,14 +153,14 @@ export default function Header({ radixes, setRadixes }: {
 							<summary>Themes</summary>
 							<ul className="p-2 bg-base-100">{ Object.keys(themes).sort().map(t =>
 								<li key={t}>
-									<a className={t === theme ? 'active': ''} onClick={() => setTheme(t)}>{ capitalize(t) }</a>
+									<a className={t === theme ? 'active': ''} onClick={() => updateTheme(t)}>{ capitalize(t) }</a>
 								</li>)}
 							</ul>
 						</details>
 					</li>
 				</ul>
 			</div>
-		</nav>
+		</div>
 		<div className={`collapse collapse-${expanded ? 'open' : 'close'} `} tabIndex={0}>
 			<div className="collapse-content">
 				<div className="card card-bordered">

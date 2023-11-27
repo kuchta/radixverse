@@ -217,9 +217,34 @@ export function str2num(str: string, radix: Radix): bigint {
 
 	const n = Array.from(s).reduce((acc, d) => {
 		const v = chars.indexOf(d)
-		if (v < (bij ? 1 : 0)) throw new Error(`str2num("${str}", "${radix.chars.join('')}"): Unrecognized digit character: "${d}"`)
+		if (v < (bij ? 1 : 0)) throw new Error(`Non-Base character encountered: "${d}". ${allowedCharaters(radix)}`)
 		return acc * r + BigInt((bal ? low : 0) + v)
 	}, 0n)
 
 	return neg ? -n : n
+}
+
+export function filling_shl(value: bigint, radix: Radix) {
+	return value ? value > 0 ? value * radix.radix + 1n : value * radix.radix - 1n : 1n
+}
+
+export function shl(value: bigint, radix: Radix) {
+	return value * radix.radix
+}
+
+export function shr(value: bigint, radix: Radix) {
+	return str2num(num2str(value, radix).slice(0, -1), radix)
+}
+
+export function allowedCharaters(radix: Radix) {
+	const chars = radix.system === 'bijective' ? radix.chars.slice(1) : radix.chars
+	return  `Allowed characters are "${radix.system === 'balanced' ? chars.join('') : [ '-', ...chars ].join('')}"`
+}
+
+export function sanitizeInput(input: string, radix: Radix) {
+	input = input.toUpperCase()
+	const chars = radix.system === 'balanced' ? radix.chars.join('') : [ '-', ...radix.chars ].join('')
+	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
+	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'g'), '')
+	return [ sanitizedInput, rest ]
 }
