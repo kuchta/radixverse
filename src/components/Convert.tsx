@@ -1,12 +1,12 @@
-import React, { useState, memo, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
-import { Radix, num2str, str2num, filling_shl, shl, shr, areRadixesEqual, allowedCharaters, sanitizeInput } from '../utils'
+import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput } from '../utils'
 
 
-export default function Convert({ radixes, value, setValue }: {
+export default function Convert({ radixes, value, updateValue }: {
 	radixes: Radix[],
 	value: bigint,
-	setValue: (value: bigint | ((value: bigint) => bigint), radix?: Radix) => void
+	updateValue: (value: bigint | ((value: bigint) => bigint), radix?: Radix) => void
 }) {
 	const plusButtonRef = useRef<HTMLButtonElement>(null)
 	const deleteButtonRef = useRef<HTMLButtonElement>(null)
@@ -19,17 +19,17 @@ export default function Convert({ radixes, value, setValue }: {
 			case 'Backspace':
 			case 'Delete':
 				deleteButtonRef.current?.focus()
-				setValue(0n)
+				updateValue(0n)
 				break
 			case '+':
 			case '=':
 				plusButtonRef.current?.focus()
-				setValue(v => v + 1n)
+				updateValue(v => v + 1n)
 				break
 			case '-':
 			case '_':
 				minusButtonRef.current?.focus()
-				setValue(v => v - 1n)
+				updateValue(v => v - 1n)
 				break
 		}
 	}
@@ -44,16 +44,16 @@ export default function Convert({ radixes, value, setValue }: {
 	return <main>
 		<div className="flex flex-col gap-1 items-start relative w-full text-[3vh] mx-0 my-[3vh] pl-[3vw]">
 			<div className="flex flex-row gap-1">
-				<button className="btn btn-circle btn-sm text-lg" ref={plusButtonRef} onClick={() => setValue(value + 1n)}>+</button>
-				<button className="btn btn-circle btn-sm text-2xl" ref={deleteButtonRef} onClick={() => setValue(0n)}>␡</button>
-				<button className="btn btn-circle btn-sm text-lg" ref={minusButtonRef} onClick={() => setValue(value - 1n)}>-</button>
+				<button className="btn btn-circle btn-sm text-lg" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
+				<button className="btn btn-circle btn-sm text-2xl" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
+				<button className="btn btn-circle btn-sm text-lg" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
 			</div>
 			{ radixes.map((radix, index) =>
 				<div key={radix.name}>
 					<span className="flex flex-row gap-1 items-center float-left leading-8" key={radix.name}>
-						<button className="btn btn-sm btn-circle text-lg" onClick={() => setValue(filling_shl(value, radix), radix)}>⋘</button>
-						<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n || radix.system === "bijective" } onClick={() => setValue(shl(value, radix), radix)}>≪</button>
-						<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n } onClick={() => setValue(shr(value, radix), radix)}>≫</button>
+						<button className="btn btn-sm btn-circle text-lg" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
+						<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n || radix.system === "bijective" } onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
+						<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
 						<span className="text-[1.2em]">=</span>
 					</span>
 					<NumberLine
@@ -61,39 +61,32 @@ export default function Convert({ radixes, value, setValue }: {
 						radix={radix}
 						radixIndex={index}
 						numRadixes={radixes.length}
-						setValue={setValue} />
+						updateValue={updateValue} />
 				</div>
 			)}
 		</div>
 	</main>
 }
 
-function NumberLine({ value, radix, radixIndex, numRadixes, setValue }: {
+function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: {
 	value: bigint,
 	radix: Radix,
 	radixIndex: number,
 	numRadixes: number
-	setValue: (value: bigint | ((value: bigint) => bigint), radix?: Radix) => void
+	updateValue: (value: bigint | ((value: bigint) => bigint), radix?: Radix) => void
 }) {
 	const [ v, setV ] = useState(num2str(value, radix))
-	const ref = useRef<HTMLSpanElement>(null)
 	const [ editing, setEditing ] = useState(false)
 	const [ error, setError ] = useState<string>()
 	const [ errorLevel, setErrorLevel ] = useState<'error' | 'warning'>('error')
+	const ref = useRef<HTMLSpanElement>(null)
 
-	useEffect(() => {
-		if (!editing) setV(num2str(value, radix))
-	}, [ value, radix ])
+	useEffect(() => { if (!editing) setV(num2str(value, radix)) }, [ value, radix ])
 
 	const getCaretPosition = () => window.getSelection()?.getRangeAt(0).startOffset ?? 0
 
 	const setCaretPosition = (position: number) => {
-		setTimeout(() => {
-			// console.log('position:', position)
-			if (ref.current) {
-				window.getSelection()?.setPosition(ref.current.childNodes[0], position)
-			}
-		}, 0)
+		setTimeout(() => { if (ref.current) window.getSelection()?.setPosition(ref.current.childNodes[0], position) }, 0)
 	}
 
 	const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
@@ -104,7 +97,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, setValue }: {
 		const s = e.currentTarget.innerText //.trim().toUpperCase()
 		if (s === '') {
 			setV('')
-			setValue(0n)
+			updateValue(0n)
 			return
 		}
 
@@ -112,7 +105,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, setValue }: {
 		try {
 			const n = str2num(s, radix)
 			setV(s)
-			setValue(n, radix)
+			updateValue(n, radix)
 			setError(undefined)
 		} catch (error) {
 			setError((error as Error).message)
@@ -137,7 +130,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, setValue }: {
 			const newV = [].toSpliced.call(v, position, selectionRange, input).join('')
 			const n = str2num(newV, radix)
 			setV(newV)
-			setValue(n, radix)
+			updateValue(n, radix)
 			position += input.length
 			if (rest) {
 				setError(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`)

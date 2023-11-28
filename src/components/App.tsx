@@ -6,11 +6,25 @@ import Show from './Show'
 import Add from './Add'
 import Multiply from './Multiply'
 import Convert from './Convert'
-import { Radix, createRadixes, createRadix, getCharsLS, getRadixesLS, setRadixesLS, str2arr, num2str, str2num, allowedCharaters, sanitizeInput } from '../utils'
+import {
+	Radix,
+	createRadixes,
+	createRadix,
+	getCharsLS,
+	getRadixesLS,
+	setRadixesLS,
+	str2arr,
+	num2str,
+	str2num,
+	allowedCharaters,
+	sanitizeInput
+} from '../utils'
 
 
 export default function App() {
-	const { radixes, enabledRadixes, setRadixes, value, setValue, error } = useStore()
+	const [ error, setError ] = useState<string>()
+	const updateError = (error?: string) => { setError(error); setTimeout(() => setError(undefined), 10000) }
+	const { radixes, enabledRadixes, updateRadixes, value, updateValue } = useStore(updateError)
 	const { pathname, search } = useLocation()
 
 	// console.log('App: ', { value })
@@ -21,7 +35,7 @@ export default function App() {
 				<span>{ error }</span>
 			</div>
 		</div> }
-		<Header radixes={radixes} setRadixes={setRadixes}/>
+		<Header radixes={radixes} updateRadixes={updateRadixes}/>
 		<nav className="tabs tabs-bordered justify-center mb-4">
 			<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
 			<Link className={`tab ${pathname.includes('add') ? 'tab-active' : ''}`} to={`add${search}`}>Add</Link>
@@ -32,56 +46,54 @@ export default function App() {
 			<Route path="/" element={<Show radixes={enabledRadixes}/>}/>
 			<Route path="add" element={<Add radixes={enabledRadixes}/>}/>
 			<Route path="multiply" element={<Multiply radixes={enabledRadixes}/>}/>
-			<Route path="convert" element={<Convert radixes={enabledRadixes} value={value} setValue={setValue}/>}/>
+			<Route path="convert" element={<Convert radixes={enabledRadixes} value={value} updateValue={updateValue}/>}/>
 		</Routes>
 	</>
 }
 
-function useStore() {
-	const [ radixes, _setRadixes ] = useState(getRadixesLS() ?? createRadixes(str2arr(getCharsLS())))
+function useStore(updateError: (error?: string) => void) {
+	const [ radixes, setRadixes ] = useState(getRadixesLS() ?? createRadixes(str2arr(getCharsLS())))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(v => v.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
-	const [ _value, _setValue ] = useState(0n)
-	const [ _radix, _setRadix ] = useState(createRadix(10))
-	const [ error, setError ] = useState<string>()
+	const [ _value, setValue ] = useState(0n)
+	const [ _radix, setRadix ] = useState(createRadix(10))
 
 	useEffect(() => {
 		try {
 			if (searchParams.has('r')) {
 				const searchRadixes = searchParams.getAll('r')
 				radixes.forEach(r => r.enabled = searchRadixes.includes(r.name))
-				setRadixes(radixes)
+				updateRadixes(radixes)
 				setEnabledRadixes(radixes.filter(v => v.enabled))
 			}
-			let rx = _radix
-			if (searchParams.has('radix')) {
-				rx = radixes.find(r => r.name === searchParams.get('radix'))!
-				_setRadix(rx)
+			let radix = _radix
+			const sRadix = searchParams.get('radix')
+			if (sRadix) {
+				const r = radixes.find(r => r.name === sRadix)
+				if (r == undefined) throw new Error(`Unknown radix "${r}" in the URL`)
+				setRadix(radix = r)
 			}
-			if (searchParams.has('value')) {
-				const [ value, rest ] = sanitizeInput(searchParams.get('value')!, rx)
-				_setValue(str2num(value, rx))
-				if (rest) {
-					setError(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(rx)}`)
-					setTimeout(() => setError(undefined), 10000)
-				}
+			const sValue = searchParams.get('value')
+			if (sValue) {
+				const [ value, rest ] = sanitizeInput(sValue, radix)
+				if (rest) throw new Error(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`)
+				setValue(str2num(value, radix))
 			}
 		} catch (error) {
-			setError((error as Error).message)
-			setTimeout(() => setError(undefined), 10000)
+			updateError((error as Error).message)
 		}
 	}, [])
 
-	const setRadixes = (radixes: Radix[]) => {
+	const updateRadixes = (radixes: Radix[]) => {
 		setRadixesLS(radixes)
-		_setRadixes(radixes)
+		setRadixes(radixes)
 		const enabledRadixes = radixes.filter(v => v.enabled)
 		setEnabledRadixes(enabledRadixes)
 		searchParams.delete('r')
 		setSearchParams([ ...searchParams, ...enabledRadixes.map(r => ['r', r.name]) ] as [string, string][])
 	}
 
-	const setValue = (value: bigint | ((value: bigint) => bigint), radix?: Radix) => {
+	const updateValue = (value: bigint | ((value: bigint) => bigint), radix?: Radix) => {
 		value = (typeof value === 'function') ? value(_value) : value
 		if (value === 0n) {
 			searchParams.delete('radix')
@@ -91,17 +103,17 @@ function useStore() {
 			try {
 				const r = radix ?? _radix ?? createRadix(10, 'standard')
 				if (radix) {
-					_setRadix(radix)
+					setRadix(radix)
 					searchParams.set('radix', r.name)
 				}
 				searchParams.set('value', num2str(value, r))
 				setSearchParams(searchParams)
 			} catch (error) {
-				setError((error as Error).message)
+				updateError((error as Error).message)
 			}
 		}
-		_setValue(value)
+		setValue(value)
 	}
 
-	return { radixes, enabledRadixes, setRadixes, value: _value, setValue, error }
+	return { radixes, enabledRadixes, updateRadixes, value: _value, updateValue }
 }

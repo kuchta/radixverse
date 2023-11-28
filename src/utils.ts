@@ -53,7 +53,7 @@ export function setCharsLS(chars?: string) {
 
 export function getRadixesLS() {
 	const item = localStorage.getItem(LS_RADIXES)
-	if (!item) {
+	if (item == null) {
 		return
 	}
 
@@ -89,10 +89,6 @@ export function createRadixes(chars = defaultCharsArray) {
 		// if (radix % 2 === 0) ret.push(createRadix(radix, 'my', chars))
 		return ret
 	})
-}
-
-export function updateRadixes(radixes: Radix[], chars = defaultCharsArray) {
-	return radixes.map(r => createRadix(Number(r.radix), r.system, chars, r.enabled, r.name))
 }
 
 export function createRadix(radix: number, system: Radix["system"] = "standard", chars = defaultCharsArray, enabled?: boolean, name?: string) {
