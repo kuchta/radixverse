@@ -109,7 +109,7 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			zeroAt: 0,
 			low: 0,
 			high: radix - 1,
-			enabled: enabled != undefined ? enabled : [ 2, 3, 6, 9, 10, 12, 27 ].includes(radix)
+			enabled: enabled != undefined ? enabled : [ 2, 3, 10, 12, 27 ].includes(radix)
 		}
 	} else if (system === 'bijective') {
 		if (chars.length === radix + 1) zeroAt = 0
@@ -121,7 +121,7 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			zeroAt: 0,
 			low: 1,
 			high: radix,
-			enabled: enabled != undefined ? enabled : [ 9, 26 ].includes(radix),
+			enabled: enabled != undefined ? enabled : [ 26 ].includes(radix),
 		}
 	} else if (system === 'balanced') {
 		const half = (radix - 1) / 2
@@ -133,7 +133,7 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			zeroAt: half,
 			low: -half,
 			high: half,
-			enabled: enabled != undefined ? enabled : [ 3, 9, 19, 27 ].includes(radix),
+			enabled: enabled != undefined ? enabled : [ 3, 13, 19, 27 ].includes(radix),
 		}
 	} else if (system === 'my') {
 		if (chars.length === radix) zeroAt -= 1
@@ -211,9 +211,9 @@ export function str2num(str: string, radix: Radix): bigint {
 	const chars = radix.chars
 	const low = radix.low
 
-	const n = Array.from(s).reduce((acc, d) => {
-		const v = chars.indexOf(d)
-		if (v < (bij ? 1 : 0)) throw new Error(`Non-Base character encountered: "${d}". ${allowedCharaters(radix)}`)
+	const n = Array.from(s).reduce((acc, c) => {
+		const v = chars.indexOf(c)
+		if (v < (bij ? 1 : 0)) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
 		return acc * r + BigInt((bal ? low : 0) + v)
 	}, 0n)
 
@@ -243,4 +243,19 @@ export function sanitizeInput(input: string, radix: Radix) {
 	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
 	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'g'), '')
 	return [ sanitizedInput, rest ]
+}
+
+export function sumDigits(number: string, radix: Radix, level = 0) {
+	let ret = ''
+	if (number.startsWith('-')) {
+		number = number.slice(1)
+		ret += '-'
+	}
+	const n = num2str([...number].reduce((a, n) => a + str2num(n, radix), 0n), radix)
+	ret += n
+	if (n.length > 1) {
+		ret += sumDigits(ret, radix, level+1)
+	}
+
+	return level > 0 ? `=${ret}` : `∑=${ret}`
 }

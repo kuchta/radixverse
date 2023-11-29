@@ -30,7 +30,7 @@ export default function Header({ radixes, updateRadixes }: {
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
 	const formRef = useRef<HTMLFormElement>(null)
 
-	console.log('Header: ', allChars)
+	// console.log('Header: ', allChars)
 
 	const toggleSettings = () => {
 		updateInputRadix(inputRadix)
@@ -106,12 +106,7 @@ export default function Header({ radixes, updateRadixes }: {
 
 	const handleInputCharsSubmit: FormEventHandler<HTMLFormElement> = (e) => {
 		e.preventDefault()
-
 		setInputCharsError(undefined)
-
-		// const data = new FormData(e.currentTarget)
-		// const inputRadix = data.get('radix') as string
-		// const inputChars = data.get('chars') as string
 
 		try {
 			if (inputRadix ==='all') {

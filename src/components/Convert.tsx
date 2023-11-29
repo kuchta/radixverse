@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { ComponentProps, useState, useEffect, useRef } from 'react'
 
-import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput } from '../utils'
+import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, sumDigits } from '../utils'
 
 
 export default function Convert({ radixes, value, updateValue }: {
@@ -41,34 +41,32 @@ export default function Convert({ radixes, value, updateValue }: {
 
 	// console.log('Convert: ', { value, radixes })
 
-	return <main>
-		<div className="flex flex-col gap-1 items-start relative w-full text-[3vh] mx-0 my-[3vh] pl-[3vw]">
-			<div className="flex flex-row gap-1">
-				<button className="btn btn-circle btn-sm text-lg" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
-				<button className="btn btn-circle btn-sm text-2xl" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
-				<button className="btn btn-circle btn-sm text-lg" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
-			</div>
-			{ radixes.map((radix, index) =>
-				<div key={radix.name}>
-					<span className="flex flex-row gap-1 items-center float-left leading-8" key={radix.name}>
-						<button className="btn btn-sm btn-circle text-lg" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
-						<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n || radix.system === "bijective" } onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
-						<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
-						<span className="text-[1.2em]">=</span>
-					</span>
-					<NumberLine
-						value={value}
-						radix={radix}
-						radixIndex={index}
-						numRadixes={radixes.length}
-						updateValue={updateValue} />
-				</div>
-			)}
-		</div>
+	return <main className="flex flex-col items-start text-sm lg:text-[2vh] leading-8">
+		<div className="flex flex-row gap-1 relative lg:left-32 mb-1">
+			<button className="btn btn-circle btn-sm text-lg" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
+			<button className="btn btn-circle btn-sm text-2xl" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
+			<button className="btn btn-circle btn-sm text-lg" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
+		</div>{ radixes.map((radix, index) =>
+		<div key={radix.name}>
+			<span className="flex flex-row items-center float-left h-8">
+				<span className="hidden lg:inline-block text-center w-32"><span className="badge badge-lg badge-outline m-1">{radix.name}</span></span>
+				<span className="flex flex-row gap-1">
+					<button className="btn btn-sm btn-circle text-lg" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
+					<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n || radix.system === "bijective" } onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
+					<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
+				</span>
+			</span>
+			<NumberLine className="text-center text-[1.5em] h-8"
+				value={value}
+				radix={radix}
+				radixIndex={index}
+				numRadixes={radixes.length}
+				updateValue={updateValue} />
+		</div>)}
 	</main>
 }
 
-function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: {
+function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...props }: ComponentProps<"div"> & {
 	value: bigint,
 	radix: Radix,
 	radixIndex: number,
@@ -94,7 +92,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: {
 
 		e.stopPropagation()
 
-		const s = e.currentTarget.innerText //.trim().toUpperCase()
+		const s = e.currentTarget.innerText.toUpperCase()
 		if (s === '') {
 			setV('')
 			updateValue(0n)
@@ -126,8 +124,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: {
 			const range = window.getSelection()?.getRangeAt(0)
 			const selectionRange = range ? range.endOffset - range.startOffset : 0
 			const [ input, rest ] = sanitizeInput(e.clipboardData.getData('text'), radix)
-			// @ts-expect-error https://github.com/microsoft/TypeScript/issues/56533
-			const newV = [].toSpliced.call(v, position, selectionRange, input).join('')
+			const newV = [...v].toSpliced(position, selectionRange, input).join('')
 			const n = str2num(newV, radix)
 			setV(newV)
 			updateValue(n, radix)
@@ -145,9 +142,9 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: {
 		setCaretPosition(position)
 	}
 
-	return <span className={`${error ? 'tooltip tooltip-open' : ''} tooltip-${errorLevel} inline leading-8`} data-tip={error}>
-		<span
-			className="break-all text-start text-[1.2em] uppercase outline-none"
+	return <span {...props}>
+		<span>=</span>
+		<span className={`break-all text-start outline-none inline${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={error}
 			tabIndex={1}
 			contentEditable={true}
 			suppressContentEditableWarning={true}
@@ -155,16 +152,15 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: {
 			onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.blur() } else e.stopPropagation() }}
 			onInput={handleInput}
 			onPaste={handlePaste}
+			onDoubleClick={() => { if (ref.current) window.getSelection()?.modify('extend', 'forward', 'line')}}
 			onFocus={() => setEditing(true)}
-			onBlur={() => { setEditing(false); setError(undefined) }}
-			ref={ref}
+			onBlur={() => { setEditing(false); setError(undefined); if (!v) setV(num2str(value, radix)) }}
 			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}
+			ref={ref}
 		>
 			{v}
 		</span>
-		<span>
-			<sub className="text-[0.4em]">{radix.name}</sub>
-			<sup className="text-[0.4em]">({v.length})</sup>
-		</span>
+		<sub className="lg:hidden text-sm">{radix.name}</sub>
+		<sup className="text-sm"> (#{v.length} {sumDigits(v, radix)})</sup>
 	</span>
 }
