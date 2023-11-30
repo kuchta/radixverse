@@ -13,7 +13,6 @@ import {
 	getCharsLS,
 	getRadixesLS,
 	setRadixesLS,
-	str2arr,
 	num2str,
 	str2num,
 	allowedCharaters,
@@ -30,7 +29,7 @@ export default function App() {
 	// console.log('App: ', { value })
 
 	return <>
-		{ error && <div className="toast toast-top toast-center">
+		{ error && <div className="toast toast-top toast-center z-50">
 			<div className="alert alert-error">
 				<span>{ error }</span>
 			</div>
@@ -52,7 +51,7 @@ export default function App() {
 }
 
 function useStore(updateError: (error?: string) => void) {
-	const [ radixes, setRadixes ] = useState(getRadixesLS() ?? createRadixes(str2arr(getCharsLS())))
+	const [ radixes, setRadixes ] = useState(getRadixesLS() ?? createRadixes(getCharsLS()))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(v => v.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
 	const [ _value, setValue ] = useState(0n)
@@ -76,12 +75,14 @@ function useStore(updateError: (error?: string) => void) {
 			const sValue = searchParams.get('value')
 			if (sValue) {
 				const [ value, rest ] = sanitizeInput(sValue, radix)
-				if (rest) throw new Error(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`)
 				setValue(str2num(value, radix))
+				if (rest) throw new Error(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`)
 			}
 		} catch (error) {
+			console.error(error)
 			updateError((error as Error).message)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	const updateRadixes = (radixes: Radix[]) => {
@@ -91,10 +92,10 @@ function useStore(updateError: (error?: string) => void) {
 		setEnabledRadixes(enabledRadixes)
 		searchParams.delete('r')
 		setSearchParams([ ...searchParams, ...enabledRadixes.map(r => ['r', r.name]) ] as [string, string][])
+		updateValue(_value, radixes.find(r => r.name === _radix.name))
 	}
 
-	const updateValue = (value: bigint | ((value: bigint) => bigint), radix?: Radix) => {
-		value = (typeof value === 'function') ? value(_value) : value
+	const updateValue = (value: bigint, radix?: Radix) => {
 		if (value === 0n) {
 			searchParams.delete('radix')
 			searchParams.delete('value')
@@ -109,6 +110,7 @@ function useStore(updateError: (error?: string) => void) {
 				searchParams.set('value', num2str(value, r))
 				setSearchParams(searchParams)
 			} catch (error) {
+				console.error(error)
 				updateError((error as Error).message)
 			}
 		}

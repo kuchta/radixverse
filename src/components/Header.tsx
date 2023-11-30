@@ -1,4 +1,4 @@
-import { FormEventHandler, useState, useRef } from 'react'
+import { FormEventHandler, useState, useEffect, useRef } from 'react'
 import themes from 'daisyui/src/theming/themes'
 
 import {
@@ -9,7 +9,6 @@ import {
 	setThemeLS,
 	getCharsLS,
 	setCharsLS,
-	str2arr,
 	createRadix,
 } from '../utils'
 
@@ -32,6 +31,12 @@ export default function Header({ radixes, updateRadixes }: {
 
 	// console.log('Header: ', allChars)
 
+	useEffect(() => {
+		const keyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) }
+		document.addEventListener('keydown', keyDown)
+		return () => document.removeEventListener('keydown', keyDown)
+	}, [])
+
 	const toggleSettings = () => {
 		updateInputRadix(inputRadix)
 		setInputCharsError(undefined)
@@ -52,6 +57,56 @@ export default function Header({ radixes, updateRadixes }: {
 			setInputRadix(i)
 			setInputChars(radixes[i].chars.join(''))
 		}
+	}
+
+	const handleInputCharsSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+		e.preventDefault()
+		setInputCharsError(undefined)
+
+		try {
+			if (inputRadix ==='all') {
+				if (e.type === 'submit') {
+					updateRadixesChars('all', inputChars)
+					allChars = inputChars
+				} else {
+					if (allChars !== defaultChars) {
+						allChars = defaultChars
+						updateRadixesChars('all')
+					}
+					setInputChars(allChars)
+				}
+			} else {
+				const newRadixes = updateRadixesChars(radixes[inputRadix], e.type === 'submit' ? inputChars : undefined)
+				if (e.type === 'reset') setInputChars(newRadixes[inputRadix].chars.join(''))
+			}
+		} catch (error) {
+			console.error(error)
+			setInputCharsError((error as Error).message)
+		}
+	}
+
+	const updateRadixesChars = (who: 'all' | Radix, chars?: string) => {
+		let newRadixes = radixes
+		const charsArray = chars ? Array.from(chars) : undefined
+		if (who === 'all') {
+			if (charsArray && charsArray?.length !== defaultCharsArray.length) {
+				throw new Error(`Invalid number of chars provided: ${charsArray?.length}, expected: ${defaultCharsArray.length}`)
+			}
+			setCharsLS(chars !== defaultChars ? chars : undefined)
+			newRadixes = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
+		} else {
+			const i = radixes.findIndex(r => r.name === who.name)
+			const oldRadix = radixes[i]
+			if (charsArray != undefined && charsArray.length !== oldRadix.chars.length) {
+				throw new Error(`Invalid number of chars provided: ${charsArray.length}, expected: ${oldRadix.chars.length}`)
+			}
+			const newRadix = createRadix(Number(oldRadix.radix), oldRadix.system, charsArray, oldRadix.enabled)
+			radixes[i] = newRadix
+		}
+
+		updateRadixes(newRadixes)
+
+		return newRadixes
 	}
 
 	const toggleRadixes: ToggleRadixes = (who, enabled) => {
@@ -78,57 +133,6 @@ export default function Header({ radixes, updateRadixes }: {
 		updateRadixes(radixes)
 	}
 
-	const updateRadixesChars = (who: 'all' | Radix, chars?: string) => {
-		// console.log('setRadixes start:', { command, enabledRadixes: newRadixes.filter(v => v.enabled).length })
-
-		let newRadixes = radixes
-		const charsArray = str2arr(chars)
-		if (who === 'all') {
-			if (charsArray && charsArray?.length !== defaultCharsArray.length) {
-				throw new Error(`Invalid number of chars provided: ${charsArray?.length}, expected: ${defaultCharsArray.length}`)
-			}
-			setCharsLS(chars !== defaultChars ? chars : undefined)
-			newRadixes = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
-		} else {
-			const i = radixes.findIndex(r => r.name === who.name)
-			const oldRadix = radixes[i]
-			if (charsArray != undefined && charsArray.length !== oldRadix.chars.length) {
-				throw new Error(`Invalid number of chars provided: ${charsArray.length}, expected: ${oldRadix.chars.length}`)
-			}
-			const newRadix = createRadix(Number(oldRadix.radix), oldRadix.system, charsArray, oldRadix.enabled)
-			radixes[i] = newRadix
-		}
-
-		updateRadixes(newRadixes)
-
-		return newRadixes
-	}
-
-	const handleInputCharsSubmit: FormEventHandler<HTMLFormElement> = (e) => {
-		e.preventDefault()
-		setInputCharsError(undefined)
-
-		try {
-			if (inputRadix ==='all') {
-				if (e.type === 'submit') {
-					updateRadixesChars('all', inputChars)
-					allChars = inputChars
-				} else {
-					if (allChars !== defaultChars) {
-						allChars = defaultChars
-						updateRadixesChars('all')
-					}
-					setInputChars(allChars)
-				}
-			} else {
-				const newRadixes = updateRadixesChars(radixes[inputRadix], e.type === 'submit' ? inputChars : undefined)
-				if (e.type === 'reset') setInputChars(newRadixes[inputRadix].chars.join(''))
-			}
-		} catch (error) {
-			setInputCharsError((error as Error).message)
-		}
-	}
-
 	return <header>
 		<div className="navbar bg-base-100">
 			<div className="flex-1">
@@ -145,7 +149,7 @@ export default function Header({ radixes, updateRadixes }: {
 					<span style={{ color: `hsl(324 80% 40%)`}}>e</span>
 				</button>
 			</div>
-			<div className="z-50">
+			<div className="z-10">
 				<ul className="menu menu-horizontal justify-end">
 					<li>
 						<button tabIndex={0} className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} onClick={toggleSettings}>Settings</button>
@@ -190,8 +194,9 @@ export default function Header({ radixes, updateRadixes }: {
 												formRef.current?.requestSubmit()
 											} else {
 												updateInputRadix(inputRadix)
+												e.currentTarget.blur()
+												setInputCharsError(undefined)
 											}
-											e.currentTarget.blur()
 										}
 									}}
 									onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}

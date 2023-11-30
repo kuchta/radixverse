@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
-  '@formatjs/intl-segmenter':
-    specifier: ^11.5.3
-    version: 11.5.3
   '@tailwindcss/typography':
     specifier: ^0.5.10
     version: 0.5.10(tailwindcss@3.3.5)
@@ -41,18 +38,21 @@ devDependencies:
   eslint-config-react-app:
     specifier: ^7.0.1
     version: 7.0.1(@babel/plugin-syntax-flow@7.23.3)(@babel/plugin-transform-react-jsx@7.23.4)(eslint@8.54.0)(typescript@5.3.2)
+  eslint-plugin-react-hooks:
+    specifier: 0.0.0-experimental-c17a27ef4-20231127
+    version: 0.0.0-experimental-c17a27ef4-20231127(eslint@8.54.0)
   postcss:
     specifier: ^8.4.31
     version: 8.4.31
   react:
-    specifier: ^18.2.0
-    version: 18.2.0
+    specifier: 0.0.0-experimental-c17a27ef4-20231127
+    version: 0.0.0-experimental-c17a27ef4-20231127
   react-dom:
-    specifier: ^18.2.0
-    version: 18.2.0(react@18.2.0)
+    specifier: 0.0.0-experimental-c17a27ef4-20231127
+    version: 0.0.0-experimental-c17a27ef4-20231127(react@0.0.0-experimental-c17a27ef4-20231127)
   react-router-dom:
     specifier: ^6.20.0
-    version: 6.20.0(react-dom@18.2.0)(react@18.2.0)
+    version: 6.20.0(react-dom@0.0.0-experimental-c17a27ef4-20231127)(react@0.0.0-experimental-c17a27ef4-20231127)
   tailwindcss:
     specifier: ^3.3.5
     version: 3.3.5
@@ -1962,27 +1962,6 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /@formatjs/ecma402-abstract@1.18.0:
-    resolution: {integrity: sha512-PEVLoa3zBevWSCZzPIM/lvPCi8P5l4G+NXQMc/CjEiaCWgyHieUoo0nM7Bs0n/NbuQ6JpXEolivQ9pKSBHaDlA==}
-    dependencies:
-      '@formatjs/intl-localematcher': 0.5.2
-      tslib: 2.6.2
-    dev: true
-
-  /@formatjs/intl-localematcher@0.5.2:
-    resolution: {integrity: sha512-txaaE2fiBMagLrR4jYhxzFO6wEdEG4TPMqrzBAcbr4HFUYzH/YC+lg6OIzKCHm8WgDdyQevxbAAV1OgcXctuGw==}
-    dependencies:
-      tslib: 2.6.2
-    dev: true
-
-  /@formatjs/intl-segmenter@11.5.3:
-    resolution: {integrity: sha512-J7ygJh9dWee26WUptaK4nwd4pZDm7axKRaYqZrc1aXZDQy7Xl+j/PdNkULvWfQTqietcC4iG9dQR5XxR/DFRCw==}
-    dependencies:
-      '@formatjs/ecma402-abstract': 1.18.0
-      '@formatjs/intl-localematcher': 0.5.2
-      tslib: 2.6.2
-    dev: true
-
   /@humanwhocodes/config-array@0.11.13:
     resolution: {integrity: sha512-JSBDMiDKSzQVngfRjOdFXgFfklaXI4K9nLF49Auh21lmBWRLIK3+xTErTWD4KU54pb6coM6ESE7Awz/FNU3zgQ==}
     engines: {node: '>=10.10.0'}
@@ -3420,6 +3399,15 @@ packages:
       object.fromentries: 2.0.7
     dev: true
 
+  /eslint-plugin-react-hooks@0.0.0-experimental-c17a27ef4-20231127(eslint@8.54.0):
+    resolution: {integrity: sha512-gkNXFlu11uZztG5t80IUeDvI8MRDGNKJVdX+TalnbZcQrOwClSxY/AdRWI9xZk5vcL7hhn/TmNVPPjRDQTlz8A==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
+    dependencies:
+      eslint: 8.54.0
+    dev: true
+
   /eslint-plugin-react-hooks@4.6.0(eslint@8.54.0):
     resolution: {integrity: sha512-oFc7Itz9Qxh2x4gNHStv3BqJq54ExXmfC+a1NjAta66IAN87Wu0R/QArgIS9qKzX3dXKPI9H5crl9QchNMY9+g==}
     engines: {node: '>=10'}
@@ -4539,14 +4527,14 @@ packages:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
     dev: true
 
-  /react-dom@18.2.0(react@18.2.0):
-    resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
+  /react-dom@0.0.0-experimental-c17a27ef4-20231127(react@0.0.0-experimental-c17a27ef4-20231127):
+    resolution: {integrity: sha512-NF6vrdvPAAINHhosuzGqjnM3a9Pog2vKSnyetvbKW/oKr2xm6cIbIoaBc2Ng/6I3fihWk7k0Xz60w99ccvWVrg==}
     peerDependencies:
-      react: ^18.2.0
+      react: 0.0.0-experimental-c17a27ef4-20231127
     dependencies:
       loose-envify: 1.4.0
-      react: 18.2.0
-      scheduler: 0.23.0
+      react: 0.0.0-experimental-c17a27ef4-20231127
+      scheduler: 0.0.0-experimental-c17a27ef4-20231127
     dev: true
 
   /react-is@16.13.1:
@@ -4558,7 +4546,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /react-router-dom@6.20.0(react-dom@18.2.0)(react@18.2.0):
+  /react-router-dom@6.20.0(react-dom@0.0.0-experimental-c17a27ef4-20231127)(react@0.0.0-experimental-c17a27ef4-20231127):
     resolution: {integrity: sha512-CbcKjEyiSVpA6UtCHOIYLUYn/UJfwzp55va4yEfpk7JBN3GPqWfHrdLkAvNCcpXr8QoihcDMuk0dzWZxtlB/mQ==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
@@ -4566,23 +4554,23 @@ packages:
       react-dom: '>=16.8'
     dependencies:
       '@remix-run/router': 1.13.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-router: 6.20.0(react@18.2.0)
+      react: 0.0.0-experimental-c17a27ef4-20231127
+      react-dom: 0.0.0-experimental-c17a27ef4-20231127(react@0.0.0-experimental-c17a27ef4-20231127)
+      react-router: 6.20.0(react@0.0.0-experimental-c17a27ef4-20231127)
     dev: true
 
-  /react-router@6.20.0(react@18.2.0):
+  /react-router@6.20.0(react@0.0.0-experimental-c17a27ef4-20231127):
     resolution: {integrity: sha512-pVvzsSsgUxxtuNfTHC4IxjATs10UaAtvLGVSA1tbUE4GDaOSU1Esu2xF5nWLz7KPiMuW8BJWuPFdlGYJ7/rW0w==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=16.8'
     dependencies:
       '@remix-run/router': 1.13.0
-      react: 18.2.0
+      react: 0.0.0-experimental-c17a27ef4-20231127
     dev: true
 
-  /react@18.2.0:
-    resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
+  /react@0.0.0-experimental-c17a27ef4-20231127:
+    resolution: {integrity: sha512-QsOphaTtGq8RqvLC4ogJCL9nEoYbE0HLF0cyc+vb64wIhBe2chA6sQ8DM8/yFN84wadUfbVhnG5svFdOGaimgg==}
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
@@ -4745,8 +4733,8 @@ packages:
       is-regex: 1.1.4
     dev: true
 
-  /scheduler@0.23.0:
-    resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
+  /scheduler@0.0.0-experimental-c17a27ef4-20231127:
+    resolution: {integrity: sha512-uwoiPwdnX6/qgsfrkvb7mjki6aFdA5xh7Th4H69hcHDTC2UrnqSwuITuVU337wZhjK1zebBw2DFWpU9qc3bmlA==}
     dependencies:
       loose-envify: 1.4.0
     dev: true
@@ -4990,10 +4978,6 @@ packages:
 
   /tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
-    dev: true
-
-  /tslib@2.6.2:
-    resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
     dev: true
 
   /tsutils@3.21.0(typescript@5.3.2):

@@ -25,7 +25,7 @@ function Show({ radixes }: { radixes: Radix[] }) {
 						 : low
 			const mainRow = my ? rows / 2 - 1 : bal ? Math.trunc(rows / 2) : 0
 			const numbers = Array.from(Array(rows), (_, i) => Array.from(Array(cols), (_, j) => (i * cols) + j + lowest))
-			return <Table key={`show-${radix.name}`} tab="show" radix={radix} numbers={numbers} low={lowest} high={highest} mainRow={mainRow}/>
+			return <Table radix={radix} numbers={numbers} low={lowest} high={highest} mainRow={mainRow} key={`show-${radix.name}`}/>
 		})}
 	</Tables>
 }

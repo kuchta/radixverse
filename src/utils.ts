@@ -17,7 +17,7 @@ const LS_CHARS = 'chars'
 const LS_RADIXES = 'radixes'
 
 export const defaultChars = balBase36
-export const defaultCharsArray = str2arr(defaultChars)
+export const defaultCharsArray = Array.from(defaultChars)
 
 export type Radix = {
 	name: string
@@ -53,9 +53,7 @@ export function setCharsLS(chars?: string) {
 
 export function getRadixesLS() {
 	const item = localStorage.getItem(LS_RADIXES)
-	if (item == null) {
-		return
-	}
+	if (item == null) return
 
 	const radixes = JSON.parse(item) as Radix[]
 	return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name))
@@ -74,18 +72,13 @@ export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, {
 	return ret
 }
 
-export function str2arr(s: string): string[]
-export function str2arr(s: string | undefined): string[] | undefined
-export function str2arr(s: string | undefined): string[] | undefined {
-	return s ? [...new Intl.Segmenter().segment(s)].map(s => s.segment) : undefined
-}
-
-export function createRadixes(chars = defaultCharsArray) {
-	return [ ...Array(35) ].flatMap((_, i) => {
+export function createRadixes(chars = defaultChars) {
+	const charsArray = chars !== defaultChars ? Array.from(chars) : undefined
+	return Array.from(Array(35)).flatMap((_, i) => {
 		const radix = i + 2
-		const ret = [ createRadix(radix, 'standard', chars) ]
-		if (radix < 36) ret.push(createRadix(radix, 'bijective', chars))
-		if (radix & 1) ret.push(createRadix(radix, 'balanced', chars))
+		const ret = [ createRadix(radix, 'standard', charsArray) ]
+		if (radix < 36) ret.push(createRadix(radix, 'bijective', charsArray))
+		if (radix & 1) ret.push(createRadix(radix, 'balanced', charsArray))
 		// if (radix % 2 === 0) ret.push(createRadix(radix, 'my', chars))
 		return ret
 	})
@@ -105,11 +98,11 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			name: name ?? `${radix}`,
 			system: 'standard',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === defaultCharsArray ? str2arr(base27) : chars.slice(zeroAt, zeroAt + radix),
+			chars: radix === 27 && chars === defaultCharsArray ? Array.from(base27) : chars.slice(zeroAt, zeroAt + radix),
 			zeroAt: 0,
 			low: 0,
 			high: radix - 1,
-			enabled: enabled != undefined ? enabled : [ 2, 3, 10, 12, 27 ].includes(radix)
+			enabled: enabled != undefined ? enabled : [ 2, 10, 12, 27 ].includes(radix)
 		}
 	} else if (system === 'bijective') {
 		if (chars.length === radix + 1) zeroAt = 0
@@ -117,7 +110,7 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			name: name ?? `bij-${radix}`,
 			system: 'bijective',
 			radix: BigInt(radix),
-			chars: radix === 26 && chars === defaultCharsArray ? str2arr(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
+			chars: radix === 26 && chars === defaultCharsArray ? Array.from(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
 			zeroAt: 0,
 			low: 1,
 			high: radix,
@@ -129,11 +122,11 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 			name: name ?? `bal-${radix}`,
 			system: 'balanced',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === defaultCharsArray ? str2arr(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
+			chars: radix === 27 && chars === defaultCharsArray ? Array.from(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
 			zeroAt: half,
 			low: -half,
 			high: half,
-			enabled: enabled != undefined ? enabled : [ 3, 13, 19, 27 ].includes(radix),
+			enabled: enabled != undefined ? enabled : [ 3, 19, 27 ].includes(radix),
 		}
 	} else if (system === 'my') {
 		if (chars.length === radix) zeroAt -= 1
@@ -156,38 +149,36 @@ export function createRadix(radix: number, system: Radix["system"] = "standard",
 }
 
 export function num2str(num: bigint, radix: Radix): string {
-	if (num === 0n) {
-		return radix.chars[radix.zeroAt]
-	}
+	if (num === 0n) return radix.chars[radix.zeroAt]
+
+	const { radix: rad, system } = radix
+	const bij = system === 'bijective'
+	const bal = system === 'balanced'
+	const my = system === 'my'
+	const high = BigInt(radix.high)
+	const zeroAt = BigInt(radix.zeroAt)
 
 	const neg = num < 0n
 	let n = neg ? -num : num
 
-	const bij = radix.system === 'bijective'
-	const my = radix.system === 'my'
-	const bal = radix.system === 'balanced'
-	const r = radix.radix
-	const rh = BigInt(radix.high)
-	const za = BigInt(radix.zeroAt)
-
 	const ret: string[] = []
 	let d: bigint
 	while (n > 0n) {
-		d = n % r
+		d = n % rad
 		if (bij) {
-			const q = d === 0n ? n / r - 1n : n / r
-			d = n - q * r
+			const q = d === 0n ? n / rad - 1n : n / rad
+			d = n - q * rad
 			n = q
 		} else {
 			if (bal || my) {
-				if (d > rh || my && neg && d === rh) {
-					d -= r
-					n += rh
+				if (d > high || my && neg && d === high) {
+					d -= rad
+					n += high
 				}
 				if (neg) d = -d
-				d = za + d
+				d = zeroAt + d
 			}
-			n /= r
+			n /= rad
 		}
 		ret.unshift(radix.chars[Number(d)])
 	}
@@ -199,22 +190,19 @@ export function num2str(num: bigint, radix: Radix): string {
 }
 
 export function str2num(str: string, radix: Radix): bigint {
-	if (str === radix.chars[radix.zeroAt]) {
-		return 0n
-	}
+	if (str === radix.chars[radix.zeroAt]) return 0n
 
+	const { radix: rad, system, chars, low } = radix
+	const bij = system === 'bijective'
+	const bal = system === 'balanced' || system === 'my'
 	const neg = str.startsWith('-')
 	const s = neg ? str.slice(1) : str
-	const bij = radix.system === 'bijective'
-	const bal = radix.system === 'balanced' || radix.system === 'my'
-	const r = radix.radix
-	const chars = radix.chars
-	const low = radix.low
 
+	let v
 	const n = Array.from(s).reduce((acc, c) => {
-		const v = chars.indexOf(c)
+		v = chars.indexOf(c)
 		if (v < (bij ? 1 : 0)) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
-		return acc * r + BigInt((bal ? low : 0) + v)
+		return acc * rad + BigInt((bal ? low : 0) + v)
 	}, 0n)
 
 	return neg ? -n : n
@@ -251,10 +239,11 @@ export function sumDigits(number: string, radix: Radix, level = 0) {
 		number = number.slice(1)
 		ret += '-'
 	}
-	const n = num2str([...number].reduce((a, n) => a + str2num(n, radix), 0n), radix)
-	ret += n
-	if (n.length > 1) {
-		ret += sumDigits(ret, radix, level+1)
+	const n = Array.from(number).reduce((a, n) => a + str2num(n, radix), 0n)
+	const s = num2str(n, radix)
+	ret += `${s}(${num2str(n, createRadix(10))})`
+	if (Array.from(s).length > 1) {
+		ret += sumDigits(s, radix, level+1)
 	}
 
 	return level > 0 ? `=${ret}` : `∑=${ret}`

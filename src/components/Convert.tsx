@@ -1,4 +1,5 @@
-import React, { ComponentProps, useState, useEffect, useRef } from 'react'
+// @ts-expect-error: TS2305: Module '"react"' has no exported member 'experimental_useEffectEvent'.
+import React, { ComponentProps, useState, useEffect, useRef, experimental_useEffectEvent } from 'react'
 
 import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, sumDigits } from '../utils'
 
@@ -6,15 +7,21 @@ import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanit
 export default function Convert({ radixes, value, updateValue }: {
 	radixes: Radix[],
 	value: bigint,
-	updateValue: (value: bigint | ((value: bigint) => bigint), radix?: Radix) => void
+	updateValue: (value: bigint, radix?: Radix) => void
 }) {
 	const plusButtonRef = useRef<HTMLButtonElement>(null)
 	const deleteButtonRef = useRef<HTMLButtonElement>(null)
 	const minusButtonRef = useRef<HTMLButtonElement>(null)
 
-	const keyDown = (e: KeyboardEvent) => {
-		// console.log('keyDown:', e)
+	// console.log('Convert: ', { value, radixes })
 
+	useEffect(() => {
+		document.addEventListener('keydown', keyDown)
+		return () => document.removeEventListener('keydown', keyDown)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	const keyDown = experimental_useEffectEvent((e: KeyboardEvent) => {
 		switch (e.key) {
 			case 'Backspace':
 			case 'Delete':
@@ -24,31 +31,24 @@ export default function Convert({ radixes, value, updateValue }: {
 			case '+':
 			case '=':
 				plusButtonRef.current?.focus()
-				updateValue(v => v + 1n)
+				updateValue(value + 1n)
 				break
 			case '-':
 			case '_':
 				minusButtonRef.current?.focus()
-				updateValue(v => v - 1n)
+				updateValue(value - 1n)
 				break
 		}
-	}
+	})
 
-	useEffect(() => {
-		document.addEventListener('keydown', keyDown)
-		return () => document.removeEventListener('keydown', keyDown)
-	}, [])
-
-	// console.log('Convert: ', { value, radixes })
-
-	return <main className="flex flex-col items-start text-sm lg:text-[2vh] leading-8">
+	return <main className="flex flex-col items-start text-sm text-[clamp(0.6rem,2vw,1rem)] leading-8 h-8 mx-[clamp(0.5rem,1.5vw,2rem)]">
 		<div className="flex flex-row gap-1 relative lg:left-32 mb-1">
 			<button className="btn btn-circle btn-sm text-lg" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
 			<button className="btn btn-circle btn-sm text-2xl" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
 			<button className="btn btn-circle btn-sm text-lg" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
 		</div>{ radixes.map((radix, index) =>
 		<div key={radix.name}>
-			<span className="flex flex-row items-center float-left h-8">
+			<span className="hidden md:flex flex-row items-center float-left">
 				<span className="hidden lg:inline-block text-center w-32"><span className="badge badge-lg badge-outline m-1">{radix.name}</span></span>
 				<span className="flex flex-row gap-1">
 					<button className="btn btn-sm btn-circle text-lg" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
@@ -71,7 +71,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 	radix: Radix,
 	radixIndex: number,
 	numRadixes: number
-	updateValue: (value: bigint | ((value: bigint) => bigint), radix?: Radix) => void
+	updateValue: (value: bigint, radix?: Radix) => void
 }) {
 	const [ v, setV ] = useState(num2str(value, radix))
 	const [ editing, setEditing ] = useState(false)
@@ -79,7 +79,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 	const [ errorLevel, setErrorLevel ] = useState<'error' | 'warning'>('error')
 	const ref = useRef<HTMLSpanElement>(null)
 
-	useEffect(() => { if (!editing) setV(num2str(value, radix)) }, [ value, radix ])
+	useEffect(() => { if (!editing) setV(num2str(value, radix)) }, [ editing, value, radix ])
 
 	const getCaretPosition = () => window.getSelection()?.getRangeAt(0).startOffset ?? 0
 
@@ -106,6 +106,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 			updateValue(n, radix)
 			setError(undefined)
 		} catch (error) {
+			console.error(error)
 			setError((error as Error).message)
 			setErrorLevel('error')
 			e.currentTarget.innerText = v
@@ -115,16 +116,19 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 	}
 
 	const handlePaste = (e: React.ClipboardEvent<HTMLSpanElement>) => {
-		// console.log('handlePaste:', e)
-
 		e.preventDefault()
 
 		let position = getCaretPosition()
 		try {
-			const range = window.getSelection()?.getRangeAt(0)
-			const selectionRange = range ? range.endOffset - range.startOffset : 0
 			const [ input, rest ] = sanitizeInput(e.clipboardData.getData('text'), radix)
-			const newV = [...v].toSpliced(position, selectionRange, input).join('')
+			const range = window.getSelection()?.getRangeAt(0)
+			let newV
+			if (range?.startContainer === ref.current) {
+				newV = input
+			} else {
+				const selectionRange = range ? range.endOffset - range.startOffset : 0
+				newV = Array.from(v).toSpliced(position, selectionRange, input).join('')
+			}
 			const n = str2num(newV, radix)
 			setV(newV)
 			updateValue(n, radix)
@@ -136,6 +140,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 				setError(undefined)
 			}
 		} catch (error) {
+			console.error(error)
 			setError((error as Error).message)
 			setErrorLevel('error')
 		}
@@ -152,15 +157,15 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 			onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.blur() } else e.stopPropagation() }}
 			onInput={handleInput}
 			onPaste={handlePaste}
-			onDoubleClick={() => { if (ref.current) window.getSelection()?.modify('extend', 'forward', 'line')}}
+			onDoubleClick={() => { if (ref.current) window.getSelection()?.selectAllChildren(ref.current) }}
 			onFocus={() => setEditing(true)}
-			onBlur={() => { setEditing(false); setError(undefined); if (!v) setV(num2str(value, radix)) }}
+			onBlur={() => { setEditing(false); setError(undefined); setV(num2str(value, radix)) }}
 			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}
 			ref={ref}
 		>
 			{v}
 		</span>
 		<sub className="lg:hidden text-sm">{radix.name}</sub>
-		<sup className="text-sm"> (#{v.length} {sumDigits(v, radix)})</sup>
+		<span className="text-xs"> #{v.length} {sumDigits(num2str(value, radix), radix)}</span>
 	</span>
 }
