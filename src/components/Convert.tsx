@@ -41,28 +41,24 @@ export default function Convert({ radixes, value, updateValue }: {
 		}
 	})
 
-	return <main className="flex flex-col items-start text-sm text-[clamp(0.6rem,2vw,1rem)] leading-8 h-8 mx-[clamp(0.5rem,1.5vw,2rem)]">
-		<div className="flex flex-row gap-1 relative lg:left-32 mb-1">
-			<button className="btn btn-circle btn-sm text-lg" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
-			<button className="btn btn-circle btn-sm text-2xl" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
-			<button className="btn btn-circle btn-sm text-lg" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
+	return <main className="flex flex-col text-[clamp(1rem,1.8vw,1.9rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
+		<div className="flex gap-1 relative lg:left-32 m-1">
+			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
+			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
+			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
 		</div>{ radixes.map((radix, index) =>
 		<div key={radix.name}>
-			<span className="hidden md:flex flex-row items-center float-left">
-				<span className="hidden lg:inline-block text-center w-32"><span className="badge badge-lg badge-outline m-1">{radix.name}</span></span>
-				<span className="flex flex-row gap-1">
-					<button className="btn btn-sm btn-circle text-lg" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
-					<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n || radix.system === "bijective" } onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
-					<button className="btn btn-sm btn-circle text-lg" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
-				</span>
+			<span className="hidden lg:inline-block text-center w-32">
+				<span className="badge badge-neutral badge-outline badge-lg align-middle">{radix.name}</span>
 			</span>
-			<NumberLine className="text-center text-[1.5em] h-8"
-				value={value}
-				radix={radix}
-				radixIndex={index}
-				numRadixes={radixes.length}
-				updateValue={updateValue} />
-		</div>)}
+			<span className="hidden md:inline-flex items-center align-middle gap-1 m-1">
+				<button className="btn btn-circle btn-xs lg:btn-sm" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
+				<button className="btn btn-circle btn-xs lg:btn-sm" disabled={ value === 0n || radix.system === "bijective" } onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
+				<button className="btn btn-circle btn-xs lg:btn-sm" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
+			</span>
+			<span> = </span>
+			<NumberLine value={value} radix={radix} radixIndex={index} numRadixes={radixes.length} updateValue={updateValue}/>
+		</div> )}
 	</main>
 }
 
@@ -148,8 +144,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 	}
 
 	return <span {...props}>
-		<span>=</span>
-		<span className={`break-all text-start outline-none inline${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={error}
+		<span className={`break-all outline-none${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={error}
 			tabIndex={1}
 			contentEditable={true}
 			suppressContentEditableWarning={true}
@@ -165,7 +160,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 		>
 			{v}
 		</span>
-		<sub className="lg:hidden text-sm">{radix.name}</sub>
-		<span className="text-xs"> #{v.length} {sumDigits(num2str(value, radix), radix)}</span>
+		<sub className="lg:hidden align-middle text-[0.6rem]">{radix.name}</sub>
+		<span className="text-[0.5em]"> #{v.length} {sumDigits(num2str(value, radix), radix)}</span>
 	</span>
 }

@@ -202,13 +202,13 @@ export default function Header({ radixes, updateRadixes }: {
 									onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
 								/>
 							</span>
-							<span className="flex flex-col gap-1 lg:gap-0 lg:flex-row lg:join justify-center">
+							<span className="flex flex-col gap-1 md:flex-row md:gap-0 md:join justify-center">
 								<button className="btn btn-xs btn-outline btn-success join-item" type="reset">Reset</button>
 								<button className="btn btn-xs btn-outline btn-error join-item" type="submit">Set</button>
 							</span>
 						</form>
 					</div>
-					<div className="flex flex-row flex-wrap justify-center items-center gap-2">
+					<div className="flex flex-wrap justify-center items-center gap-2">
 						<RadixesSelect who="all" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="odd" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
@@ -259,7 +259,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix["system"], ra
 					Remove
 				</button>
 			</div>
-			<div className="card-actions flex-row justify-center">{ radixes.filter(r => r.system === who).map(radix =>
+			<div className="card-actions justify-center">{ radixes.filter(r => r.system === who).map(radix =>
 				<button
 					className={`btn btn-xs btn-outline ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
 					key={radix.name}
