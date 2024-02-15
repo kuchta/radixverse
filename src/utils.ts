@@ -1,33 +1,30 @@
 const zero = '0'
 const base9 = '123456789'
-const base10 = zero + base9
 const baseMinus9 = '❾❽❼❻❺❹❸❷❶'
 const base26 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const bijBase26 = zero + base26
 const baseMinus26 = '🅩🅨🅧🅦🅥🅤🅣🅢🅡🅠🅟🅞🅝🅜🅛🅚🅙🅘🅗🅖🅕🅔🅓🅒🅑🅐'
-const base27 = zero + base26
-const balBase27 = 'ABCDEFGHIJKLM' + zero + 'NOPQRSTUVWXYZ'
-// const base36 = base10 + base26
-const balBase36 = baseMinus26 + baseMinus9 + base10 + base26
+const baseBal71 = baseMinus26 + baseMinus9 + zero + base9 + base26
+// const base32cz = 'ABCČDĎEFGHIJKLMNŇOPQRŘSŠTŤUVXYZŽ'
 // const base36cz = 'AÁBCČDĎEÉFGHIÍJKLMNŇOÓPQRŘSŠTŤUÚVXZŽ'
-// const base42 = [ ' ', 'A', 'Á', 'B', 'C', 'Č', 'D', 'Ď', 'E', 'É', 'Ě', 'F', 'G', 'H', 'Ch', 'I', 'Í', 'J', 'K', 'L', 'M', 'N', 'Ň', 'O', 'Ó', 'P', 'Q', 'R', 'Ř', 'S', 'Š', 'T', 'Ť', 'U', 'Ú', 'Ů', 'V', 'W', 'X', 'Y', 'Ý', 'Z', 'Ž' ]
+// const base42 = [ 'A', 'Á', 'B', 'C', 'Č', 'D', 'Ď', 'E', 'É', 'Ě', 'F', 'G', 'H', 'Ch', 'I', 'Í', 'J', 'K', 'L', 'M', 'N', 'Ň', 'O', 'Ó', 'P', 'Q', 'R', 'Ř', 'S', 'Š', 'T', 'Ť', 'U', 'Ú', 'Ů', 'V', 'W', 'X', 'Y', 'Ý', 'Z', 'Ž' ]
 
 const LS_THEME = 'theme'
 const LS_CHARS = 'chars'
 const LS_RADIXES = 'radixes'
 
-export const defaultChars = balBase36
-export const defaultCharsArray = Array.from(defaultChars)
+export const defaultChars = baseBal71
+const defaultCharsArray = Array.from(defaultChars)
 
 export type Radix = {
 	name: string
-	system: 'standard' | 'bijective' | 'balanced' | 'my'
 	radix: bigint
+	system: 'standard' | 'bijective' | 'balanced' | 'clock' | 'sum' | 'balsum'
 	chars: string[]
-	zeroAt: number
+	enabled: boolean
+	values: Map<string, bigint>
+	reversedValues: Map<bigint, string>
 	low: number
 	high: number
-	enabled: boolean
 }
 
 export function getThemeLS() {
@@ -56,7 +53,7 @@ export function getRadixesLS() {
 	if (item == null) return
 
 	const radixes = JSON.parse(item) as Radix[]
-	return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name))
+	return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name, false))
 }
 
 export function setRadixesLS(radixes: Radix[]) {
@@ -73,139 +70,287 @@ export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, {
 }
 
 export function createRadixes(chars = defaultChars) {
+	// console.log('createRadixes')
 	const charsArray = chars !== defaultChars ? Array.from(chars) : undefined
 	return Array.from(Array(35)).flatMap((_, i) => {
 		const radix = i + 2
 		const ret = [ createRadix(radix, 'standard', charsArray) ]
 		if (radix < 36) ret.push(createRadix(radix, 'bijective', charsArray))
 		if (radix & 1) ret.push(createRadix(radix, 'balanced', charsArray))
-		// if (radix % 2 === 0) ret.push(createRadix(radix, 'my', chars))
+		if (radix <= 26) ret.push(createRadix(radix, 'sum', charsArray))
+		// if (radix <= 27 && radix & 1) ret.push(createRadix(radix, 'balsum', charsArray))
+		// if (radix % 2 === 0) ret.push(createRadix(radix, 'clock', chars))
 		return ret
 	})
 }
 
-export function createRadix(radix: number, system: Radix["system"] = "standard", chars = defaultCharsArray, enabled?: boolean, name?: string) {
-	if (radix < 0 || radix > (system === 'standard' || system === 'my' ? 36 : 35)) throw new Error(`getRadix: Radix(${system}) of out range: ${radix}`)
-	if (system === 'balanced' && radix % 2 === 0) throw new Error(`getRadix: Radix(${system}) must be odd: ${radix}`)
-	if (system === 'my' && radix % 2 !== 0) throw new Error(`getRadix: Radix(${system}) must be even: ${radix}`)
+export function createRadix(radix: number, system: Radix['system'] = 'standard', chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true) {
+	if (allChars) {
+		if (chars !== defaultCharsArray && chars.length < defaultCharsArray.length) throw new Error(`chars must have at least ${defaultCharsArray.length} characters, ${chars.length} provided`)
+		if (chars.length % 2 === 0) throw new Error(`chars must have odd number of characters`)
+	}
 
 	let ret: Radix
-	let zeroAt = Math.trunc(chars.length / 2)
 
 	if (system === 'standard') {
-		if (chars.length === radix) zeroAt = 0
+		if (allChars) {
+			const zeroAt = (chars.length - 1) / 2
+			chars = radix === 26 ? chars.slice(zeroAt + 10, zeroAt + 10 + radix) : chars.slice(zeroAt, zeroAt + radix)
+		} else if (chars.length !== radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length)
+
+		const values = chars.map((c, i) => [ c, BigInt(i) ] as [ string, bigint ])
+
 		ret = {
 			name: name ?? `${radix}`,
 			system: 'standard',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === defaultCharsArray ? Array.from(base27) : chars.slice(zeroAt, zeroAt + radix),
-			zeroAt: 0,
+			chars,
+			values: new Map(values),
+			reversedValues: new Map(values.map(([c, v]) => [v, c])),
 			low: 0,
 			high: radix - 1,
-			enabled: enabled != undefined ? enabled : [ 2, 10, 12, 27 ].includes(radix)
+			enabled: enabled ?? [ 2, 10, 12, 26 ].includes(radix)
 		}
 	} else if (system === 'bijective') {
-		if (chars.length === radix + 1) zeroAt = 0
+		if (allChars) {
+			const zeroAt = (chars.length - 1) / 2
+			chars = radix === 26 ? chars.slice(zeroAt).toSpliced(1, 9) : chars.slice(zeroAt, zeroAt + radix + 1)
+		} else if (chars.length !== radix + 1) throw invalidNumberOfCharacters(radix, system, radix + 1, chars.length)
+
+		const values = chars.map((c, i) => [ c, BigInt(i) ] as [ string, bigint ])
+
 		ret = {
 			name: name ?? `bij-${radix}`,
 			system: 'bijective',
 			radix: BigInt(radix),
-			chars: radix === 26 && chars === defaultCharsArray ? Array.from(bijBase26) : chars.slice(zeroAt, zeroAt + radix + 1),
-			zeroAt: 0,
+			chars,
+			values: new Map(values),
+			reversedValues: new Map(values.map(([c, v]) => [v, c])),
 			low: 1,
 			high: radix,
-			enabled: enabled != undefined ? enabled : [ 26 ].includes(radix),
+			enabled: enabled ?? [ 26 ].includes(radix),
 		}
 	} else if (system === 'balanced') {
+		if (radix % 2 === 0) throw new Error(`createRadix: Radix(${system}) must be odd: ${radix}`)
+		if (!allChars && chars.length !== radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length)
+
+		const zeroAt = (chars.length - 1) / 2
 		const half = (radix - 1) / 2
+		const zeroChar = chars[zeroAt]
+		chars = radix === 27 && allChars ? chars.slice(zeroAt + 10).toSpliced(13, 0, zeroChar) : chars.slice(zeroAt - half, zeroAt + half + 1)
+		const values = chars.map((c, i) => [ c, BigInt(-half + i) ] as [ string, bigint ])
+
 		ret = {
 			name: name ?? `bal-${radix}`,
 			system: 'balanced',
 			radix: BigInt(radix),
-			chars: radix === 27 && chars === defaultCharsArray ? Array.from(balBase27) : chars.slice(zeroAt - half, zeroAt + half + 1),
-			zeroAt: half,
+			chars,
+			values: new Map(values),
+			reversedValues: new Map(values.map(([c, v]) => [v, c])),
 			low: -half,
 			high: half,
-			enabled: enabled != undefined ? enabled : [ 3, 19, 27 ].includes(radix),
+			enabled: enabled ?? [ 3, 13, 19, 27 ].includes(radix),
 		}
-	} else if (system === 'my') {
-		if (chars.length === radix) zeroAt -= 1
+	} else if (system === 'clock') {
+		if (radix % 2 !== 0) throw new Error(`createRadix: Radix(${system}) must be even: ${radix}`)
+		let zeroAt: number
+		if (allChars) {
+			zeroAt = (chars.length - 1) / 2
+		} else {
+			if (chars.length !== radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length)
+			zeroAt = chars.length / 2 - 1
+		}
+
 		const half = radix / 2
+		chars = chars.slice(zeroAt - half + 1, zeroAt + half + 1)
+		const values = chars.map((c, i) => [ c, BigInt(-half + 1 + i) ] as [ string, bigint ])
+
 		ret = {
-			name: name ?? `my-${radix}`,
-			system: 'my',
+			name: name ?? `clock-${radix}`,
+			system: 'clock',
 			radix: BigInt(radix),
-			chars: chars.slice(zeroAt - half + 1, zeroAt + half + 1),
-			zeroAt: half - 1,
+			chars,
+			values: new Map(values),
+			reversedValues: new Map(values.map(([c, v]) => [v, c])),
 			low: -half + 1,
 			high: half,
-			enabled: enabled != undefined ? enabled : [ 2, 4, 6, 8, 10, 12, 16, 18, 20, 22, 24, 30, 36 ].includes(radix),
+			enabled: enabled ?? [ 2, 4, 6, 8, 10, 12, 16, 18, 20, 22, 24, 30, 36 ].includes(radix),
+		}
+	} else if (system === 'sum') {
+		if (allChars) {
+			chars = chars.slice((chars.length - 1) / 2).toSpliced(1, 9)
+		}
+		if (chars.length < radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length, true)
+
+		const r = radix - 1
+		let order = 1
+		const values = [[ chars[0], 0n ], ...chars.slice(1).map((c, i) => {
+			if (i % r === 0 && i > 0) order *= r + 1
+			return [ c, BigInt((i % r + 1) * order) ] as [ string, bigint ]
+		})] as [ string, bigint ][]
+
+		ret = {
+			name: name ?? `sum-${radix}`,
+			system: 'sum',
+			radix: BigInt(radix),
+			chars,
+			values: new Map(values),
+			reversedValues: new Map(values.reverse().map(([c, v]) => [v, c])),
+			low: 1,
+			high: radix,
+			enabled: enabled ?? [ 2, 10 ].includes(radix),
+		}
+	} else if (system === 'balsum') {
+		let half = (chars.length - 1) / 2
+		if (allChars) {
+			chars = chars.slice(half + 10).toSpliced((half - 9) / 2, 0, chars[half])
+			half = (chars.length - 1) / 2
+		}
+		if (chars.length < radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length, true)
+
+		const high = (radix - 1) / 2
+		let createValues: (order: number) => (c: string, i: number) => [ string, bigint ]
+		if (radix === 3) {
+			createValues = (order: number) => (c: string, i: number) => [ c, BigInt(3 ** i * order) ]
+		} else {
+			createValues = (order: number) => (c: string, i: number) => {
+				if (i > 0 && i % high === 0) order *= radix
+				return [ c, BigInt((i % high + 1) * order) ]
+			}
+		}
+
+		const plusValues = chars.slice(half + 1).map(createValues(1))
+		const minusValues = chars.slice(0, half).toReversed().map(createValues(-1))
+		const values = [ ...minusValues.toReversed(), [ chars[half], 0n ], ...plusValues ]  as [ string, bigint ][]
+
+		ret = {
+			name: name ?? `balsum-${radix}`,
+			system: 'balsum',
+			radix: BigInt(radix),
+			chars,
+			values: new Map(values),
+			reversedValues: new Map(values.map(([c, v]) => [v, c])),
+			low: -high,
+			high,
+			enabled: enabled ?? [ 3, 27 ].includes(radix),
 		}
 	} else {
 		throw new Error('createRadix: Unknown system:', system)
 	}
 
+	// console.log(ret)
+
 	return ret
 }
 
-export function num2str(num: bigint, radix: Radix): string {
-	if (num === 0n) return radix.chars[radix.zeroAt]
+function invalidNumberOfCharacters(radix: number, system: Radix['system'], requiredLength: number, providedLength: number, atLeast = false) {
+	return new Error(`Radix(${system}, ${radix}) needs${atLeast ? ' at least' : ''} ${requiredLength} characarters, ${providedLength} provided`)
+}
 
-	const { radix: rad, system } = radix
-	const bij = system === 'bijective'
-	const bal = system === 'balanced'
-	const my = system === 'my'
-	const high = BigInt(radix.high)
-	const zeroAt = BigInt(radix.zeroAt)
+export function num2str(num: bigint, radix: Radix): string {
+	if (num === 0n) return radix.reversedValues.get(0n)!
+
+	const sum = radix.system === 'sum'
+	const bal = radix.system === 'balanced'
+	const balsum = radix.system === 'balsum'
+	const clock = radix.system === 'clock'
+
+	const ret: string[] = []
 
 	const neg = num < 0n
 	let n = neg ? -num : num
 
-	const ret: string[] = []
-	let d: bigint
-	while (n > 0n) {
-		d = n % rad
-		if (bij) {
-			const q = d === 0n ? n / rad - 1n : n / rad
-			d = n - q * rad
-			n = q
-		} else {
-			if (bal || my) {
-				if (d > high || my && neg && d === high) {
-					d -= rad
-					n += high
+	if (sum) {
+		let i
+		const max = 5
+		let v: string | undefined
+		const values = radix.reversedValues
+		for (const value of values.keys()) {
+			i = 0
+			if (!value) continue
+			while (n >= value) {
+				if (v = values.get(value)) ret.push(v)
+				if (++i === max) {
+					ret.unshift('…')
+					n %= value
+				} else {
+					n -= value
 				}
-				if (neg) d = -d
-				d = zeroAt + d
 			}
-			n /= rad
 		}
-		ret.unshift(radix.chars[Number(d)])
+	// } else if (balsum) {
+	// 	let i
+	// 	const max = 5
+	// 	let v: string | undefined
+	// 	const values = radix.reversedValues
+	// 	for (const value of neg ? values.keys() : Array(values.keys()).reverse()) {
+	// 		if (!value) continue
+	// 		i = 0
+	// 		while (neg ? num <= value : num >= value) {
+	// 			if (v = values.get(value)) ret.push(v)
+	// 			if (++i === max) {
+	// 				ret.unshift('…')
+	// 				num = neg ? -(num % value) : num % value
+	// 			} else {
+	// 				num = neg ? num + value : num - value
+	// 			}
+	// 		}
+	// 	}
+	} else {
+		const { radix: rad, system, reversedValues } = radix
+
+		const bij = system === 'bijective'
+		const high = BigInt(radix.high)
+
+		let d, q: bigint
+		let i = 1n
+		for (; n > 0n; i *= rad) {
+			d = n % rad
+			if (bij) {
+				q = d === 0n ? n / rad - 1n : n / rad
+				d = n - q * rad
+				n = q
+			} else {
+				if (bal || clock || balsum) {
+					if (d > high || clock && neg && d === high) {
+						d -= rad
+						n += high
+					}
+					if (neg) d = -d
+				}
+				n /= rad
+			}
+			if (balsum) {
+				if (d) ret.unshift(reversedValues.get(d * i)!)
+			} else {
+				ret.unshift(reversedValues.get(d)!)
+			}
+		}
 	}
 
-	if (neg && !(bal || my))
-		ret.unshift('-')
+	if (neg && !(bal || clock || balsum)) ret.unshift('-')
 
 	return ret.join('')
 }
 
-export function str2num(str: string, radix: Radix): bigint {
-	if (str === radix.chars[radix.zeroAt]) return 0n
+export function str2num(str: string, radix: Radix) {
+	if (str === radix.reversedValues.get(0n)) return 0n
 
-	const { radix: rad, system, chars, low } = radix
-	const bij = system === 'bijective'
-	const bal = system === 'balanced' || system === 'my'
 	const neg = str.startsWith('-')
 	const s = neg ? str.slice(1) : str
 
-	let v
-	const n = Array.from(s).reduce((acc, c) => {
-		v = chars.indexOf(c)
-		if (v < (bij ? 1 : 0)) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
-		return acc * rad + BigInt((bal ? low : 0) + v)
+	const { radix: rad, values } = radix
+	const sum = radix.system === 'sum'
+	const balsum = radix.system === 'balsum'
+	let v: bigint | undefined
+	const ret = Array.from(s).reduce((acc, c) => {
+		if (c === '…') return acc
+		v = values.get(c)
+		if (v == undefined) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
+		return sum || balsum ? acc + v : acc * rad + v
 	}, 0n)
 
-	return neg ? -n : n
+	return neg ? -ret : ret
 }
 
 export function filling_shl(value: bigint, radix: Radix) {
@@ -231,20 +376,4 @@ export function sanitizeInput(input: string, radix: Radix) {
 	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
 	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'g'), '')
 	return [ sanitizedInput, rest ]
-}
-
-export function sumDigits(number: string, radix: Radix, level = 0) {
-	let ret = ''
-	if (number.startsWith('-')) {
-		number = number.slice(1)
-		ret += '-'
-	}
-	const n = Array.from(number).reduce((a, n) => a + str2num(n, radix), 0n)
-	const s = num2str(n, radix)
-	ret += `${s}(${num2str(n, createRadix(10))})`
-	if (Array.from(s).length > 1) {
-		ret += sumDigits(s, radix, level+1)
-	}
-
-	return level > 0 ? `=${ret}` : `∑=${ret}`
 }

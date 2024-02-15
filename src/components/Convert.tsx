@@ -1,7 +1,7 @@
 // @ts-expect-error: TS2305: Module '"react"' has no exported member 'experimental_useEffectEvent'.
 import React, { ComponentProps, useState, useEffect, useRef, experimental_useEffectEvent } from 'react'
 
-import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, sumDigits } from '../utils'
+import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix } from '../utils'
 
 
 export default function Convert({ radixes, value, updateValue }: {
@@ -41,8 +41,8 @@ export default function Convert({ radixes, value, updateValue }: {
 		}
 	})
 
-	return <main className="flex flex-col text-[clamp(1rem,1.8vw,1.9rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
-		<div className="flex gap-1 relative lg:left-32 m-1">
+	return <main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
+		<div className="flex gap-1 relative lg:left-32 max-w-fit m-1">
 			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
 			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
 			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
@@ -69,13 +69,19 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 	numRadixes: number
 	updateValue: (value: bigint, radix?: Radix) => void
 }) {
-	const [ v, setV ] = useState(num2str(value, radix))
+	const [ strVal, setStrVal ] = useState(num2str(value, radix))
 	const [ editing, setEditing ] = useState(false)
 	const [ error, setError ] = useState<string>()
 	const [ errorLevel, setErrorLevel ] = useState<'error' | 'warning'>('error')
 	const ref = useRef<HTMLSpanElement>(null)
 
-	useEffect(() => { if (!editing) setV(num2str(value, radix)) }, [ editing, value, radix ])
+	useEffect(() => { if (!editing) setStrVal(num2str(value, radix)) }, [ editing, value, radix ])
+
+	const updateError = (error: string, errorLvl: typeof errorLevel) => {
+		setError(error)
+		setErrorLevel(errorLvl)
+		setTimeout(() => setError(undefined), 10000)
+	}
 
 	const getCaretPosition = () => window.getSelection()?.getRangeAt(0).startOffset ?? 0
 
@@ -90,7 +96,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 
 		const s = e.currentTarget.innerText.toUpperCase()
 		if (s === '') {
-			setV('')
+			setStrVal('')
 			updateValue(0n)
 			return
 		}
@@ -98,14 +104,13 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 		let position = getCaretPosition()
 		try {
 			const n = str2num(s, radix)
-			setV(s)
+			setStrVal(s)
 			updateValue(n, radix)
 			setError(undefined)
 		} catch (error) {
 			console.error(error)
-			setError((error as Error).message)
-			setErrorLevel('error')
-			e.currentTarget.innerText = v
+			updateError((error as Error).message, 'error')
+			e.currentTarget.innerText = strVal
 			position -= 1
 		}
 		setCaretPosition(position)
@@ -123,22 +128,20 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 				newV = input
 			} else {
 				const selectionRange = range ? range.endOffset - range.startOffset : 0
-				newV = Array.from(v).toSpliced(position, selectionRange, input).join('')
+				newV = Array.from(strVal).toSpliced(position, selectionRange, input).join('')
 			}
 			const n = str2num(newV, radix)
-			setV(newV)
+			setStrVal(newV)
 			updateValue(n, radix)
 			position += input.length
 			if (rest) {
-				setError(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`)
-				setErrorLevel('warning')
+				updateError(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`, 'warning')
 			} else {
 				setError(undefined)
 			}
 		} catch (error) {
 			console.error(error)
-			setError((error as Error).message)
-			setErrorLevel('error')
+			updateError((error as Error).message, 'error')
 		}
 		setCaretPosition(position)
 	}
@@ -154,13 +157,38 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 			onPaste={handlePaste}
 			onDoubleClick={() => { if (ref.current) window.getSelection()?.selectAllChildren(ref.current) }}
 			onFocus={() => setEditing(true)}
-			onBlur={() => { setEditing(false); setError(undefined); setV(num2str(value, radix)) }}
+			onBlur={() => { setEditing(false); setError(undefined); setStrVal(num2str(value, radix)) }}
 			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}
 			ref={ref}
 		>
-			{v}
+			{strVal}
 		</span>
 		<sub className="lg:hidden align-middle text-[0.6rem]">{radix.name}</sub>
-		<span className="text-[0.5em]"> #{v.length} {sumDigits(num2str(value, radix), radix)}</span>
+		<span className="text-[0.5em]">
+			<span> #{strVal.length} </span>
+			<DigitSum number={value} radix={radix}/>
+		</span>
+	</span>
+}
+
+function DigitSum({ number, radix }: { number: bigint, radix: Radix }) {
+	let num = num2str(number, radix)
+
+	let neg = false
+	if (num.startsWith('-')) {
+		neg = true
+		num = num.slice(1)
+	}
+
+	let n = Array.from(num).reduce((a, v) => a + str2num(v, radix), 0n)
+	if (neg) n = -n
+
+	return <span>
+		<span>∑={num2str(n, radix)}</span>
+		<sub>{radix.name}</sub>{ !(radix.system === 'standard' && radix.radix == 10n) &&
+		<span>
+			<span>={num2str(n, radix = createRadix(10))}</span>
+			<sub>{radix.name}</sub>
+		</span>}
 	</span>
 }

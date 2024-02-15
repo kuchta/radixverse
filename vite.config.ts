@@ -6,5 +6,8 @@ import packageJson from './package.json'
 
 export default defineConfig({
 	base: `/${packageJson.name}`,
-	plugins: [ react() ]
+	build: { sourcemap: true },
+	plugins: [
+		react(),
+	]
 })

@@ -8,10 +8,22 @@
 			"name": "Debug TS File",
 			"type": "node",
 			"request": "launch",
-			"args": [ "${relativeFile}" ],
-			"runtimeArgs": [ "--loader", "tsx" ],
-			"cwd": "${workspaceRoot}",
-			"internalConsoleOptions": "openOnSessionStart"
+			"program": "${file}",
+			"runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
+			"skipFiles": [
+				"<node_internals>/**",
+				"${workspaceFolder}/node_modules/**",
+			]
+		}, {
+			"name": "Debug Test",
+			"type": "node",
+			"request": "launch",
+			"program": "${workspaceRoot}/src/test.ts",
+			"runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
+			"skipFiles": [
+				"<node_internals>/**",
+				"${workspaceFolder}/node_modules/**",
+			]
 		},
 	]
 }

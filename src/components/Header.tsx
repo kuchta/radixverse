@@ -1,10 +1,13 @@
 import { FormEventHandler, useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import resolveConfig from 'tailwindcss/resolveConfig'
+// import { Combobox } from '@headlessui/react'
 import themes from 'daisyui/src/theming/themes'
 
+import tailwindConfig from '../../tailwind.config'
 import {
 	Radix,
 	defaultChars,
-	defaultCharsArray,
 	getThemeLS,
 	setThemeLS,
 	getCharsLS,
@@ -13,8 +16,12 @@ import {
 } from '../utils'
 
 
-type WhoToggle = 'all' | 'odd' | 'even' | Radix["system"] | Radix
-type ToggleRadixes = (who: WhoToggle, enabled: boolean) => void
+type ToggleRadixes = (radix: 'all' | 'odd' | 'even' | Radix['system'] | Radix, enabled: boolean) => void
+
+const twConfig = resolveConfig(tailwindConfig)
+
+const md = Number(twConfig.theme.screens.md.slice(0, -2))
+const xl = Number(twConfig.theme.screens.xl.slice(0, -2))
 
 let allChars = getCharsLS() ?? defaultChars
 
@@ -22,20 +29,50 @@ export default function Header({ radixes, updateRadixes }: {
 	radixes: Radix[],
 	updateRadixes: (radixes: Radix[]) => void,
 }) {
+	const navigate = useNavigate()
 	const [ theme, setTheme ] = useState(getThemeLS)
 	const [ expanded, setExpanded ] = useState(false)
 	const [ inputRadix, setInputRadix ] = useState<'all' | number>('all')
 	const [ inputChars, setInputChars ] = useState(allChars)
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
+	const [ inputStyle, setInputStyle ] = useState({ width: '71em', height: '1em' })
+	const [ screenWidth, setScreenWidth ] = useState(window.innerWidth)
+	const [ formColumn, setFormColumn ] = useState(false)
 	const formRef = useRef<HTMLFormElement>(null)
 
-	// console.log('Header: ', allChars)
+	// console.log('Header: ', formColumn)
 
 	useEffect(() => {
 		const keyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) }
 		document.addEventListener('keydown', keyDown)
-		return () => document.removeEventListener('keydown', keyDown)
+
+		const handleResize = () => setScreenWidth(window.innerWidth)
+		window.addEventListener('resize', handleResize)
+
+		return () => {
+			document.removeEventListener('keydown', keyDown)
+			window.removeEventListener('resize', handleResize)
+		}
 	}, [])
+
+	useEffect(() => {
+		const balanced = inputRadix === 'all' || radixes[inputRadix]?.system === 'balanced' || radixes[inputRadix]?.system === 'balsum'
+		let length = Array.from(inputChars).length * (balanced ? 1.55 : 1.2)
+		if (length < 10) length = 10
+
+		let style = { width: `${length}ex`, height: '1lh' }
+		if (screenWidth < md) {
+			setFormColumn(true)
+			if (length > 55) style = { width: `${length / 3}ex`, height: '3lh' }
+		} else if (screenWidth < xl) {
+			setFormColumn(false)
+			if (length > 55) style = { width: `${length / 2}ex`, height: '2lh' }
+		} else {
+			setFormColumn(false)
+		}
+		setInputStyle(style)
+
+	}, [ inputChars, inputRadix, radixes, screenWidth ])
 
 	const toggleSettings = () => {
 		updateInputRadix(inputRadix)
@@ -48,26 +85,30 @@ export default function Header({ radixes, updateRadixes }: {
 		setTheme(theme)
 	}
 
-	const updateInputRadix = (inputRadix: string | number) => {
-		if (inputRadix === 'all') {
-			setInputRadix(inputRadix)
+	const updateInputRadix = (radix: string | number) => {
+		if (radix === 'all') {
+			setInputRadix(radix)
 			setInputChars(allChars)
 		} else {
-			const i = Number(inputRadix)
-			setInputRadix(i)
-			setInputChars(radixes[i].chars.join(''))
+			const r = Number(radix)
+			setInputRadix(r)
+			setInputChars(radixes[r].chars.join(''))
 		}
 	}
 
-	const handleInputCharsSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+	const handleRadixCharsSubmit: FormEventHandler<HTMLFormElement> = (e) => {
 		e.preventDefault()
 		setInputCharsError(undefined)
 
+		const data = new FormData(e.currentTarget)
+		const radix = data.get('radix') as 'all' | number
+		const chars = data.get('chars') as string
+
 		try {
-			if (inputRadix ==='all') {
+			if (radix ==='all') {
 				if (e.type === 'submit') {
-					updateRadixesChars('all', inputChars)
-					allChars = inputChars
+					updateRadixesChars('all', chars)
+					allChars = chars
 				} else {
 					if (allChars !== defaultChars) {
 						allChars = defaultChars
@@ -76,8 +117,8 @@ export default function Header({ radixes, updateRadixes }: {
 					setInputChars(allChars)
 				}
 			} else {
-				const newRadixes = updateRadixesChars(radixes[inputRadix], e.type === 'submit' ? inputChars : undefined)
-				if (e.type === 'reset') setInputChars(newRadixes[inputRadix].chars.join(''))
+				const newRadixes = updateRadixesChars(radix, e.type === 'submit' ? chars : undefined)
+				if (e.type === 'reset') setInputChars(newRadixes[radix].chars.join(''))
 			}
 		} catch (error) {
 			console.error(error)
@@ -85,35 +126,27 @@ export default function Header({ radixes, updateRadixes }: {
 		}
 	}
 
-	const updateRadixesChars = (who: 'all' | Radix, chars?: string) => {
-		let newRadixes = radixes
+	const updateRadixesChars = (radix: 'all' | number, chars?: string) => {
 		const charsArray = chars ? Array.from(chars) : undefined
-		if (who === 'all') {
-			if (charsArray && charsArray?.length !== defaultCharsArray.length) {
-				throw new Error(`Invalid number of chars provided: ${charsArray?.length}, expected: ${defaultCharsArray.length}`)
-			}
+
+		if (radix === 'all') {
+			radixes = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
 			setCharsLS(chars !== defaultChars ? chars : undefined)
-			newRadixes = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
 		} else {
-			const i = radixes.findIndex(r => r.name === who.name)
-			const oldRadix = radixes[i]
-			if (charsArray != undefined && charsArray.length !== oldRadix.chars.length) {
-				throw new Error(`Invalid number of chars provided: ${charsArray.length}, expected: ${oldRadix.chars.length}`)
-			}
-			const newRadix = createRadix(Number(oldRadix.radix), oldRadix.system, charsArray, oldRadix.enabled)
-			radixes[i] = newRadix
+			const r = radixes[radix]
+			radixes[radix] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, chars ? false : true)
 		}
 
-		updateRadixes(newRadixes)
+		updateRadixes(radixes)
 
-		return newRadixes
+		return radixes
 	}
 
-	const toggleRadixes: ToggleRadixes = (who, enabled) => {
-		switch (who) {
+	const toggleRadixes: ToggleRadixes = (radix, enabled) => {
+		switch (radix) {
 			case 'all':
 				radixes.forEach(r => r.enabled = enabled)
-				break;
+				break
 			case 'odd':
 				radixes.forEach(r => { if (r.radix % 2n === 1n) r.enabled = enabled })
 				break
@@ -123,26 +156,28 @@ export default function Header({ radixes, updateRadixes }: {
 			case 'standard':
 			case 'bijective':
 			case 'balanced':
-			case 'my':
-				radixes.forEach(r => { if (r.system === who) r.enabled = enabled })
+			case 'clock':
+			case 'sum':
+			case 'balsum':
+				radixes.forEach(r => { if (r.system === radix) r.enabled = enabled })
 				break
 			default:
-				who.enabled = enabled
+				radix.enabled = enabled
 		}
 
 		updateRadixes(radixes)
 	}
 
-	return <header>
-		<div className="navbar bg-base-100">
+	return <header className="p-2">
+		<div className="navbar bg-base-100 p-0">
 			<div className="flex-1">
-				<button className="text-left text-4xl w-fit p-0 pl-4 pr-12" onClick={toggleSettings}>
+				<button className="text-left text-4xl pl-2" onClick={toggleSettings}>
 					<span style={{ color: `hsl(0 80% 40%)`}}>R</span>
 					<span style={{ color: `hsl(36 80% 40%)`}}>a</span>
 					<span style={{ color: `hsl(72 80% 40%)`}}>d</span>
 					<span style={{ color: `hsl(108 80% 40%)`}}>i</span>
 					<span style={{ color: `hsl(144 80% 40%)`}}>x</span>
-					<span style={{ color: `hsl(180 80% 40%)`}}>v</span>
+					<span style={{ color: `hsl(180 80% 40%)`}}>V</span>
 					<span style={{ color: `hsl(216 80% 40%)`}}>e</span>
 					<span style={{ color: `hsl(252 80% 40%)`}}>r</span>
 					<span style={{ color: `hsl(288 80% 40%)`}}>s</span>
@@ -150,14 +185,14 @@ export default function Header({ radixes, updateRadixes }: {
 				</button>
 			</div>
 			<div className="z-10">
-				<ul className="menu menu-horizontal justify-end">
+				<ul className="menu menu-horizontal justify-end gap-1 p-0">
 					<li>
-						<button tabIndex={0} className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} onClick={toggleSettings}>Settings</button>
+						<button className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} tabIndex={0}  onClick={toggleSettings}>Settings</button>
 					</li>
 					<li>
 						<details>
 							<summary>Themes</summary>
-							<ul className="p-2 bg-base-100">{ Object.keys(themes).sort().map(t =>
+							<ul className="bg-base-100">{ Object.keys(themes).sort().map(t =>
 								<li key={t}>
 									<a className={t === theme ? 'active': ''} onClick={() => updateTheme(t)}>{ capitalize(t) }</a>
 								</li>)}
@@ -168,55 +203,78 @@ export default function Header({ radixes, updateRadixes }: {
 			</div>
 		</div>
 		<div className={`collapse collapse-${expanded ? 'open' : 'close'} `} tabIndex={0}>
-			<div className="collapse-content">
+			<div className="collapse-content px-0">
 				<div className="card card-bordered">
-					<div className="card-actions justify-center items-center p-2">
-						<form className="card card-bordered flex-row justify-items-center items-center gap-1 p-2" onReset={handleInputCharsSubmit} onSubmit={handleInputCharsSubmit} ref={formRef}>
-							<select
-								className="text-sm rounded-md bg-base-100"
-								name="radix"
-								defaultValue="all"
-								onChange={e => updateInputRadix(e.target.value) }
-							>
-								<option value="all">All</option>
-								{ radixes.map((r, i) => <option key={r.name} value={i}>{r.name}</option>) }
-							</select>
-							<span className={`${inputCharsError ? 'tooltip tooltip-bottom tooltip-error tooltip-open' : ''} inline`} data-tip={inputCharsError}>
-								<textarea
-									className="resize-none bg-base-100 leading-4 h-[5em] w-[12rem] md:h-[2em] md:w-[29em] xl:h-[1em] xl:w-[57em] p-0"
-									name="chars"
-									value={inputChars}
-									onKeyDown={e => {
-										e.stopPropagation()
-										if (e.key === 'Enter' || e.key === 'Escape') {
-											e.preventDefault()
-											if (e.key === 'Enter') {
-												formRef.current?.requestSubmit()
-											} else {
-												updateInputRadix(inputRadix)
-												e.currentTarget.blur()
-												setInputCharsError(undefined)
-											}
-										}
-									}}
-									onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
-								/>
-							</span>
-							<span className="flex flex-col gap-1 md:flex-row md:gap-0 md:join justify-center">
-								<button className="btn btn-xs btn-outline btn-success join-item" type="reset">Reset</button>
-								<button className="btn btn-xs btn-outline btn-error join-item" type="submit">Set</button>
-							</span>
-						</form>
-					</div>
-					<div className="flex flex-wrap justify-center items-center gap-2">
+					<div className="card-actions flex-row-reverse grow p-2">
+						<button className="btn btn-xs btn-error" onClick={() => { localStorage.clear(); navigate(0) }}>
+							Clear settings
+						</button>
+					<div className="flex flex-wrap flex-grow justify-center gap-2">
 						<RadixesSelect who="all" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="odd" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
 					</div>
-					<div className="card md:flex-row p-1">
-						<RadixSelect who="standard" radixes={radixes} toggleRadixes={toggleRadixes}/>
-						<RadixSelect who="bijective" radixes={radixes} toggleRadixes={toggleRadixes}/>
-						<RadixSelect who="balanced" radixes={radixes} toggleRadixes={toggleRadixes}/>
+					</div>
+					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center p-1">{ [ ...new Set(radixes.map(r => r.system)) ].map(rs =>
+						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes}/>)}
+					</div>
+					<div className="flex flex-col justify-center items-center p-2">
+						<div className="card card-bordered max-w-full">
+							<form className={`flex ${formColumn ? 'flex-col' : 'flex-row'} justify-center items-center gap-1 p-2`} onReset={handleRadixCharsSubmit} onSubmit={handleRadixCharsSubmit} ref={formRef}>
+								<select
+									className="select select-xs text-sm rounded-md bg-base-100"
+									name="radix"
+									defaultValue="all"
+									onChange={e => updateInputRadix(e.target.value) }
+								>
+									<option value="all">All</option>
+									{ radixes.map((r, i) => <option key={r.name} value={i}>{r.name}</option>) }
+								</select>
+								{/* <Combobox value={typeof inputRadix === 'string' ? inputRadix : radixes[inputRadix].name} onChange={updateInputRadix}>
+									<div className="dropdown">
+										<Combobox.Input className="input input-xs w-28" onChange={e => setInputRadix(e.target.value)} />
+										<Combobox.Options className="dropdown-content menu menu-dropdown menu-dropdown-toggle rounded-box shadow bg-base-100 z-50 w-28">
+											{ [ { name: 'all' }, ...radixes ].filter(r => r.name.startsWith(inputRadix)).map((r, i) =>
+											<Combobox.Option className="" key={r.name} value={i}>
+												<a>{r.name}</a>
+											</Combobox.Option>
+											)}
+										</Combobox.Options>
+									</div>
+								</Combobox> */}
+								<span className={inputCharsError ? 'tooltip tooltip-bottom tooltip-error tooltip-open inline' : ''} data-tip={inputCharsError}>
+									<textarea
+										className={`align-middle resize-none bg-base-100 rounded-lg p-0`}
+										style={inputStyle}
+										name="chars"
+										value={inputChars}
+										onKeyDown={e => {
+											e.stopPropagation()
+											if (e.key === 'Enter' || e.key === 'Escape') {
+												e.preventDefault()
+												if (e.key === 'Enter') {
+													formRef.current?.requestSubmit()
+												} else {
+													updateInputRadix(inputRadix)
+													e.currentTarget.blur()
+													setInputCharsError(undefined)
+												}
+											}
+										}}
+										onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
+									/>
+								</span>
+								<span className="flex flex-row join justify-center">
+									<button className="btn btn-xs btn-outline btn-success join-item" type="reset">Reset</button>
+									<button className="btn btn-xs btn-outline btn-error join-item" type="submit">Set</button>
+								</span>
+							</form>
+							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ inputRadix !== 'all' && Array.from(radixes[inputRadix]?.values.entries()).map(([k, v]) =>
+								<span key={k} className="p-1">
+									{k}:{Number(v)}
+								</span>) }
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -242,7 +300,7 @@ const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', to
 	</span>
 
 const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix["system"], radixes: Radix[], toggleRadixes: ToggleRadixes }) =>
-	<div className="flex flex-col items-center">
+	<div className="flex flex-col items-center md:max-w-[21rem] xl:max-w-none">
 		<div className="card card-bordered p-1 m-1">
 			<div className="flex justify-between items-center gap-2">
 				<button

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route, Link, useSearchParams, useLocation } from "react-router-dom";
+import { Routes, Route, Link, useSearchParams, useLocation } from 'react-router-dom'
 
 import Header from './Header'
 import Show from './Show'
@@ -33,9 +33,9 @@ export default function App() {
 			<div className="alert alert-error">
 				<span>{ error }</span>
 			</div>
-		</div> }
+		</div>}
 		<Header radixes={radixes} updateRadixes={updateRadixes}/>
-		<nav className="tabs tabs-bordered justify-center mb-4">
+		<nav className="tabs tabs-bordered justify-center mb-4 z-10">
 			<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
 			<Link className={`tab ${pathname.includes('add') ? 'tab-active' : ''}`} to={`add${search}`}>Add</Link>
 			<Link className={`tab ${pathname.includes('multiply') ? 'tab-active' : ''}`} to={`multiply${search}`}>Multiply</Link>
@@ -59,6 +59,7 @@ function useStore(updateError: (error?: string) => void) {
 
 	useEffect(() => {
 		try {
+			if (searchParams.has('clear-settings')) localStorage.clear()
 			if (searchParams.has('r')) {
 				const searchRadixes = searchParams.getAll('r')
 				radixes.forEach(r => r.enabled = searchRadixes.includes(r.name))

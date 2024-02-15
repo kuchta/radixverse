@@ -1,33 +1,46 @@
-import { memo } from 'react'
+import { memo, useState, useEffect } from 'react'
 
 import Table, { Tables } from './Table'
 import { Radix, areRadixesEqual } from '../utils'
 
 
 function Show({ radixes }: { radixes: Radix[] }) {
-	// console.log('Show: ', { radixes })
+	return <Tables>{ radixes.map(radix => <ShowTable radix={radix} key={`show-${radix.name}`}/>) }</Tables>
+}
 
-	return <Tables>
-		{ radixes.map(radix => {
-			const { system, low, high } = radix
-			const bij = system === 'bijective'
-			const bal = system === 'balanced'
-			const my = system === 'my'
-			const rows = high - (bij ? 0 : low) + 1
-			const cols = high - low + 1
-			const highest = my ? high * (cols + 1)
-						  : bal ? (high - low) * (high + 1)
-						  : bij ? high * (high + 1)
-						  : high === 1 ? 3
-						  : (high + 1) * (high + 1) - 1
-			const lowest = my ? low * (cols + 1)
-						 : bal ? -highest
-						 : low
-			const mainRow = my ? rows / 2 - 1 : bal ? Math.trunc(rows / 2) : 0
-			const numbers = Array.from(Array(rows), (_, i) => Array.from(Array(cols), (_, j) => (i * cols) + j + lowest))
-			return <Table radix={radix} numbers={numbers} low={lowest} high={highest} mainRow={mainRow} key={`show-${radix.name}`}/>
-		})}
-	</Tables>
+function ShowTable({ radix }: { radix: Radix }) {
+	const [ props, setProps ] = useState(computeProps(radix))
+	const [ columns, setColumns ] = useState<number>()
+	const [ rows, setRows ] = useState<number>()
+
+	useEffect(() => setProps(computeProps(radix, columns, rows)), [ radix, columns, rows ])
+
+	return <Table radix={radix} {...props} updateColumns={setColumns} updateRows={setRows}/>
+}
+
+function computeProps(radix: Radix, columns?: number, rows?: number) {
+	const { system, low, high } = radix
+	const bij = system === 'bijective'
+	const clock = system === 'clock'
+	const bal = system === 'balanced' || system === 'balsum'
+
+	columns ??= high - low + 1
+	rows ??= columns + (bij ? 1 : 0)
+
+	const highest = clock ? high * (columns + 1)
+				  : bal ? Math.trunc((rows * columns) / 2)
+				  : columns * rows - (low === 0 ? 1 : 0)
+	const lowest = clock ? low * (columns + 1)
+				 : bal ? -highest
+				 : low
+	const mainRow = clock ? rows / 2 - 1
+				  : bal ? Math.trunc(rows / 2)
+				  : 0
+
+	// @ts-expect-error: TS18048: 'columns' is possibly 'undefined' -- nevermind we can work with NaNs
+	const numbers = Array.from(Array(rows), (_, i) => Array.from(Array(columns), (_, j) => i * columns + j + lowest))
+
+	return { numbers, low: lowest, high: highest, mainRow, rows, columns }
 }
 
 export default memo(Show, areRadixesEqual)
