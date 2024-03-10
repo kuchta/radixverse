@@ -81,6 +81,7 @@ export default function Header({ radixes, updateRadixes }: {
 	}
 
 	const updateTheme = (theme: string) => {
+		document.documentElement.setAttribute('data-theme', theme)
 		setThemeLS(theme)
 		setTheme(theme)
 	}
