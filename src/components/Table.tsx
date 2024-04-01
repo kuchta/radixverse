@@ -1,7 +1,7 @@
 import { memo, useState } from 'react'
 import { LiaEditSolid } from 'react-icons/lia'
 
-import { Radix, num2str } from '../utils'
+import { Radix, num2str, getCharsForTooltip } from '../utils'
 
 
 export function Tables({ children }: { children: JSX.Element[] }) {
@@ -30,7 +30,9 @@ function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumn
 	return <div className="card bg-white max-w-full shadow-xl m-4">
 		<div className="flex justify-end items-center mx-2">
 			<div className="flex-1 flex justify-center">
-				<span className="card-title badge badge-lg badge-outline m-2">{radix.name}</span>
+				<span className="tooltip tooltip-top whitespace-pre before:content-[attr(data-tip)] before:max-w-[50rem]" data-tip={ getCharsForTooltip(radix) }>
+					<span className="card-title badge badge-lg badge-outline m-2">{radix.name}</span>
+				</span>
 			</div>{ edit &&
 			<div className="flex justify-end">
 				<EditRowsOrColumns rows={rows} update={updateRows} setEdit={setEdit}/>/

@@ -1,7 +1,7 @@
 // @ts-expect-error: TS2305: Module '"react"' has no exported member 'experimental_useEffectEvent'.
 import React, { ComponentProps, useState, useEffect, useRef, experimental_useEffectEvent } from 'react'
 
-import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix } from '../utils'
+import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '../utils'
 
 
 export default function Convert({ radixes, value, updateValue }: {
@@ -42,19 +42,33 @@ export default function Convert({ radixes, value, updateValue }: {
 	})
 
 	return <main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
-		<div className="flex gap-1 relative lg:left-32 max-w-fit m-1">
-			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
-			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
-			<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
+		<div className="flex gap-1 relative lg:left-32 max-w-fit">
+			<span className="tooltip tooltip-top" data-tip="Increment">
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
+			</span>
+			<span className="tooltip tooltip-top" data-tip="Reset">
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
+			</span>
+			<span className="tooltip tooltip-top" data-tip="Decrement">
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
+			</span>
 		</div>{ radixes.map((radix, index) =>
 		<div key={radix.name}>
 			<span className="hidden lg:inline-block text-center w-32">
-				<span className="badge badge-neutral badge-outline badge-lg align-middle">{radix.name}</span>
+				<span className="tooltip tooltip-right whitespace-pre before:content-[attr(data-tip)] before:max-w-[50rem]" data-tip={ getCharsForTooltip(radix) }>
+					<span className="badge badge-neutral badge-outline badge-lg align-middle">{radix.name}</span>
+				</span>
 			</span>
-			<span className="hidden md:inline-flex items-center align-middle gap-1 m-1">
-				<button className="btn btn-circle btn-xs lg:btn-sm" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
-				<button className="btn btn-circle btn-xs lg:btn-sm" disabled={ value === 0n || radix.system === "bijective" } onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
-				<button className="btn btn-circle btn-xs lg:btn-sm" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
+			<span className="hidden md:inline-flex gap-1">
+				<div className="tooltip tooltip-top" data-tip="Filling shift left">
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
+				</div>
+				<div className="tooltip tooltip-top" data-tip="Shift left">
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n || radix.system === "bijective" || radix.system === "sum"} onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
+				</div>
+				<div className="tooltip tooltip-top" data-tip="Shift right">
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
+				</div>
 			</span>
 			<span> = </span>
 			<NumberLine value={value} radix={radix} radixIndex={index} numRadixes={radixes.length} updateValue={updateValue}/>
@@ -152,7 +166,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 			contentEditable={true}
 			suppressContentEditableWarning={true}
 			spellCheck={false}
-			onKeyDown={e => { if (e.key === 'Escape') { e.currentTarget.blur() } else e.stopPropagation() }}
+			onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') { e.currentTarget.blur() } else e.stopPropagation() }}
 			onInput={handleInput}
 			onPaste={handlePaste}
 			onDoubleClick={() => { if (ref.current) window.getSelection()?.selectAllChildren(ref.current) }}
@@ -187,7 +201,7 @@ function DigitSum({ number, radix }: { number: bigint, radix: Radix }) {
 		<span>∑={num2str(n, radix)}</span>
 		<sub>{radix.name}</sub>{ !(radix.system === 'standard' && radix.radix == 10n) &&
 		<span>
-			<span>={num2str(n, radix = createRadix(10))}</span>
+			<span>={num2str(radix.system === 'sum' ? number : n, radix = createRadix(10))}</span>
 			<sub>{radix.name}</sub>
 		</span>}
 	</span>

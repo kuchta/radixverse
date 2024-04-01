@@ -32,7 +32,6 @@ export function getThemeLS() {
 }
 
 export function setThemeLS(theme: string) {
-	document.documentElement.setAttribute('data-theme', theme)
 	localStorage.setItem(LS_THEME, theme)
 }
 
@@ -362,7 +361,7 @@ export function shl(value: bigint, radix: Radix) {
 }
 
 export function shr(value: bigint, radix: Radix) {
-	return str2num(num2str(value, radix).slice(0, -1), radix)
+	return radix.system === 'sum' ? str2num(num2str(value, radix).slice(1), radix) : str2num(num2str(value, radix).slice(0, -1), radix)
 }
 
 export function allowedCharaters(radix: Radix) {
@@ -376,4 +375,8 @@ export function sanitizeInput(input: string, radix: Radix) {
 	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
 	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'g'), '')
 	return [ sanitizedInput, rest ]
+}
+
+export function getCharsForTooltip(radix: Radix) {
+	return Array.from(radix.values.entries()).slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([k, v], i) => `${k}:${v}${(i+1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n': ' '}`).join('')
 }

@@ -1,9 +1,9 @@
 {
 	"name": "RadixVerse",
-	"start_url": "/radixverse",
 	"display": "standalone",
+	"start_url": "/radixverse",
 	"icons": [{
-		"src": "favicon.svg",
-		"sizes": "400x400 any"
+		"src": "favicon.webp",
+		"sizes": "280x280 any"
 	}]
 }

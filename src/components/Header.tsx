@@ -81,6 +81,7 @@ export default function Header({ radixes, updateRadixes }: {
 	}
 
 	const updateTheme = (theme: string) => {
+		document.documentElement.setAttribute('data-theme', theme)
 		setThemeLS(theme)
 		setTheme(theme)
 	}
@@ -216,7 +217,7 @@ export default function Header({ radixes, updateRadixes }: {
 					</div>
 					</div>
 					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center p-1">{ [ ...new Set(radixes.map(r => r.system)) ].map(rs =>
-						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes}/>)}
+						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
 					</div>
 					<div className="flex flex-col justify-center items-center p-2">
 						<div className="card card-bordered max-w-full">
