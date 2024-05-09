@@ -1,9 +1,0 @@
-{
-	"name": "RadixVerse",
-	"display": "standalone",
-	"start_url": "/radixverse",
-	"icons": [{
-		"src": "favicon.webp",
-		"sizes": "280x280 any"
-	}]
-}

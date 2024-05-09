@@ -1,4 +1,4 @@
-import { FormEventHandler, useState, useEffect, useRef } from 'react'
+import { type FormEventHandler, useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import resolveConfig from 'tailwindcss/resolveConfig'
 // import { Combobox } from '@headlessui/react'
@@ -6,7 +6,7 @@ import themes from 'daisyui/src/theming/themes'
 
 import tailwindConfig from '../../tailwind.config'
 import {
-	Radix,
+	type Radix,
 	defaultChars,
 	getThemeLS,
 	setThemeLS,
@@ -39,8 +39,6 @@ export default function Header({ radixes, updateRadixes }: {
 	const [ screenWidth, setScreenWidth ] = useState(window.innerWidth)
 	const [ formColumn, setFormColumn ] = useState(false)
 	const formRef = useRef<HTMLFormElement>(null)
-
-	// console.log('Header: ', formColumn)
 
 	useEffect(() => {
 		const keyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) }
@@ -135,7 +133,7 @@ export default function Header({ radixes, updateRadixes }: {
 			setCharsLS(chars !== defaultChars ? chars : undefined)
 		} else {
 			const r = radixes[radix]
-			radixes[radix] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, chars ? false : true)
+			radixes[radix] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, !!chars)
 		}
 
 		updateRadixes(radixes)
@@ -172,17 +170,17 @@ export default function Header({ radixes, updateRadixes }: {
 	return <header className="p-2">
 		<div className="navbar bg-base-100 p-0">
 			<div className="flex-1">
-				<button className="text-left text-4xl pl-2" onClick={toggleSettings}>
-					<span style={{ color: `hsl(0 80% 40%)`}}>R</span>
-					<span style={{ color: `hsl(36 80% 40%)`}}>a</span>
-					<span style={{ color: `hsl(72 80% 40%)`}}>d</span>
-					<span style={{ color: `hsl(108 80% 40%)`}}>i</span>
-					<span style={{ color: `hsl(144 80% 40%)`}}>x</span>
-					<span style={{ color: `hsl(180 80% 40%)`}}>V</span>
-					<span style={{ color: `hsl(216 80% 40%)`}}>e</span>
-					<span style={{ color: `hsl(252 80% 40%)`}}>r</span>
-					<span style={{ color: `hsl(288 80% 40%)`}}>s</span>
-					<span style={{ color: `hsl(324 80% 40%)`}}>e</span>
+				<button className="text-left text-4xl tracking-wide pl-2" onClick={toggleSettings}>
+					<span style={{ color: 'hsl(0 80% 40%)'}}>R</span>
+					<span style={{ color: 'hsl(36 80% 40%)'}}>a</span>
+					<span style={{ color: 'hsl(72 80% 40%)'}}>d</span>
+					<span style={{ color: 'hsl(108 80% 40%)'}}>i</span>
+					<span style={{ color: 'hsl(144 80% 40%)'}}>x</span>
+					<span style={{ color: 'hsl(180 80% 40%)'}}>V</span>
+					<span style={{ color: 'hsl(216 80% 40%)'}}>e</span>
+					<span style={{ color: 'hsl(252 80% 40%)'}}>r</span>
+					<span style={{ color: 'hsl(288 80% 40%)'}}>s</span>
+					<span style={{ color: 'hsl(324 80% 40%)'}}>e</span>
 				</button>
 			</div>
 			<div className="z-10">
@@ -195,7 +193,7 @@ export default function Header({ radixes, updateRadixes }: {
 							<summary>Themes</summary>
 							<ul className="bg-base-100">{ Object.keys(themes).sort().map(t =>
 								<li key={t}>
-									<a className={t === theme ? 'active': ''} onClick={() => updateTheme(t)}>{ capitalize(t) }</a>
+									<button className={t === theme ? 'active': ''} onClick={() => updateTheme(t)}>{ capitalize(t) }</button>
 								</li>)}
 							</ul>
 						</details>
@@ -203,7 +201,7 @@ export default function Header({ radixes, updateRadixes }: {
 				</ul>
 			</div>
 		</div>
-		<div className={`collapse collapse-${expanded ? 'open' : 'close'} `} tabIndex={0}>
+		<div className={`collapse collapse-${expanded ? 'open' : 'close'} `}>
 			<div className="collapse-content px-0">
 				<div className="card card-bordered">
 					<div className="card-actions flex-row-reverse grow p-2">
@@ -216,6 +214,7 @@ export default function Header({ radixes, updateRadixes }: {
 						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
 					</div>
 					</div>
+					{ /* TODO: Change to new Set(radixes...).values().map() when new Set methods and Iterator helpers gets standardized */ }
 					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center p-1">{ [ ...new Set(radixes.map(r => r.system)) ].map(rs =>
 						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
 					</div>
@@ -245,7 +244,7 @@ export default function Header({ radixes, updateRadixes }: {
 								</Combobox> */}
 								<span className={inputCharsError ? 'tooltip tooltip-bottom tooltip-error tooltip-open inline' : ''} data-tip={inputCharsError}>
 									<textarea
-										className={`align-middle resize-none bg-base-100 rounded-lg p-0`}
+										className="font-mono align-middle resize-none bg-base-100 rounded-lg p-0"
 										style={inputStyle}
 										name="chars"
 										value={inputChars}
@@ -271,7 +270,7 @@ export default function Header({ radixes, updateRadixes }: {
 								</span>
 							</form>
 							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ inputRadix !== 'all' && Array.from(radixes[inputRadix]?.values.entries()).map(([k, v]) =>
-								<span key={k} className="p-1">
+								<span key={k} className="font-mono p-1">
 									{k}:{Number(v)}
 								</span>) }
 							</div>
@@ -300,7 +299,7 @@ const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', to
 		</button>
 	</span>
 
-const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix["system"], radixes: Radix[], toggleRadixes: ToggleRadixes }) =>
+const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], radixes: Radix[], toggleRadixes: ToggleRadixes }) =>
 	<div className="flex flex-col items-center md:max-w-[21rem] xl:max-w-none">
 		<div className="card card-bordered p-1 m-1">
 			<div className="flex justify-between items-center gap-2">

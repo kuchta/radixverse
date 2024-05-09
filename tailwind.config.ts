@@ -3,19 +3,14 @@ import daisyui from 'daisyui'
 
 
 export default {
-	content: [
-		'./index.html',
-		'./src/**/*.{js,ts,jsx,tsx}',
-	],
+	content: [ './index.html', './src/**/*.{js,ts,jsx,tsx}' ],
 	plugins: [ daisyui ],
-	daisyui: {
-		themes: true,
-	},
+	daisyui: { themes: true },
 	theme: {
 		fontFamily: {
-			sans: [ 'PingFang HK Regular', 'ui-sans-serif' ],
-			serif: [ 'PingFang HK Regular', 'ui-serif' ],
-			mono: [ 'PingFang HK Regular', 'ui-monospace', 'monospace' ],
+			// sans: [ 'Dingbats', 'ui-sans-serif', 'sans-serif' ],
+			// serif: [ 'Dingbats', 'ui-serif', 'serif' ],
+			mono: [ 'Noto Sans Symbol', 'ui-monospace', 'monospace' ],
 		}
 	}
 } satisfies Config

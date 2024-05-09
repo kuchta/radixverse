@@ -1,12 +1,10 @@
 import { memo } from 'react'
 
 import Table, { Tables } from './Table'
-import { Radix, areRadixesEqual } from '../utils'
+import { type Radix, areRadixesEqual } from '../utils'
 
 
 function Multiply({ radixes }: { radixes: Radix[] }) {
-	// console.log('Multiply: ', { radixes })
-
 	return <Tables>
 		{ radixes.map(radix => {
 			let { low, high } = radix

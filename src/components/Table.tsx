@@ -1,7 +1,7 @@
 import { memo, useState } from 'react'
 import { LiaEditSolid } from 'react-icons/lia'
 
-import { Radix, num2str, getCharsForTooltip } from '../utils'
+import { type Radix, num2str, getCharsForTooltip } from '../utils'
 
 
 export function Tables({ children }: { children: JSX.Element[] }) {
@@ -22,8 +22,6 @@ function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumn
 	updateRows?: (rows: number) => void
 }) {
 	const [ edit, setEdit ] = useState(false)
-
-	// console.log(`Table(${radix.name}): `, { numbers, rows, columns, edit })
 
 	const space = low === 0 ? high : high - low
 
@@ -55,10 +53,10 @@ function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumn
 }
 
 function renderValue(val: number, radix: Radix, low: number, space: number) {
-	if (isNaN(val)) return <span></span>
+	if (isNaN(val)) return <span/>
 	return <div className="relative" /*tooltip" data-tip={(low === 0 ? val : val - low) / space * 300}*/>
 		<div
-			className="text-xl font-extrabold text-right whitespace-nowrap"
+			className="font-mono font-semibold text-xl text-right whitespace-nowrap"
 			style={{ color: `hsl(${(low === 0 ? val : val - low) / space * 300} 80% 40%)`}}
 			>
 			{ num2str(BigInt(val), radix) }
@@ -70,7 +68,7 @@ function renderValue(val: number, radix: Radix, low: number, space: number) {
 function EditRowsOrColumns({ columns, rows, update, setEdit }: { columns?: number, rows?: number, update?: (value: number) => void, setEdit: (value: boolean) => void }) {
 	if (!update) return
 
-	return <div className="tooltip tooltip-bottom" data-tip={columns ? "number of columns" : "number of rows"}>
+	return <div className="tooltip tooltip-bottom" data-tip={columns ? 'number of columns' : 'number of rows'}>
 		<input
 			className="input input-xs w-[4em]"
 			type="number"

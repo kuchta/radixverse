@@ -1,8 +1,10 @@
 const zero = '0'
 const base9 = '123456789'
-const baseMinus9 = '❾❽❼❻❺❹❸❷❶'
+const baseMinus9 = '➒➑➐➏➎➍➌➋➊'
+// const baseMinus9 = '⑨⑧⑦⑥⑤④③②①'
 const base26 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const baseMinus26 = '🅩🅨🅧🅦🅥🅤🅣🅢🅡🅠🅟🅞🅝🅜🅛🅚🅙🅘🅗🅖🅕🅔🅓🅒🅑🅐'
+// const baseMinus26 = 'ⓏⓎⓍⓌⓋⓊⓉⓈⓇⓆⓅⓄⓃⓂⓁⓀⒿⒾⒽⒼⒻⒺⒹⒸⒷⒶ'
 const baseBal71 = baseMinus26 + baseMinus9 + zero + base9 + base26
 // const base32cz = 'ABCČDĎEFGHIJKLMNŇOPQRŘSŠTŤUVXYZŽ'
 // const base36cz = 'AÁBCČDĎEÉFGHIÍJKLMNŇOÓPQRŘSŠTŤUÚVXZŽ'
@@ -69,7 +71,6 @@ export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, {
 }
 
 export function createRadixes(chars = defaultChars) {
-	// console.log('createRadixes')
 	const charsArray = chars !== defaultChars ? Array.from(chars) : undefined
 	return Array.from(Array(35)).flatMap((_, i) => {
 		const radix = i + 2
@@ -86,7 +87,7 @@ export function createRadixes(chars = defaultChars) {
 export function createRadix(radix: number, system: Radix['system'] = 'standard', chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true) {
 	if (allChars) {
 		if (chars !== defaultCharsArray && chars.length < defaultCharsArray.length) throw new Error(`chars must have at least ${defaultCharsArray.length} characters, ${chars.length} provided`)
-		if (chars.length % 2 === 0) throw new Error(`chars must have odd number of characters`)
+		if (chars.length % 2 === 0) throw new Error('chars must have odd number of characters')
 	}
 
 	let ret: Radix
@@ -260,7 +261,7 @@ export function num2str(num: bigint, radix: Radix): string {
 	let n = neg ? -num : num
 
 	if (sum) {
-		let i
+		let i: number
 		const max = 5
 		let v: string | undefined
 		const values = radix.reversedValues
@@ -301,7 +302,8 @@ export function num2str(num: bigint, radix: Radix): string {
 		const bij = system === 'bijective'
 		const high = BigInt(radix.high)
 
-		let d, q: bigint
+		let d: bigint
+		let q: bigint
 		let i = 1n
 		for (; n > 0n; i *= rad) {
 			d = n % rad
@@ -345,7 +347,7 @@ export function str2num(str: string, radix: Radix) {
 	const ret = Array.from(s).reduce((acc, c) => {
 		if (c === '…') return acc
 		v = values.get(c)
-		if (v == undefined) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
+		if (v == null) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
 		return sum || balsum ? acc + v : acc * rad + v
 	}, 0n)
 

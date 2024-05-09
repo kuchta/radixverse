@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test'
 import { strictEqual } from 'node:assert'
 
-import { Radix, createRadix, num2str, str2num } from './utils'
+import { type Radix, createRadix, num2str, str2num } from './utils'
 
 
 type Tests = {
@@ -42,15 +42,15 @@ const tests: Tests = [{
 }, {
 	radix: createRadix(9, 'balanced'),
 	pairs: [
-		[ -40n, '❹❹' ],
-		[ -18n, '❷0' ],
-		[ -5n, '❶4' ],
-		[ -4n, '❹' ],
-		[ -1n, '❶' ],
+		[ -40n, '➍➍' ],
+		[ -18n, '➋0' ],
+		[ -5n, '➊4' ],
+		[ -4n, '➍' ],
+		[ -1n, '➊' ],
 		[ 0n, '0' ],
 		[ 1n, '1' ],
 		[ 4n, '4' ],
-		[ 5n, '1❹' ],
+		[ 5n, '1➍' ],
 		[ 18n, '20' ],
 		[ 40n, '44' ],
 	]
@@ -189,16 +189,16 @@ const tests: Tests = [{
 }, {
 	radix: createRadix(19, 'balanced'),
 	pairs: [
-		[ -180n, '❾❾' ],
-		[ -162n, '❾9' ],
-		[ -10n, '❶9' ],
-		[ -9n, '❾' ],
-		[ -1n, '❶' ],
+		[ -180n, '➒➒' ],
+		[ -162n, '➒9' ],
+		[ -10n, '➊9' ],
+		[ -9n, '➒' ],
+		[ -1n, '➊' ],
 		[ 0n, '0' ],
 		[ 1n, '1' ],
 		[ 9n, '9' ],
-		[ 10n, '1❾' ],
-		[ 162n, '9❾' ],
+		[ 10n, '1➒' ],
+		[ 162n, '9➒' ],
 		[ 180n, '99' ],
 	]
 }, {

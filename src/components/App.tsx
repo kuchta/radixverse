@@ -7,7 +7,7 @@ import Add from './Add'
 import Multiply from './Multiply'
 import Convert from './Convert'
 import {
-	Radix,
+	type Radix,
 	createRadixes,
 	createRadix,
 	getCharsLS,
@@ -70,7 +70,7 @@ function useStore(updateError: (error?: string) => void) {
 			const sRadix = searchParams.get('radix')
 			if (sRadix) {
 				const r = radixes.find(r => r.name === sRadix)
-				if (r == undefined) throw new Error(`Unknown radix "${r}" in the URL`)
+				if (r == null) throw new Error(`Unknown radix "${r}" in the URL`)
 				setRadix(radix = r)
 			}
 			const sValue = searchParams.get('value')

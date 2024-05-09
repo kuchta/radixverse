@@ -1,7 +1,8 @@
+import type React from 'react'
 // @ts-expect-error: TS2305: Module '"react"' has no exported member 'experimental_useEffectEvent'.
-import React, { ComponentProps, useState, useEffect, useRef, experimental_useEffectEvent } from 'react'
+import { type ComponentProps, useState, useEffect, useRef, experimental_useEffectEvent } from 'react'
 
-import { Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '../utils'
+import { type Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '../utils'
 
 
 export default function Convert({ radixes, value, updateValue }: {
@@ -13,15 +14,14 @@ export default function Convert({ radixes, value, updateValue }: {
 	const deleteButtonRef = useRef<HTMLButtonElement>(null)
 	const minusButtonRef = useRef<HTMLButtonElement>(null)
 
-	// console.log('Convert: ', { value, radixes })
-
 	useEffect(() => {
 		document.addEventListener('keydown', keyDown)
 		return () => document.removeEventListener('keydown', keyDown)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const keyDown = experimental_useEffectEvent((e: KeyboardEvent) => {
+	// eslint-disable-next-line
+	const keyDown: (e: KeyboardEvent) => void = experimental_useEffectEvent((e: KeyboardEvent) => {
 		switch (e.key) {
 			case 'Backspace':
 			case 'Delete':
@@ -64,19 +64,19 @@ export default function Convert({ radixes, value, updateValue }: {
 					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
 				</div>
 				<div className="tooltip tooltip-top" data-tip="Shift left">
-					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n || radix.system === "bijective" || radix.system === "sum"} onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n || radix.system === 'bijective' || radix.system === 'sum'} onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
 				</div>
 				<div className="tooltip tooltip-top" data-tip="Shift right">
 					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
 				</div>
 			</span>
 			<span> = </span>
-			<NumberLine value={value} radix={radix} radixIndex={index} numRadixes={radixes.length} updateValue={updateValue}/>
+			<NumberLine className="font-mono font-medium" value={value} radix={radix} radixIndex={index} numRadixes={radixes.length} updateValue={updateValue}/>
 		</div> )}
 	</main>
 }
 
-function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...props }: ComponentProps<"div"> & {
+function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...props }: ComponentProps<'div'> & {
 	value: bigint,
 	radix: Radix,
 	radixIndex: number,
@@ -104,8 +104,6 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 	}
 
 	const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
-		// console.log('handleInput:', e)
-
 		e.stopPropagation()
 
 		const s = e.currentTarget.innerText.toUpperCase()
@@ -137,7 +135,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 		try {
 			const [ input, rest ] = sanitizeInput(e.clipboardData.getData('text'), radix)
 			const range = window.getSelection()?.getRangeAt(0)
-			let newV
+			let newV: string
 			if (range?.startContainer === ref.current) {
 				newV = input
 			} else {
@@ -162,7 +160,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 
 	return <span {...props}>
 		<span className={`break-all outline-none${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={error}
-			tabIndex={1}
+			tabIndex={0}
 			contentEditable={true}
 			suppressContentEditableWarning={true}
 			spellCheck={false}
@@ -199,7 +197,7 @@ function DigitSum({ number, radix }: { number: bigint, radix: Radix }) {
 
 	return <span>
 		<span>∑={num2str(n, radix)}</span>
-		<sub>{radix.name}</sub>{ !(radix.system === 'standard' && radix.radix == 10n) &&
+		<sub>{radix.name}</sub>{ !(radix.system === 'standard' && radix.radix === 10n) &&
 		<span>
 			<span>={num2str(radix.system === 'sum' ? number : n, radix = createRadix(10))}</span>
 			<sub>{radix.name}</sub>

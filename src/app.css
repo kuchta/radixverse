@@ -2,11 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+
+	@font-face {
+		src: url(/radixverse/fonts/NotoSansSymbols.ttf);
+		font-family: "Noto Sans Symbol";
+	}
+}
+
+html {
+	-webkit-font-smoothing: antialiased;
+}
+
 .table-xxs :where(th, td) {
-    font-size: 0.6rem/* 12px */;
-    line-height: 1rem/* 16px */;
-    padding-left: 0.1rem/* 8px */;
-    padding-right: 0.1rem/* 8px */;
-    padding-top: 0.1rem/* 4px */;
-    padding-bottom: 0.1rem/* 4px */;
+	font-size: 0.6rem /* 12px */;
+	line-height: 1rem /* 16px */;
+	padding-left: 0.1rem /* 8px */;
+	padding-right: 0.1rem /* 8px */;
+	padding-top: 0.1rem /* 4px */;
+	padding-bottom: 0.1rem /* 4px */;
 }

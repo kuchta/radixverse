@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"allowJs": true,
-		// "allowSyntheticDefaultImports": true,
+		"allowJs": false,
+		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"ignoreDeprecations": "5.0",
@@ -18,5 +18,5 @@
 		"strict": true,
 		"target": "ESNext"
 	},
-	"include": [ "src" ],
+	"exclude": [ "node_modules", "dist", "dev-dist" ],
 }

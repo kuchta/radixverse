@@ -1,7 +1,7 @@
 import { memo, useState, useEffect } from 'react'
 
 import Table, { Tables } from './Table'
-import { Radix, areRadixesEqual } from '../utils'
+import { type Radix, areRadixesEqual } from '../utils'
 
 
 function Show({ radixes }: { radixes: Radix[] }) {
@@ -37,7 +37,6 @@ function computeProps(radix: Radix, columns?: number, rows?: number) {
 				  : bal ? Math.trunc(rows / 2)
 				  : 0
 
-	// @ts-expect-error: TS18048: 'columns' is possibly 'undefined' -- nevermind we can work with NaNs
 	const numbers = Array.from(Array(rows), (_, i) => Array.from(Array(columns), (_, j) => i * columns + j + lowest))
 
 	return { numbers, low: lowest, high: highest, mainRow, rows, columns }
