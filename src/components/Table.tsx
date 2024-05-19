@@ -5,7 +5,7 @@ import { type Radix, num2str, getCharsForTooltip } from '../utils'
 
 
 export function Tables({ children }: { children: JSX.Element[] }) {
-	return <main className="flex flex-wrap justify-center items-start">
+	return <main className="flex flex-wrap justify-center items-start gap-4 overflow-x-clip">
 		{ children }
 	</main>
 }
@@ -25,7 +25,7 @@ function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumn
 
 	const space = low === 0 ? high : high - low
 
-	return <div className="card bg-white max-w-full shadow-xl m-4">
+	return <div className="card bg-white max-w-full shadow-xl">
 		<div className="flex justify-end items-center mx-2">
 			<div className="flex-1 flex justify-center">
 				<span className="tooltip tooltip-top whitespace-pre before:content-[attr(data-tip)] before:max-w-[50rem]" data-tip={ getCharsForTooltip(radix) }>

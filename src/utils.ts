@@ -247,8 +247,13 @@ function invalidNumberOfCharacters(radix: number, system: Radix['system'], requi
 	return new Error(`Radix(${system}, ${radix}) needs${atLeast ? ' at least' : ''} ${requiredLength} characarters, ${providedLength} provided`)
 }
 
+// const num2strCache = new Map<Radix, Map<bigint, string>>()
 export function num2str(num: bigint, radix: Radix): string {
 	if (num === 0n) return radix.reversedValues.get(0n)!
+	// const str = num2strCache.get(radix)?.get(num)
+	// if (str != undefined) {
+	// 	return str
+	// }
 
 	const sum = radix.system === 'sum'
 	const bal = radix.system === 'balanced'
@@ -331,7 +336,13 @@ export function num2str(num: bigint, radix: Radix): string {
 
 	if (neg && !(bal || clock || balsum)) ret.unshift('-')
 
-	return ret.join('')
+	const str = ret.join('')
+	// let rc = num2strCache.get(radix)
+	// if (!rc) {
+	// 	num2strCache.set(radix, rc = new Map())
+	// }
+	// rc.set(num, str)
+	return str
 }
 
 export function str2num(str: string, radix: Radix) {

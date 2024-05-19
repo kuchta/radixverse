@@ -8,7 +8,7 @@ export default defineConfig({
 	base: `/${name.toLowerCase()}`,
 	build: { sourcemap: true },
 	plugins: [
-		react(),
+		react({ babel: { plugins: [[ 'babel-plugin-react-compiler' ]] }}),
 		VitePWA({
 			devOptions: { enabled: true },
 			injectRegister: 'script',

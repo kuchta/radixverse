@@ -8,6 +8,7 @@ import flowtypePlugin from 'eslint-plugin-flowtype'
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import reactCompilerPlugin from 'eslint-plugin-react-compiler'
 
 
 export default tslint.config({
@@ -27,6 +28,7 @@ export default tslint.config({
 		'jsx-a11y': jsxA11yPlugin,
 		react: reactPlugin,
 		'react-hooks': reactHooksPlugin,
+		'react-compiler': reactCompilerPlugin,
 	},
 	languageOptions: {
 		parser: tslint.parser,

@@ -1,6 +1,5 @@
 import type React from 'react'
-// @ts-expect-error: TS2305: Module '"react"' has no exported member 'experimental_useEffectEvent'.
-import { type ComponentProps, useState, useEffect, useRef, experimental_useEffectEvent } from 'react'
+import { type ComponentProps, useState, useEffect, useRef } from 'react'
 
 import { type Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '../utils'
 
@@ -13,33 +12,34 @@ export default function Convert({ radixes, value, updateValue }: {
 	const plusButtonRef = useRef<HTMLButtonElement>(null)
 	const deleteButtonRef = useRef<HTMLButtonElement>(null)
 	const minusButtonRef = useRef<HTMLButtonElement>(null)
+	const valueRef = useRef(value)
+
+	useEffect(() => { valueRef.current = value }, [ value ])
 
 	useEffect(() => {
+		const keyDown: (e: KeyboardEvent) => void = (e: KeyboardEvent) => {
+			switch (e.key) {
+				case 'Backspace':
+				case 'Delete':
+					deleteButtonRef.current?.focus()
+					updateValue(0n)
+					break
+				case '+':
+				case '=':
+					plusButtonRef.current?.focus()
+					updateValue(valueRef.current + 1n)
+					break
+				case '-':
+				case '_':
+					minusButtonRef.current?.focus()
+					updateValue(valueRef.current - 1n)
+					break
+			}
+		}
 		document.addEventListener('keydown', keyDown)
 		return () => document.removeEventListener('keydown', keyDown)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-
-	// eslint-disable-next-line
-	const keyDown: (e: KeyboardEvent) => void = experimental_useEffectEvent((e: KeyboardEvent) => {
-		switch (e.key) {
-			case 'Backspace':
-			case 'Delete':
-				deleteButtonRef.current?.focus()
-				updateValue(0n)
-				break
-			case '+':
-			case '=':
-				plusButtonRef.current?.focus()
-				updateValue(value + 1n)
-				break
-			case '-':
-			case '_':
-				minusButtonRef.current?.focus()
-				updateValue(value - 1n)
-				break
-		}
-	})
 
 	return <main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
 		<div className="flex gap-1 relative lg:left-32 max-w-fit">
