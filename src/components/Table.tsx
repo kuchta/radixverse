@@ -1,7 +1,7 @@
-import { memo, useState } from 'react'
+import { useState } from 'react'
 import { LiaEditSolid } from 'react-icons/lia'
 
-import { type Radix, num2str, getCharsForTooltip } from '../utils'
+import { type Radix, num2str, getCharsForTooltip } from '../utils.ts'
 
 
 export function Tables({ children }: { children: JSX.Element[] }) {
@@ -10,7 +10,7 @@ export function Tables({ children }: { children: JSX.Element[] }) {
 	</main>
 }
 
-function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumns, updateRows }: {
+export default function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumns, updateRows }: {
 	radix: Radix,
 	numbers: number[][],
 	low: number,
@@ -79,11 +79,11 @@ function EditRowsOrColumns({ columns, rows, update, setEdit }: { columns?: numbe
 	</div>
 }
 
-export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: newRadix, numbers: newNumbers }) => {
-	const ret = oldRadix.name === newRadix.name
-		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
-		&& oldNumbers.length === newNumbers.length
-		&& oldNumbers.every((row, i) => row.every((n, j) => n === newNumbers[i][j]))
-	// console.log(`areNumbersEqual(${newRedix.name}): `, ret)
-	return ret
-})
+// export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: newRadix, numbers: newNumbers }) => {
+// 	const ret = oldRadix.name === newRadix.name
+// 		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
+// 		&& oldNumbers.length === newNumbers.length
+// 		&& oldNumbers.every((row, i) => row.every((n, j) => n === newNumbers[i][j]))
+// 	console.log(`areNumbersEqual(${newRadix.name}): `, ret)
+// 	return ret
+// })

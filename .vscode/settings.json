@@ -5,4 +5,7 @@
 	"yaml.schemas": {
 		"https://json.schemastore.org/github-workflow.json": "file:///Users/kuchta/Projects/radixverse/.github/workflows/deploy.yml"
 	},
+	"deno.enable": true,
+	"deno.lint": true,
+	"[typescript]": { "editor.defaultFormatter": "denoland.vscode-deno" }
 }

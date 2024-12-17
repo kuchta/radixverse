@@ -28,20 +28,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Setup Runtime
+        uses: denoland/setup-deno@v2
         with:
-          node-version: 20
-          cache: 'pnpm'
+          deno-version: v2.x
 
       - name: Install dependencies
-        run: pnpm install
+        run: deno install
 
       - name: Build
-        run: pnpm run build
+        run: deno task build
 
       - name: Create subpages
         run: |
@@ -61,3 +57,12 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2 # or the latest "vX.X.X" version tag for this action
+
+      - name: Deploy to Fleek
+        id: fleek
+        uses: fleekhq/action-deploy@v1
+        with:
+          apiKey: ${{ secrets.FLEEK_API_KEY }}
+
+      - name: URL
+        run: echo "Deploy url is ${{ steps.deploy.outputs.deployUrl }}"

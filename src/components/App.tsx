@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
-import { Routes, Route, Link, useSearchParams, useLocation } from 'react-router-dom'
 
-import Header from './Header'
-import Show from './Show'
-import Add from './Add'
-import Multiply from './Multiply'
-import Convert from './Convert'
+import { useEffect, useState } from 'react'
+import { Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
+
+import Header from './Header.tsx'
+import Show from './Show.tsx'
+import Add from './Add.tsx'
+import Multiply from './Multiply.tsx'
+import Convert from './Convert.tsx'
 import {
 	type Radix,
 	createRadixes,
@@ -17,7 +18,7 @@ import {
 	str2num,
 	allowedCharaters,
 	sanitizeInput
-} from '../utils'
+} from '../utils.ts'
 
 
 export default function App() {
@@ -52,7 +53,7 @@ export default function App() {
 
 function useStore(updateError: (error?: string) => void) {
 	const [ radixes, setRadixes ] = useState(getRadixesLS() ?? createRadixes(getCharsLS()))
-	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(v => v.enabled))
+	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(r => r.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
 	const [ _value, setValue ] = useState(0n)
 	const [ _radix, setRadix ] = useState(createRadix(10))
@@ -64,7 +65,7 @@ function useStore(updateError: (error?: string) => void) {
 				const searchRadixes = searchParams.getAll('r')
 				radixes.forEach(r => r.enabled = searchRadixes.includes(r.name))
 				updateRadixes(radixes)
-				setEnabledRadixes(radixes.filter(v => v.enabled))
+				setEnabledRadixes(radixes.filter(r => r.enabled))
 			}
 			let radix = _radix
 			const sRadix = searchParams.get('radix')
@@ -83,7 +84,6 @@ function useStore(updateError: (error?: string) => void) {
 			console.error(error)
 			updateError((error as Error).message)
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	const updateRadixes = (radixes: Radix[]) => {

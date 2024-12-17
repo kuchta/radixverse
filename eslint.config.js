@@ -2,10 +2,7 @@ import eslint from '@eslint/js'
 import tslint from 'typescript-eslint'
 import stylistic from '@stylistic/eslint-plugin'
 import globals from 'globals'
-import reactConfig from 'eslint-config-react-app'
 import importPlugin from 'eslint-plugin-import'
-import flowtypePlugin from 'eslint-plugin-flowtype'
-import jsxA11yPlugin from 'eslint-plugin-jsx-a11y'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import reactCompilerPlugin from 'eslint-plugin-react-compiler'
@@ -24,8 +21,6 @@ export default tslint.config({
 		'@typescript-eslint': tslint.plugin,
 		'@stylistic': stylistic,
 		import: importPlugin,
-		flowtype: flowtypePlugin,
-		'jsx-a11y': jsxA11yPlugin,
 		react: reactPlugin,
 		'react-hooks': reactHooksPlugin,
 		'react-compiler': reactCompilerPlugin,
@@ -46,8 +41,6 @@ export default tslint.config({
 		}
 	},
 	rules: {
-		...reactConfig.overrides.rules,
-		...reactConfig.rules,
 		semi: [ 'error', 'never' ],
 		'no-mixed-spaces-and-tabs': [ 'error', 'smart-tabs' ],
 		eqeqeq: ['error', 'always', { null: 'ignore' }],
