@@ -1,10 +1,8 @@
-import { type FormEventHandler, useState, useEffect, useRef } from 'react'
+import { type FormEvent, useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import resolveConfig from 'tailwindcss/resolveConfig'
-// import { Combobox } from '@headlessui/react'
-import themes from 'daisyui/src/theming/themes'
+import defaultTheme from 'tailwindcss/defaultTheme'
+import themeObject from 'daisyui/theme/object'
 
-import tailwindConfig from '../../tailwind.config'
 import {
 	type Radix,
 	defaultChars,
@@ -13,15 +11,16 @@ import {
 	getCharsLS,
 	setCharsLS,
 	createRadix,
-} from '../utils'
+} from '../utils.ts'
 
+const themes = Object.keys(themeObject).sort()
 
 type ToggleRadixes = (radix: 'all' | 'odd' | 'even' | Radix['system'] | Radix, enabled: boolean) => void
 
-const twConfig = resolveConfig(tailwindConfig)
+const rootREM = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
-const md = Number(twConfig.theme.screens.md.slice(0, -2))
-const xl = Number(twConfig.theme.screens.xl.slice(0, -2))
+const md = Number(defaultTheme.screens.md.slice(0, -3)) * rootREM
+const xl = Number(defaultTheme.screens.xl.slice(0, -3)) * rootREM
 
 let allChars = getCharsLS() ?? defaultChars
 
@@ -36,7 +35,7 @@ export default function Header({ radixes, updateRadixes }: {
 	const [ inputChars, setInputChars ] = useState(allChars)
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
 	const [ inputStyle, setInputStyle ] = useState({ width: '71em', height: '1em' })
-	const [ screenWidth, setScreenWidth ] = useState(window.innerWidth)
+	const [ screenWidth, setScreenWidth ] = useState(innerWidth)
 	const [ formColumn, setFormColumn ] = useState(false)
 	const formRef = useRef<HTMLFormElement>(null)
 
@@ -44,29 +43,29 @@ export default function Header({ radixes, updateRadixes }: {
 		const keyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) }
 		document.addEventListener('keydown', keyDown)
 
-		const handleResize = () => setScreenWidth(window.innerWidth)
-		window.addEventListener('resize', handleResize)
+		const handleResize = () => setScreenWidth(innerWidth)
+		addEventListener('resize', handleResize)
 
 		return () => {
 			document.removeEventListener('keydown', keyDown)
-			window.removeEventListener('resize', handleResize)
+			removeEventListener('resize', handleResize)
 		}
 	}, [])
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const balanced = inputRadix === 'all' || radixes[inputRadix]?.system === 'balanced' || radixes[inputRadix]?.system === 'balsum'
 		let length = Array.from(inputChars).length * (balanced ? 1.55 : 1.2)
 		if (length < 10) length = 10
 
-		let style = { width: `${length}ex`, height: '1lh' }
-		if (screenWidth < md) {
-			setFormColumn(true)
-			if (length > 55) style = { width: `${length / 3}ex`, height: '3lh' }
-		} else if (screenWidth < xl) {
+		let style = { width: `${length}ex`, height: `${Math.round(1.7 * rootREM)}px` }
+		if (screenWidth > xl) {
 			setFormColumn(false)
-			if (length > 55) style = { width: `${length / 2}ex`, height: '2lh' }
+		} else if (screenWidth > md) {
+			setFormColumn(false)
+			if (length > 55) style = { width: `${length / 2}ex`, height: `${Math.round(3.3 * rootREM)}px` }
 		} else {
-			setFormColumn(false)
+			setFormColumn(true)
+			if (length > 55) style = { width: `${length / 3}ex`, height: `${Math.round(4.7 * rootREM)}px` }
 		}
 		setInputStyle(style)
 
@@ -95,7 +94,7 @@ export default function Header({ radixes, updateRadixes }: {
 		}
 	}
 
-	const handleRadixCharsSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+	const handleRadixCharsSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		setInputCharsError(undefined)
 
@@ -191,9 +190,9 @@ export default function Header({ radixes, updateRadixes }: {
 					<li>
 						<details>
 							<summary>Themes</summary>
-							<ul className="bg-base-100">{ Object.keys(themes).sort().map(t =>
+							<ul className="bg-base-100">{ themes.map(t =>
 								<li key={t}>
-									<button className={t === theme ? 'active': ''} onClick={() => updateTheme(t)}>{ capitalize(t) }</button>
+									<button className={t === theme ? 'bg-base-200': ''} onClick={() => updateTheme(t)}>{ capitalize(t) }</button>
 								</li>)}
 							</ul>
 						</details>
@@ -242,9 +241,9 @@ export default function Header({ radixes, updateRadixes }: {
 										</Combobox.Options>
 									</div>
 								</Combobox> */}
-								<span className={inputCharsError ? 'tooltip tooltip-bottom tooltip-error tooltip-open inline' : ''} data-tip={inputCharsError}>
+								<div className={inputCharsError ? 'tooltip tooltip-bottom tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
 									<textarea
-										className="font-mono align-middle resize-none bg-base-100 rounded-lg p-0"
+										className="font-mono align-middle resize-none bg-base-100 rounded-lg p-0 w-full h-full"
 										style={inputStyle}
 										name="chars"
 										value={inputChars}
@@ -263,7 +262,7 @@ export default function Header({ radixes, updateRadixes }: {
 										}}
 										onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
 									/>
-								</span>
+								</div>
 								<span className="flex flex-row join justify-center">
 									<button className="btn btn-xs btn-outline btn-success join-item" type="reset">Reset</button>
 									<button className="btn btn-xs btn-outline btn-error join-item" type="submit">Set</button>
@@ -290,7 +289,7 @@ const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', to
 		>
 			Add
 		</button>
-		<span className="btn btn-xs btn-outline pointer-events-none join-item cursor-default">{ capitalize(who) }</span>
+		<button className="btn btn-xs btn-outline btn-neutral join-item pointer-events-none cursor-default">{ capitalize(who) }</button>
 		<button
 			className="btn btn-xs btn-outline btn-error join-item"
 			onClick={() => toggleRadixes(who, false)}
@@ -319,7 +318,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 			</div>
 			<div className="card-actions justify-center">{ radixes.filter(r => r.system === who).map(radix =>
 				<button
-					className={`btn btn-xs btn-outline ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
+					className={`btn btn-xs btn-outline btn-neutral ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
 					key={radix.name}
 					onClick={() => toggleRadixes(radix, !radix.enabled)}
 				>

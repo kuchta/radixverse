@@ -8,47 +8,43 @@ on:
 
 # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
 permissions:
-  pages: write      # to deploy to Pages
-  id-token: write   # to verify the deployment originates from an appropriate source
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  # Deploy to the github-pages environment
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    # Specify runner + deployment steps
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Setup Runtime
+        uses: denoland/setup-deno@v2
         with:
-          node-version: 20
-          cache: 'pnpm'
+          deno-version: v2.x
 
       - name: Install dependencies
-        run: pnpm install
+        run: deno install
 
       - name: Build
-        run: pnpm run build
+        run: deno task build
+        env:
+          BASE_URL: ${{ vars.BASE_URL }}
 
       - name: Create subpages
         run: |
-            mkdir dist/add dist/multiply dist/convert
-            cp dist/index.html dist/add
-            cp dist/index.html dist/multiply
-            cp dist/index.html dist/convert
+          mkdir dist/add dist/multiply dist/convert
+          cp dist/index.html dist/add
+          cp dist/index.html dist/multiply
+          cp dist/index.html dist/convert
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
@@ -59,5 +55,5 @@ jobs:
             path: './dist'
 
       - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v2
         id: deployment
-        uses: actions/deploy-pages@v2 # or the latest "vX.X.X" version tag for this action
