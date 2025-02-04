@@ -1,0 +1,42 @@
+{
+	"name": "@kuchta/radixverse",
+	"version": "0.0.4",
+	"exports": "./src/utils.ts",
+	"nodeModulesDir": "auto",
+	"tasks": {
+		"start": "deno run -A npm:vite --host",
+		"preview": "deno run -A npm:vite preview",
+		"check": "deno check src/**/*.ts src/**/*.tsx",
+		"lint": "deno lint",
+		"test": "deno test",
+		"build": "deno run -A npm:vite build",
+		"pre-commit": "deno task lint && deno task test && deno task build"
+	},
+	"publish": {
+		"include": [
+			"README.md",
+			"deno.json",
+			"package.json",
+			"src/utils.ts"
+		]
+	},
+	"include": [ "src/**/*.ts", "src/**/*.tsx" ],
+	"unstable": [ "sloppy-imports" ],
+	"lint": {
+		"include": ["src/"],
+		"rules": {
+			"tags": [ "recommended" ],
+			"exclude": [
+				"no-cond-assign",
+				"no-sloppy-imports"
+			]
+		}
+	},
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"lib": [ "ESNext", "DOM", "DOM.Iterable" ],
+		"noFallthroughCasesInSwitch": true,
+		"strict": true,
+		"types": [ "node", "vite/client" ]
+	}
+}

@@ -1,16 +1,16 @@
-import { memo, useState } from 'react'
+import { useState } from 'react'
 import { LiaEditSolid } from 'react-icons/lia'
 
 import { type Radix, num2str, getCharsForTooltip } from '../utils'
 
 
-export function Tables({ children }: { children: JSX.Element[] }) {
+export function Tables({ children }: { children: React.ReactNode[] }) {
 	return <main className="flex flex-wrap justify-center items-start gap-4 overflow-x-clip">
 		{ children }
 	</main>
 }
 
-function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumns, updateRows }: {
+export default function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumns, updateRows }: {
 	radix: Radix,
 	numbers: number[][],
 	low: number,
@@ -41,7 +41,7 @@ function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumn
 		<div className="card-body overflow-scroll p-2">
 			<table className="table table-xs table-fixed text-sm w-auto">
 				<tbody>{ numbers.map((row, rowIndex) =>
-					<tr className={`hover row${rowIndex === mainRow ? ' active' : ''}`} key={`row-${rowIndex}`}>{ row.map((number, colIndex) =>
+					<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={`row-${rowIndex}`}>{ row.map((number, colIndex) =>
 						<td className="text-right px-[2px] py-[2px] w-8" key={`col-${colIndex}`}>
 							{ renderValue(number, radix, low, space) }
 						</td>)}
@@ -79,11 +79,11 @@ function EditRowsOrColumns({ columns, rows, update, setEdit }: { columns?: numbe
 	</div>
 }
 
-export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: newRadix, numbers: newNumbers }) => {
-	const ret = oldRadix.name === newRadix.name
-		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
-		&& oldNumbers.length === newNumbers.length
-		&& oldNumbers.every((row, i) => row.every((n, j) => n === newNumbers[i][j]))
-	// console.log(`areNumbersEqual(${newRedix.name}): `, ret)
-	return ret
-})
+// export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: newRadix, numbers: newNumbers }) => {
+// 	const ret = oldRadix.name === newRadix.name
+// 		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
+// 		&& oldNumbers.length === newNumbers.length
+// 		&& oldNumbers.every((row, i) => row.every((n, j) => n === newNumbers[i][j]))
+// 	console.log(`areNumbersEqual(${newRadix.name}): `, ret)
+// 	return ret
+// })

@@ -1,10 +1,10 @@
-import { memo, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 import Table, { Tables } from './Table'
-import { type Radix, areRadixesEqual } from '../utils'
+import { type Radix } from '../utils'
 
 
-function Show({ radixes }: { radixes: Radix[] }) {
+export default function Show({ radixes }: { radixes: Radix[] }) {
 	return <Tables>{ radixes.map(radix => <ShowTable radix={radix} key={`show-${radix.name}`}/>) }</Tables>
 }
 
@@ -41,5 +41,3 @@ function computeProps(radix: Radix, columns?: number, rows?: number) {
 
 	return { numbers, low: lowest, high: highest, mainRow, rows, columns }
 }
-
-export default memo(Show, areRadixesEqual)

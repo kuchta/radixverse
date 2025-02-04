@@ -1,5 +1,5 @@
-import type React from 'react'
-import { type ComponentProps, useState, useEffect, useRef } from 'react'
+import type { FormEvent, ClipboardEvent, ComponentProps } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import { type Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '../utils'
 
@@ -38,7 +38,6 @@ export default function Convert({ radixes, value, updateValue }: {
 		}
 		document.addEventListener('keydown', keyDown)
 		return () => document.removeEventListener('keydown', keyDown)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return <main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
@@ -97,13 +96,13 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 		setTimeout(() => setError(undefined), 10000)
 	}
 
-	const getCaretPosition = () => window.getSelection()?.getRangeAt(0).startOffset ?? 0
+	const getCaretPosition = () => getSelection()?.getRangeAt(0).startOffset ?? 0
 
 	const setCaretPosition = (position: number) => {
-		setTimeout(() => { if (ref.current) window.getSelection()?.setPosition(ref.current.childNodes[0], position) }, 0)
+		setTimeout(() => { if (ref.current) getSelection()?.setPosition(ref.current.childNodes[0], position) }, 0)
 	}
 
-	const handleInput = (e: React.FormEvent<HTMLSpanElement>) => {
+	const handleInput = (e: FormEvent<HTMLSpanElement>) => {
 		e.stopPropagation()
 
 		const s = e.currentTarget.innerText.toUpperCase()
@@ -128,13 +127,13 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 		setCaretPosition(position)
 	}
 
-	const handlePaste = (e: React.ClipboardEvent<HTMLSpanElement>) => {
+	const handlePaste = (e: ClipboardEvent<HTMLSpanElement>) => {
 		e.preventDefault()
 
 		let position = getCaretPosition()
 		try {
 			const [ input, rest ] = sanitizeInput(e.clipboardData.getData('text'), radix)
-			const range = window.getSelection()?.getRangeAt(0)
+			const range = getSelection()?.getRangeAt(0)
 			let newV: string
 			if (range?.startContainer === ref.current) {
 				newV = input
@@ -167,7 +166,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 			onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') { e.currentTarget.blur() } else e.stopPropagation() }}
 			onInput={handleInput}
 			onPaste={handlePaste}
-			onDoubleClick={() => { if (ref.current) window.getSelection()?.selectAllChildren(ref.current) }}
+			onDoubleClick={() => { if (ref.current) getSelection()?.selectAllChildren(ref.current) }}
 			onFocus={() => setEditing(true)}
 			onBlur={() => { setEditing(false); setError(undefined); setStrVal(num2str(value, radix)) }}
 			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}

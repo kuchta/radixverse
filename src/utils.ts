@@ -15,7 +15,7 @@ const LS_CHARS = 'chars'
 const LS_RADIXES = 'radixes'
 
 export const defaultChars = baseBal71
-const defaultCharsArray = Array.from(defaultChars)
+const defaultCharsArray: string[] = Array.from(defaultChars)
 
 export type Radix = {
 	name: string
@@ -29,7 +29,7 @@ export type Radix = {
 	high: number
 }
 
-export function getThemeLS() {
+export function getThemeLS(): string | undefined {
 	return localStorage.getItem(LS_THEME) ?? undefined
 }
 
@@ -37,7 +37,7 @@ export function setThemeLS(theme: string) {
 	localStorage.setItem(LS_THEME, theme)
 }
 
-export function getCharsLS() {
+export function getCharsLS(): string | undefined {
 	return localStorage.getItem(LS_CHARS) ?? undefined
 }
 
@@ -49,7 +49,7 @@ export function setCharsLS(chars?: string) {
 	}
 }
 
-export function getRadixesLS() {
+export function getRadixesLS(): Radix[] | undefined {
 	const item = localStorage.getItem(LS_RADIXES)
 	if (item == null) return
 
@@ -62,7 +62,7 @@ export function setRadixesLS(radixes: Radix[]) {
 	localStorage.setItem(LS_RADIXES, JSON.stringify(rs))
 }
 
-export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, { radixes: newRadixes}: { radixes: Radix[] }) {
+export const areRadixesEqual = (/* tab: string */) => ({ radixes: oldRadixes }: { radixes: Radix[] }, { radixes: newRadixes}: { radixes: Radix[] }): boolean => {
 	const ret = oldRadixes.length === newRadixes.length
 		&& oldRadixes.every((radix, i) => radix.name === newRadixes[i].name
 			&& radix.chars.every((char, j) => char === newRadixes[i].chars[j]))
@@ -70,7 +70,7 @@ export function areRadixesEqual({ radixes: oldRadixes }: { radixes: Radix[] }, {
 	return ret
 }
 
-export function createRadixes(chars = defaultChars) {
+export function createRadixes(chars = defaultChars): Radix[] {
 	const charsArray = chars !== defaultChars ? Array.from(chars) : undefined
 	return Array.from(Array(35)).flatMap((_, i) => {
 		const radix = i + 2
@@ -84,7 +84,7 @@ export function createRadixes(chars = defaultChars) {
 	})
 }
 
-export function createRadix(radix: number, system: Radix['system'] = 'standard', chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true) {
+export function createRadix(radix: number, system: Radix['system'] = 'standard', chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
 	if (allChars) {
 		if (chars !== defaultCharsArray && chars.length < defaultCharsArray.length) throw new Error(`chars must have at least ${defaultCharsArray.length} characters, ${chars.length} provided`)
 		if (chars.length % 2 === 0) throw new Error('chars must have odd number of characters')
@@ -248,7 +248,7 @@ function invalidNumberOfCharacters(radix: number, system: Radix['system'], requi
 }
 
 // const num2strCache = new Map<Radix, Map<bigint, string>>()
-export function num2str(num: bigint, radix: Radix): string {
+export function num2str(num: bigint, radix: Radix, maxLength = 28): string {
 	if (num === 0n) return radix.reversedValues.get(0n)!
 	// const str = num2strCache.get(radix)?.get(num)
 	// if (str != undefined) {
@@ -267,7 +267,6 @@ export function num2str(num: bigint, radix: Radix): string {
 
 	if (sum) {
 		let i: number
-		const max = 5
 		let v: string | undefined
 		const values = radix.reversedValues
 		for (const value of values.keys()) {
@@ -275,7 +274,7 @@ export function num2str(num: bigint, radix: Radix): string {
 			if (!value) continue
 			while (n >= value) {
 				if (v = values.get(value)) ret.push(v)
-				if (++i === max) {
+				if (++i === maxLength) {
 					ret.unshift('…')
 					n %= value
 				} else {
@@ -345,7 +344,7 @@ export function num2str(num: bigint, radix: Radix): string {
 	return str
 }
 
-export function str2num(str: string, radix: Radix) {
+export function str2num(str: string, radix: Radix): bigint {
 	if (str === radix.reversedValues.get(0n)) return 0n
 
 	const neg = str.startsWith('-')
@@ -365,24 +364,24 @@ export function str2num(str: string, radix: Radix) {
 	return neg ? -ret : ret
 }
 
-export function filling_shl(value: bigint, radix: Radix) {
+export function filling_shl(value: bigint, radix: Radix): bigint {
 	return value ? value > 0 ? value * radix.radix + 1n : value * radix.radix - 1n : 1n
 }
 
-export function shl(value: bigint, radix: Radix) {
+export function shl(value: bigint, radix: Radix): bigint {
 	return value * radix.radix
 }
 
-export function shr(value: bigint, radix: Radix) {
+export function shr(value: bigint, radix: Radix): bigint {
 	return radix.system === 'sum' ? str2num(num2str(value, radix).slice(1), radix) : str2num(num2str(value, radix).slice(0, -1), radix)
 }
 
-export function allowedCharaters(radix: Radix) {
+export function allowedCharaters(radix: Radix): string {
 	const chars = radix.system === 'bijective' ? radix.chars.slice(1) : radix.chars
 	return  `Allowed characters are "${radix.system === 'balanced' ? chars.join('') : [ '-', ...chars ].join('')}"`
 }
 
-export function sanitizeInput(input: string, radix: Radix) {
+export function sanitizeInput(input: string, radix: Radix): string[] {
 	input = input.toUpperCase()
 	const chars = radix.system === 'balanced' ? radix.chars.join('') : [ '-', ...radix.chars ].join('')
 	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
@@ -390,6 +389,6 @@ export function sanitizeInput(input: string, radix: Radix) {
 	return [ sanitizedInput, rest ]
 }
 
-export function getCharsForTooltip(radix: Radix) {
+export function getCharsForTooltip(radix: Radix): string {
 	return Array.from(radix.values.entries()).slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([k, v], i) => `${k}:${v}${(i+1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n': ' '}`).join('')
 }

@@ -1,0 +1,8 @@
+{
+  "sites": [
+    {
+      "slug": "radixverse",
+      "distDir": "dist"
+    }
+  ]
+}

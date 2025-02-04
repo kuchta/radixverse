@@ -1,14 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const name = 'RadixVerse'
 
 export default defineConfig({
-	base: `/${name.toLowerCase()}`,
+	base: process.env.BASE_URL ?? '/',
 	build: { sourcemap: true },
 	plugins: [
 		react({ babel: { plugins: [[ 'babel-plugin-react-compiler' ]] }}),
+		tailwindcss(),
 		VitePWA({
 			devOptions: { enabled: true },
 			injectRegister: 'script',

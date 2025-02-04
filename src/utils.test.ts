@@ -1,5 +1,5 @@
-import { describe, test } from 'node:test'
-import { strictEqual } from 'node:assert'
+import { test } from 'node:test'
+import { strictEqual as assertStrictEquals } from 'node:assert'
 
 import { type Radix, createRadix, num2str, str2num } from './utils'
 
@@ -233,10 +233,14 @@ const tests: Tests = [{
 	]
 }]
 
-describe('num2str', () => {
-	tests.forEach(t => test(`num2str(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => strictEqual(num2str(n, t.radix), s)) ))
+test('num2str', async (test) => {
+	for (const t of tests) {
+		await test.test(`num2str(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => assertStrictEquals(num2str(n, t.radix), s)))
+	}
 })
 
-describe('str2num', () => {
-	tests.forEach(t => test(`str2num(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => strictEqual(str2num(s, t.radix), n)) ))
+test('str2num', async (test) => {
+	for (const t of tests) {
+		await test.test(`str2num(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => assertStrictEquals(str2num(s, t.radix), n)))
+	}
 })

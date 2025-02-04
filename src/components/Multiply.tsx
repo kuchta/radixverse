@@ -1,10 +1,8 @@
-import { memo } from 'react'
-
 import Table, { Tables } from './Table'
-import { type Radix, areRadixesEqual } from '../utils'
+import { type Radix } from '../utils'
 
 
-function Multiply({ radixes }: { radixes: Radix[] }) {
+export default function Multiply({ radixes }: { radixes: Radix[] }) {
 	return <Tables>
 		{ radixes.map(radix => {
 			let { low, high } = radix
@@ -23,5 +21,3 @@ function Multiply({ radixes }: { radixes: Radix[] }) {
 		})}
 	</Tables>
 }
-
-export default memo(Multiply, areRadixesEqual)

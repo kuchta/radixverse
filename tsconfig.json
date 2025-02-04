@@ -1,22 +1,19 @@
 {
+	"include": [ "src/**/*.ts", "src/**/*.tsx" ],
 	"compilerOptions": {
-		"allowJs": false,
-		"allowSyntheticDefaultImports": true,
+		"allowImportingTsExtensions": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"ignoreDeprecations": "5.0",
-		"isolatedModules": true,
 		"jsx": "react-jsx",
-		"lib": [ "ESNext", "DOM" ],
+		"lib": [ "ESNext", "DOM", "DOM.Iterable" ],
 		"module": "ESNext",
-		"moduleResolution": "node",
+		"moduleResolution": "Bundler",
 		"noEmit": true,
 		"noFallthroughCasesInSwitch": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
-		"suppressImplicitAnyIndexErrors": true,
 		"strict": true,
-		"target": "ESNext"
-	},
-	"exclude": [ "node_modules", "dist", "dev-dist" ],
+		"target": "ESNext",
+		"types": [ "node", "vite/client" ],
+	}
 }
