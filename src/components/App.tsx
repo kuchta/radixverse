@@ -1,6 +1,6 @@
 
 // @ts-types="@types/react"
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import Header from './Header'
@@ -28,8 +28,6 @@ export default function App() {
 	const { radixes, enabledRadixes, updateRadixes, value, updateValue } = useStore(updateError)
 	const { pathname, search } = useLocation()
 
-	// console.log('App: ', { value })
-
 	return <>
 		{ error && <div className="toast toast-top toast-center z-50">
 			<div className="alert alert-error">
@@ -53,7 +51,7 @@ export default function App() {
 }
 
 function useStore(updateError: (error?: string) => void) {
-	const [ radixes, setRadixes ] = useState(getRadixesLS() ?? createRadixes(getCharsLS()))
+	const [ radixes, setRadixes ] = useState(getRadixesLS(updateError) ?? createRadixes(getCharsLS()))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(r => r.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
 	const [ _value, setValue ] = useState(0n)

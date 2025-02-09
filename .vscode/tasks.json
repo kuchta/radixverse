@@ -4,46 +4,35 @@
 		{
 			"type": "npm",
 			"script": "start",
-			"problemMatcher": [
-				"$vite"
-			]
+			"isBackground": true,
 		},
 		{
 			"type": "npm",
 			"script": "check",
-			"problemMatcher": [
-				"$tsc"
-			]
+			"problemMatcher": [ "$tsc" ]
 		},
 		{
 			"type": "npm",
 			"script": "check-watch",
 			"group": "build",
-			"problemMatcher": [
-				"$tsc-watch"
-			]
+			"isBackground": true,
+			"problemMatcher": [ "$tsc-watch" ]
 		},
 		{
 			"type": "npm",
 			"script": "lint",
-			"problemMatcher": [
-				"$eslint-compact"
-			]
+			"problemMatcher": [ "$eslint-compact" ]
 		},
 		{
 			"type": "npm",
 			"script": "build",
 			"group": "build",
-			"problemMatcher": [
-				"$tsc"
-			]
+			"problemMatcher": [ "$tsc" ]
 		},
 		{
 			"type": "npm",
 			"script": "preview",
-			"problemMatcher": [
-				"$vite"
-			]
+			"isBackground": true,
 		},
 		{
 			"type": "npm",

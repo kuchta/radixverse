@@ -17,19 +17,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Runtime
+      - name: Setup
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
-      - name: Install dependencies
+      - name: Install
         run: deno install
 
       - name: Build
         run: deno task build
 
-      - name: Install Fleek CLI
-        run: npm i -g @fleek-platform/cli
-
-      - name: Build & deploy sites
-        run: fleek sites deploy
+      - name: Deploy
+        run:  deno task deploy

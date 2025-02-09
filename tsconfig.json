@@ -2,6 +2,7 @@
 	"include": [ "src/**/*.ts", "src/**/*.tsx" ],
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
+		// "erasableSyntaxOnly": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react-jsx",

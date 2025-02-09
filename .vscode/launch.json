@@ -5,21 +5,31 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Debug TS File",
-			"type": "node",
+			"name": "Run In Browser",
 			"request": "launch",
+			"type": "chrome",
+			"preLaunchTask": "npm: start",
+			"runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+			"url": "http://localhost:5173",
+			"webRoot": "${workspaceFolder}"
+		},
+		{
+			"name": "Debug File",
+			"request": "launch",
+			"console": "integratedTerminal",
+			"type": "node",
 			"program": "${file}",
-			"runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
 			"skipFiles": [
 				"<node_internals>/**",
 				"${workspaceFolder}/node_modules/**",
 			]
 		}, {
-			"name": "Debug Test",
-			"type": "node",
+			"name": "Debug Test File",
 			"request": "launch",
-			"program": "${workspaceRoot}/src/test.ts",
-			"runtimeExecutable": "${workspaceRoot}/node_modules/.bin/tsx",
+			"console": "integratedTerminal",
+			"type": "node",
+			"runtimeArgs": [ "--test" ],
+			"program": "${file}",
 			"skipFiles": [
 				"<node_internals>/**",
 				"${workspaceFolder}/node_modules/**",

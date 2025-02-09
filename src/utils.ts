@@ -49,25 +49,23 @@ export function setCharsLS(chars?: string) {
 	}
 }
 
-export function getRadixesLS(): Radix[] | undefined {
+export function getRadixesLS(updateError: (error?: string) => void): Radix[] | undefined {
 	const item = localStorage.getItem(LS_RADIXES)
 	if (item == null) return
 
-	const radixes = JSON.parse(item) as Radix[]
-	return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name, false))
+	try {
+		const radixes = JSON.parse(item) as Radix[]
+		return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name, false))
+	} catch (error) {
+		console.error(error)
+		updateError((error as Error).message)
+		localStorage.removeItem(LS_RADIXES)
+	}
 }
 
 export function setRadixesLS(radixes: Radix[]) {
 	const rs = radixes.map(r => ({ name: r.name, radix: Number(r.radix), system: r.system, chars: r.chars, enabled: r.enabled }))
 	localStorage.setItem(LS_RADIXES, JSON.stringify(rs))
-}
-
-export const areRadixesEqual = (/* tab: string */) => ({ radixes: oldRadixes }: { radixes: Radix[] }, { radixes: newRadixes}: { radixes: Radix[] }): boolean => {
-	const ret = oldRadixes.length === newRadixes.length
-		&& oldRadixes.every((radix, i) => radix.name === newRadixes[i].name
-			&& radix.chars.every((char, j) => char === newRadixes[i].chars[j]))
-	// console.log(`areRadixesEqual(${tab}):`, ret)
-	return ret
 }
 
 export function createRadixes(chars = defaultChars): Radix[] {
@@ -96,7 +94,7 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 		if (allChars) {
 			const zeroAt = (chars.length - 1) / 2
 			chars = radix === 26 ? chars.slice(zeroAt + 10, zeroAt + 10 + radix) : chars.slice(zeroAt, zeroAt + radix)
-		} else if (chars.length !== radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length)
+		} else if (chars.length !== radix) invalidNumberOfCharacters(radix, system, radix, chars.length)
 
 		const values = chars.map((c, i) => [ c, BigInt(i) ] as [ string, bigint ])
 
@@ -114,8 +112,8 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 	} else if (system === 'bijective') {
 		if (allChars) {
 			const zeroAt = (chars.length - 1) / 2
-			chars = radix === 26 ? chars.slice(zeroAt).toSpliced(1, 9) : chars.slice(zeroAt, zeroAt + radix + 1)
-		} else if (chars.length !== radix + 1) throw invalidNumberOfCharacters(radix, system, radix + 1, chars.length)
+			chars = radix === 26 ? chars.slice(zeroAt, zeroAt + radix + 10).toSpliced(1, 9) : chars.slice(zeroAt, zeroAt + radix + 1)
+		} else if (chars.length !== radix + 1) invalidNumberOfCharacters(radix, system, radix + 1, chars.length)
 
 		const values = chars.map((c, i) => [ c, BigInt(i) ] as [ string, bigint ])
 
@@ -132,12 +130,12 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 		}
 	} else if (system === 'balanced') {
 		if (radix % 2 === 0) throw new Error(`createRadix: Radix(${system}) must be odd: ${radix}`)
-		if (!allChars && chars.length !== radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length)
+		if (!allChars && chars.length !== radix) invalidNumberOfCharacters(radix, system, radix, chars.length)
 
 		const zeroAt = (chars.length - 1) / 2
 		const half = (radix - 1) / 2
 		const zeroChar = chars[zeroAt]
-		chars = radix === 27 && allChars ? chars.slice(zeroAt + 10).toSpliced(13, 0, zeroChar) : chars.slice(zeroAt - half, zeroAt + half + 1)
+		chars = radix === 27 && allChars ? chars.slice(zeroAt + 10, zeroAt + 36).toSpliced(13, 0, zeroChar) : chars.slice(zeroAt - half, zeroAt + half + 1)
 		const values = chars.map((c, i) => [ c, BigInt(-half + i) ] as [ string, bigint ])
 
 		ret = {
@@ -157,7 +155,7 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 		if (allChars) {
 			zeroAt = (chars.length - 1) / 2
 		} else {
-			if (chars.length !== radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length)
+			if (chars.length !== radix) invalidNumberOfCharacters(radix, system, radix, chars.length)
 			zeroAt = chars.length / 2 - 1
 		}
 
@@ -206,7 +204,7 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 			chars = chars.slice(half + 10).toSpliced((half - 9) / 2, 0, chars[half])
 			half = (chars.length - 1) / 2
 		}
-		if (chars.length < radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length, true)
+		if (chars.length < radix) invalidNumberOfCharacters(radix, system, radix, chars.length, true)
 
 		const high = (radix - 1) / 2
 		let createValues: (order: number) => (c: string, i: number) => [ string, bigint ]
@@ -238,13 +236,11 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 		throw new Error('createRadix: Unknown system:', system)
 	}
 
-	// console.log(ret)
-
 	return ret
 }
 
 function invalidNumberOfCharacters(radix: number, system: Radix['system'], requiredLength: number, providedLength: number, atLeast = false) {
-	return new Error(`Radix(${system}, ${radix}) needs${atLeast ? ' at least' : ''} ${requiredLength} characarters, ${providedLength} provided`)
+	throw new Error(`Radix(${system}, ${radix}) needs${atLeast ? ' at least' : ''} ${requiredLength} characarters, ${providedLength} provided`)
 }
 
 // const num2strCache = new Map<Radix, Map<bigint, string>>()

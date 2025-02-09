@@ -78,12 +78,3 @@ function EditRowsOrColumns({ columns, rows, update, setEdit }: { columns?: numbe
 		/>
 	</div>
 }
-
-// export default memo(Table, ({radix: oldRadix, numbers: oldNumbers }, { radix: newRadix, numbers: newNumbers }) => {
-// 	const ret = oldRadix.name === newRadix.name
-// 		&& oldRadix.chars.every((char, i) => char === newRadix.chars[i])
-// 		&& oldNumbers.length === newNumbers.length
-// 		&& oldNumbers.every((row, i) => row.every((n, j) => n === newNumbers[i][j]))
-// 	console.log(`areNumbersEqual(${newRadix.name}): `, ret)
-// 	return ret
-// })

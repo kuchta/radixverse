@@ -41,7 +41,7 @@ export default function Convert({ radixes, value, updateValue }: {
 	}, [])
 
 	return <main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
-		<div className="flex gap-1 relative lg:left-32 max-w-fit">
+		<div className="flex relative lg:left-32 max-w-fit gap-1">
 			<span className="tooltip tooltip-top" data-tip="Increment">
 				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
 			</span>

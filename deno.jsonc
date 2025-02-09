@@ -10,7 +10,8 @@
 		"lint": "deno lint",
 		"test": "deno test",
 		"build": "deno run -A npm:vite build",
-		"pre-commit": "deno task lint && deno task test && deno task build"
+		"pre-commit": "deno task lint && deno task test && deno task build",
+		"deploy": "fleek sites deploy"
 	},
 	"publish": {
 		"include": [
@@ -37,6 +38,6 @@
 		"lib": [ "ESNext", "DOM", "DOM.Iterable" ],
 		"noFallthroughCasesInSwitch": true,
 		"strict": true,
-		"types": [ "node", "vite/client" ]
+		"types": [ "node", "vite/client", "@types/react"]
 	}
 }
