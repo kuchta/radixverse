@@ -2,6 +2,8 @@
 // @ts-types="@types/react"
 import { useState, useEffect } from 'react'
 import { Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
+import { ErrorBoundary } from 'react-error-boundary'
+
 
 import Header from './Header'
 import Show from './Show'
@@ -23,17 +25,13 @@ import {
 
 
 export default function App() {
-	const [ error, setError ] = useState<string>()
-	const updateError = (error?: string) => { setError(error); setTimeout(() => setError(undefined), 10000) }
+	const [ error, setError ] = useState<Error>()
+	const updateError = (error: Error) => { setError(error); setTimeout(() => setError(undefined), 10000) }
 	const { radixes, enabledRadixes, updateRadixes, value, updateValue } = useStore(updateError)
 	const { pathname, search } = useLocation()
 
-	return <>
-		{ error && <div className="toast toast-top toast-center z-50">
-			<div className="alert alert-error">
-				<span>{ error }</span>
-			</div>
-		</div>}
+	return <ErrorBoundary onError={updateError} FallbackComponent={ErrorToast}>
+		{ error && <ErrorToast error={error}/> }
 		<Header radixes={radixes} updateRadixes={updateRadixes}/>
 		<nav className="tabs tabs-bordered justify-center mb-4 z-10">
 			<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
@@ -47,10 +45,18 @@ export default function App() {
 			<Route path="multiply" element={<Multiply radixes={enabledRadixes}/>}/>
 			<Route path="convert" element={<Convert radixes={enabledRadixes} value={value} updateValue={updateValue}/>}/>
 		</Routes>
-	</>
+	</ErrorBoundary>
 }
 
-function useStore(updateError: (error?: string) => void) {
+function ErrorToast({ error }: { error: Error }) {
+	return <div className="toast toast-top toast-center z-50">
+		<div className="alert alert-error">
+			<span>{ error?.message }</span>
+		</div>
+	</div>
+}
+
+function useStore(updateError: (error: Error) => void) {
 	const [ radixes, setRadixes ] = useState(getRadixesLS(updateError) ?? createRadixes(getCharsLS()))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(r => r.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
@@ -77,11 +83,11 @@ function useStore(updateError: (error?: string) => void) {
 			if (sValue) {
 				const [ value, rest ] = sanitizeInput(sValue, radix)
 				setValue(str2num(value, radix))
-				if (rest) throw new Error(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`)
+				if (rest) throw new Error(`Non-Base characters "${rest}" for radix "${radix.name}" has been filtered out. ${allowedCharaters(radix)}`)
 			}
 		} catch (error) {
 			console.error(error)
-			updateError((error as Error).message)
+			updateError(error as Error)
 		}
 	}, [])
 
@@ -111,7 +117,7 @@ function useStore(updateError: (error?: string) => void) {
 				setSearchParams(searchParams)
 			} catch (error) {
 				console.error(error)
-				updateError((error as Error).message)
+				updateError(error as Error)
 			}
 		}
 		setValue(value)

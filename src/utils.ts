@@ -49,7 +49,7 @@ export function setCharsLS(chars?: string) {
 	}
 }
 
-export function getRadixesLS(updateError: (error?: string) => void): Radix[] | undefined {
+export function getRadixesLS(updateError: (error: Error) => void): Radix[] | undefined {
 	const item = localStorage.getItem(LS_RADIXES)
 	if (item == null) return
 
@@ -58,7 +58,7 @@ export function getRadixesLS(updateError: (error?: string) => void): Radix[] | u
 		return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name, false))
 	} catch (error) {
 		console.error(error)
-		updateError((error as Error).message)
+		updateError(error as Error)
 		localStorage.removeItem(LS_RADIXES)
 	}
 }
@@ -178,7 +178,7 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 		if (allChars) {
 			chars = chars.slice((chars.length - 1) / 2).toSpliced(1, 9)
 		}
-		if (chars.length < radix) throw invalidNumberOfCharacters(radix, system, radix, chars.length, true)
+		if (chars.length < radix) invalidNumberOfCharacters(radix, system, radix, chars.length, true)
 
 		const r = radix - 1
 		let order = 1

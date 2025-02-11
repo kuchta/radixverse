@@ -183,7 +183,7 @@ export default function Header({ radixes, updateRadixes }: {
 					</div>
 					<div className="flex flex-col justify-center items-center m-1">
 						<div className="card card-border gap-2 p-2">
-							<form className="flex flex-col md:flex-row justify-center items-center h-fit gap-1" onReset={handleRadixCharsSubmit} onSubmit={handleRadixCharsSubmit} ref={formRef}>
+							<form className="flex flex-col xl:flex-row justify-center items-center h-fit gap-1" onReset={handleRadixCharsSubmit} onSubmit={handleRadixCharsSubmit} ref={formRef}>
 								<select
 									className="select select-sm rounded-md bg-base-100 w-fit pl-2 pr-10 mr-1"
 									name="radix"
@@ -194,7 +194,7 @@ export default function Header({ radixes, updateRadixes }: {
 								</select>
 								<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
 									<textarea
-										className="field-sizing-content min-w-24 max-w-[calc(100vw-7.5ch)] md:max-w-[calc(100vw-30ch)] block resize-none rounded-lg leading-8 font-mono bg-base-100 p-0 px-2"
+										className="field-sizing-content min-w-24 max-w-[calc(100vw-7.5ch)] xl:max-w-[calc(100vw-30ch)] block resize-none rounded-lg leading-8 font-mono bg-base-100 p-0 px-2"
 										name="chars"
 										value={inputChars}
 										onKeyDown={e => {
