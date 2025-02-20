@@ -1,5 +1,6 @@
 import { type FormEvent, useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import TextareaAutosize from 'react-textarea-autosize'
 import themeObject from 'daisyui/theme/object'
 
 import {
@@ -24,7 +25,7 @@ export default function Header({ radixes, updateRadixes }: {
 }) {
 	const navigate = useNavigate()
 	const [ theme, setTheme ] = useState(getThemeLS)
-	const [ expanded, setExpanded ] = useState(false)
+	const [ settingsExpanded, setSettingsExpanded ] = useState(false)
 	const [ inputRadix, setInputRadix ] = useState<number>()
 	const [ inputChars, setInputChars ] = useState(allChars)
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
@@ -42,7 +43,7 @@ export default function Header({ radixes, updateRadixes }: {
 	const toggleSettings = () => {
 		updateInputRadix(inputRadix)
 		setInputCharsError(undefined)
-		setExpanded(!expanded)
+		setSettingsExpanded(!settingsExpanded)
 	}
 
 	const updateTheme = (theme: string) => {
@@ -132,8 +133,8 @@ export default function Header({ radixes, updateRadixes }: {
 
 	return <header className="p-2">
 		<div className="navbar bg-base-100 p-0">
-			<div className="flex-1">
-				<button className="text-left text-4xl tracking-wide pl-2" onClick={toggleSettings}>
+			<div className="navbar-start">
+				<button className="text-left text-4xl tracking-wide pl-2" onClick={toggleSettings} tabIndex={-1}>
 					<span style={{ color: 'hsl(0 80% 40%)'}}>R</span>
 					<span style={{ color: 'hsl(36 80% 40%)'}}>a</span>
 					<span style={{ color: 'hsl(72 80% 40%)'}}>d</span>
@@ -146,25 +147,57 @@ export default function Header({ radixes, updateRadixes }: {
 					<span style={{ color: 'hsl(324 80% 40%)'}}>e</span>
 				</button>
 			</div>
-			<div className="z-10">
-				<ul className="menu menu-horizontal justify-end gap-1 p-0">
-					<li>
-						<button className={`menu-dropdown-toggle ${expanded ? 'menu-dropdown-show' : ''}`} tabIndex={0}  onClick={toggleSettings}>Settings</button>
-					</li>
-					<li>
-						<details>
-							<summary>Themes</summary>
-							<ul className="bg-base-100">{ themes.map(t =>
-								<li key={t}>
-									<button className={t === theme ? 'bg-base-200': ''} onClick={() => updateTheme(t)}>{ capitalize(t) }</button>
-								</li>)}
-							</ul>
-						</details>
-					</li>
-				</ul>
-			</div>
+			<menu className="navbar-end menu menu-horizontal gap-1 p-0 z-10">
+				<li>
+					<button
+						className={`menu-dropdown-toggle ${settingsExpanded ? 'menu-dropdown-show' : ''}`}
+						onClick={toggleSettings}
+						tabIndex={0}
+					>Settings</button>
+				</li>
+				<li>
+					<details className="dropdown dropdown-end">
+						<summary>Themes</summary>
+						<menu className="dropdown-content rounded-field bg-base-100 shadow-sm p-2 mt-0">{ themes.map(t =>
+							<li key={t}>
+								<button className={t === theme ? 'menu-active': ''} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</button>
+							</li>)}
+						</menu>
+					</details>
+				</li>
+				{/* <li className="dropdown dropdown-end">
+					<div
+						role="button"
+						className="menu-dropdown-toggle group-focus-within:menu-dropdown-show"
+						tabIndex={0}
+					>Themes</div>
+					<menu className="dropdown-content menu-vertical items-stretch rounded-field bg-base-100 shadow-sm p-2 mt-1">{ themes.map(t =>
+						<li key={t}>
+							<a className={`${t === theme ? 'menu-active': ''}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
+						</li>)}
+					</menu>
+				</li>
+				<li>
+					<button
+						className="menu-dropdown-toggle peer-open:menu-dropdown-show [anchor-name:--dp-1] px-4 mr-4"
+						popoverTarget="popover"
+						tabIndex={0}
+					>
+						Themes
+					</button>
+					<menu
+						className="peer dropdown menu-vertical items-stretch rounded-field bg-base-100 shadow-sm [position-anchor:--dp-1] [position-area:bottom_span-left]"
+						id="popover"
+						popover="auto"
+					>{ themes.map(t =>
+						<li key={t}>
+							<a className={`${t === theme ? 'menu-active': ''}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
+						</li>)}
+					</menu>
+				</li> */}
+			</menu>
 		</div>
-		<div className={`collapse collapse-${expanded ? 'open' : 'close'}`}>
+		<div className={`collapse collapse-${settingsExpanded ? 'open' : 'close'}`}>
 			<div className="collapse-content px-0">
 				<div className="card card-border p-2">
 					<div className="card-actions flex-row-reverse grow m-1">
@@ -177,7 +210,6 @@ export default function Header({ radixes, updateRadixes }: {
 						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
 					</div>
 					</div>
-					{ /* TODO: Change to new Set(radixes...).values().map() when new Set methods and Iterator helpers gets standardized */ }
 					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center m-1">{ [ ...new Set(radixes.map(r => r.system)) ].map(rs =>
 						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
 					</div>
@@ -193,9 +225,11 @@ export default function Header({ radixes, updateRadixes }: {
 									{ radixes.map((r, i) => <option key={r.name} value={i}>{r.name}</option>) }
 								</select>
 								<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
-									<textarea
-										className="field-sizing-content min-w-24 max-w-[calc(100vw-7.5ch)] xl:max-w-[calc(100vw-30ch)] block resize-none rounded-lg leading-8 font-mono bg-base-100 p-0 px-2"
+									<TextareaAutosize
+										className="supports-[field-sizing:content]:field-sizing-content min-w-24 max-w-[calc(100vw-7.5ch)] xl:max-w-[calc(100vw-30ch)] block resize-none rounded-lg leading-8 font-mono bg-base-100 p-0 px-2"
 										name="chars"
+										rows={1}
+										cols={70}
 										value={inputChars}
 										onKeyDown={e => {
 											e.stopPropagation()

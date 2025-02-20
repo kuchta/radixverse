@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+// import legacy from '@vitejs/plugin-legacy'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -7,8 +8,15 @@ const name = 'RadixVerse'
 
 export default defineConfig({
 	base: process.env.BASE_URL ?? '/',
-	build: { sourcemap: true },
+	build: {
+		sourcemap: true,
+	},
 	plugins: [
+		// legacy({
+		// 	modernTargets: 'chrome>=122, edge>=122, safari>=18, firefox>=131, chromeAndroid>=132, iOS>=18',
+		// 	modernPolyfills: [ 'es/iterator' ],
+		// 	renderLegacyChunks: false,
+		// }),
 		react({ babel: { plugins: [[ 'babel-plugin-react-compiler' ]] }}),
 		tailwindcss(),
 		VitePWA({

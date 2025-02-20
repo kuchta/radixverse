@@ -8,8 +8,9 @@
 			"name": "Run In Browser",
 			"request": "launch",
 			"type": "chrome",
-			"preLaunchTask": "npm: start",
+			"preLaunchTask": "start",
 			"runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+			"postDebugTask": "stop",
 			"url": "http://localhost:5173",
 			"webRoot": "${workspaceFolder}"
 		},

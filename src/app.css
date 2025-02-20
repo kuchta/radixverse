@@ -1,8 +1,11 @@
-/* @config '../tailwind.config.js'; */
 @import 'tailwindcss';
 
 @plugin "daisyui" {
 	themes: all;
+}
+
+@theme {
+	--font-mono: "Noto Sans Symbol";
 }
 
 @layer base {
@@ -10,10 +13,6 @@
 		src: url(/fonts/NotoSansSymbols.ttf);
 		font-family: "Noto Sans Symbol";
 	}
-}
-
-@theme {
-	--font-mono: "Noto Sans Symbol";
 }
 
 html {

@@ -51,7 +51,7 @@ export default function App() {
 function ErrorToast({ error }: { error: Error }) {
 	return <div className="toast toast-top toast-center z-50">
 		<div className="alert alert-error">
-			<span>{ error?.message }</span>
+			<pre>{ error?.message }</pre>
 		</div>
 	</div>
 }

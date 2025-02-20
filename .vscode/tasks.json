@@ -4,40 +4,55 @@
 		{
 			"type": "npm",
 			"script": "start",
+			"label": "start",
 			"isBackground": true,
 		},
 		{
 			"type": "npm",
 			"script": "check",
-			"problemMatcher": [ "$tsc" ]
+			"problemMatcher": ["$tsc"]
 		},
 		{
 			"type": "npm",
 			"script": "check-watch",
 			"group": "build",
 			"isBackground": true,
-			"problemMatcher": [ "$tsc-watch" ]
+			"problemMatcher": ["$tsc-watch"]
 		},
 		{
 			"type": "npm",
 			"script": "lint",
-			"problemMatcher": [ "$eslint-compact" ]
+			"problemMatcher": ["$eslint-compact"]
 		},
 		{
 			"type": "npm",
 			"script": "build",
 			"group": "build",
-			"problemMatcher": [ "$tsc" ]
+			"problemMatcher": ["$tsc"]
 		},
 		{
 			"type": "npm",
 			"script": "preview",
-			"isBackground": true,
+			"isBackground": true
 		},
 		{
 			"type": "npm",
 			"script": "pre-commit",
-			"problemMatcher": [],
+			"problemMatcher": []
+		},
+		{
+			"label": "stop",
+			"command": "echo ${input:terminate}",
+			"type": "shell",
+			"problemMatcher": []
+		}
+	],
+	"inputs": [
+		{
+			"id": "terminate",
+			"type": "command",
+			"command": "workbench.action.tasks.terminate",
+			"args": "start"
 		}
 	]
 }
