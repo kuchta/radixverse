@@ -70,12 +70,12 @@ export default function Convert({ radixes, value, updateValue }: {
 				</div>
 			</span>
 			<span> = </span>
-			<NumberLine className="font-mono font-medium" value={value} radix={radix} radixIndex={index} numRadixes={radixes.length} updateValue={updateValue}/>
+			<NumberLine value={value} radix={radix} radixIndex={index} numRadixes={radixes.length} updateValue={updateValue}/>
 		</div> )}
 	</main>
 }
 
-function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...props }: ComponentProps<'div'> & {
+function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: ComponentProps<'div'> & {
 	value: bigint,
 	radix: Radix,
 	radixIndex: number,
@@ -157,11 +157,11 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 		setCaretPosition(position)
 	}
 
-	return <span {...props}>
-		<span className={`break-all outline-none${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={error}
+	return <>
+		<span className={`font-mono font-medium break-all outline-none${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={error}
 			tabIndex={0}
-			contentEditable={true}
-			suppressContentEditableWarning={true}
+			contentEditable
+			suppressContentEditableWarning
 			spellCheck={false}
 			onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') { e.currentTarget.blur() } else e.stopPropagation() }}
 			onInput={handleInput}
@@ -179,7 +179,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue, ...prop
 			<span> #{strVal.length} </span>
 			<DigitSum number={value} radix={radix}/>
 		</span>
-	</span>
+	</>
 }
 
 function DigitSum({ number, radix }: { number: bigint, radix: Radix }) {
@@ -191,15 +191,16 @@ function DigitSum({ number, radix }: { number: bigint, radix: Radix }) {
 		num = num.slice(1)
 	}
 
-	let n = Array.from(num).reduce((a, v) => a + str2num(v, radix), 0n)
+	let n = Iterator.from(num).reduce((a, v) => a + str2num(v, radix), 0n)
 	if (neg) n = -n
 
 	return <span>
-		<span>∑={num2str(n, radix)}</span>
-		<sub>{radix.name}</sub>{ !(radix.system === 'standard' && radix.radix === 10n) &&
-		<span>
-			<span>={num2str(radix.system === 'sum' ? number : n, radix = createRadix(10))}</span>
-			<sub>{radix.name}</sub>
-		</span>}
+		<span className="whitespace-nowrap">∑=<span className="font-medium">{num2str(n, radix)}</span></span>
+		<sub className="text-nowrap">{radix.name}</sub>{ !(radix.system === 'standard' && radix.radix === 10n) &&
+		<>
+			<span>=</span>
+			<span className="font-mono font-medium">{num2str(radix.system === 'sum' ? number : n, radix = createRadix(10))}</span>
+			<sub className="text-nowrap">{radix.name}</sub>
+		</>}
 	</span>
 }

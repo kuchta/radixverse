@@ -1,4 +1,4 @@
-# Radixverse
+# RadixVerse
 
 Use at your own risk of knowing the secrets of numbers 😉
 
