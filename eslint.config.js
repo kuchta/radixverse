@@ -1,4 +1,6 @@
-import eslint from '@eslint/js'
+import js from '@eslint/js'
+import css from '@eslint/css'
+import { tailwindSyntax } from "@eslint/css/syntax";
 import tslint from 'typescript-eslint'
 import stylistic from '@stylistic/eslint-plugin'
 import globals from 'globals'
@@ -9,12 +11,9 @@ import reactCompilerPlugin from 'eslint-plugin-react-compiler'
 
 
 export default tslint.config({
-	files: ['**/*.{js,jsx}'],
-	extends: [ eslint.configs.recommended ],
-}, {
 	files: ['**/*.{js,jsx,ts,tsx}'],
 	extends: [
-		eslint.configs.recommended,
+		js.configs.recommended,
 		...tslint.configs.recommended,
 	],
 	plugins: {
@@ -56,4 +55,10 @@ export default tslint.config({
 		'@typescript-eslint/no-unsafe-member-access': 'error',
 		'@typescript-eslint/no-unsafe-return': 'error',
 	}
+}, {
+	files: [ '**/*.css' ],
+	plugins: { css },
+	language: 'css/css',
+	languageOptions: { customSyntax: tailwindSyntax },
+	rules: { 'css/use-baseline': 'warn' }
 })

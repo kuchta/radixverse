@@ -11,7 +11,7 @@
 		"test": "deno test",
 		"build": "deno run -A npm:vite build",
 		"pre-commit": "deno task lint && deno task test && deno task build",
-		"deploy": "fleek sites deploy"
+		"deploy": "deno run npm:@fleek-platform/cli sites deploy"
 	},
 	"publish": {
 		"include": [
@@ -29,15 +29,14 @@
 			"tags": [ "recommended" ],
 			"exclude": [
 				"no-cond-assign",
-				"no-sloppy-imports"
+				"no-sloppy-imports",
+				"jsx-button-has-type"
 			]
 		}
 	},
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"lib": [ "ESNext", "DOM", "DOM.Iterable" ],
-		"noFallthroughCasesInSwitch": true,
-		"strict": true,
-		"types": [ "node", "vite/client", "@types/react"]
+		"types": [ "node", "vite/client" ]
 	}
 }

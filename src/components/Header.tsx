@@ -2,16 +2,9 @@ import { type FormEvent, useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TextareaAutosize from 'react-textarea-autosize'
 import themeObject from 'daisyui/theme/object'
+// import themeObject from 'flyonui/theme/object'
 
-import {
-	type Radix,
-	defaultChars,
-	getThemeLS,
-	setThemeLS,
-	getCharsLS,
-	setCharsLS,
-	createRadix,
-} from '../utils'
+import { type Radix, defaultChars, getThemeLS, setThemeLS, getCharsLS, setCharsLS, createRadix } from '../utils'
 
 const themes = Object.keys(themeObject).sort()
 
@@ -26,7 +19,7 @@ export default function Header({ radixes, updateRadixes }: {
 	const navigate = useNavigate()
 	const [ theme, setTheme ] = useState(getThemeLS)
 	const [ settingsExpanded, setSettingsExpanded ] = useState(false)
-	const [ inputRadix, setInputRadix ] = useState<number>()
+	const [ inputRadix, setInputRadix ] = useState<string>()
 	const [ inputChars, setInputChars ] = useState(allChars)
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
 	const formRef = useRef<HTMLFormElement>(null)
@@ -52,14 +45,15 @@ export default function Header({ radixes, updateRadixes }: {
 		setTheme(theme)
 	}
 
-	const updateInputRadix = (radix?: number | string) => {
-		if (radix === 'All' || radix == null) {
-			setInputRadix(undefined)
+	const updateInputRadix = (radix?: string) => {
+		setInputRadix(radix)
+		if (radix === 'All') {
 			setInputChars(allChars)
 		} else {
-			const r = Number(radix)
-			setInputRadix(r)
-			setInputChars(radixes[r].chars.join(''))
+			const r = radixes.find(r => r.name === radix)
+			if (r) {
+				setInputChars(r.chars.join(''))
+			}
 		}
 	}
 
@@ -80,8 +74,13 @@ export default function Header({ radixes, updateRadixes }: {
 					setInputChars(allChars)
 				}
 			} else {
-				const newRadixes = updateRadixesChars(inputRadix, e.type === 'submit' ? inputChars : undefined)
-				if (e.type === 'reset') setInputChars(newRadixes[inputRadix].chars.join(''))
+				updateRadixesChars(inputRadix, e.type === 'submit' ? inputChars : undefined)
+				if (e.type === 'reset') {
+					const r = radixes.find(r => r.name === inputRadix)
+					if (r) {
+						setInputChars(r.chars.join(''))
+					}
+				}
 			}
 		} catch (error) {
 			console.error(error)
@@ -89,15 +88,16 @@ export default function Header({ radixes, updateRadixes }: {
 		}
 	}
 
-	const updateRadixesChars = (radix?: number, chars?: string) => {
+	const updateRadixesChars = (radix?: string, chars?: string) => {
 		const charsArray = chars ? Array.from(chars) : undefined
 
 		if (radix == null) {
 			radixes = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
 			setCharsLS(chars !== defaultChars ? chars : undefined)
 		} else {
-			const r = radixes[radix]
-			radixes[radix] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, !charsArray)
+			const i = radixes.findIndex(r => r.name === radix)
+			const r = radixes[i]
+			radixes[i] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, !charsArray)
 		}
 
 		updateRadixes(radixes)
@@ -147,7 +147,7 @@ export default function Header({ radixes, updateRadixes }: {
 					<span style={{ color: 'hsl(324 80% 40%)'}}>e</span>
 				</button>
 			</div>
-			<menu className="navbar-end menu menu-horizontal gap-1 p-0 z-10">
+			<menu className="navbar-end menu menu-horizontal p-0 z-10">
 				<li>
 					<button
 						className={`menu-dropdown-toggle ${settingsExpanded ? 'menu-dropdown-show' : ''}`}
@@ -168,7 +168,7 @@ export default function Header({ radixes, updateRadixes }: {
 				{/* <li className="dropdown dropdown-end">
 					<div
 						role="button"
-						className="menu-dropdown-toggle group-focus-within:menu-dropdown-show"
+						className="menu-dropdown-toggle menu-dropdown-toggle-active"
 						tabIndex={0}
 					>Themes</div>
 					<menu className="dropdown-content menu-vertical items-stretch rounded-field bg-base-100 shadow-sm p-2 mt-1">{ themes.map(t =>
@@ -197,9 +197,9 @@ export default function Header({ radixes, updateRadixes }: {
 				</li> */}
 			</menu>
 		</div>
-		<div className={`collapse collapse-${settingsExpanded ? 'open' : 'close'}`}>
+		<div className={`collapse ${settingsExpanded ? 'collapse-open' : 'collapse-close'}`}>
 			<div className="collapse-content px-0">
-				<div className="card card-border p-2">
+				{/* <div className="card card-border p-2"> */}
 					<div className="card-actions flex-row-reverse grow m-1">
 						<button className="btn btn-xs btn-error" onClick={() => { localStorage.clear(); navigate(0) }}>
 							Clear settings
@@ -221,16 +221,18 @@ export default function Header({ radixes, updateRadixes }: {
 									name="radix"
 									onChange={e => updateInputRadix(e.target.value) }
 								>
-									<option>All</option>
-									{ radixes.map((r, i) => <option key={r.name} value={i}>{r.name}</option>) }
+									<option value={undefined}>All</option> {
+										Object.values(Object.groupBy(radixes, ({ system }) => system)).flatMap((it, i) => i < radixes.length - 1 ? [it, i] : [it]).map(rxs => typeof rxs === 'number' ? <hr key={rxs}/> : rxs.map(r =>
+									<option key={r.name} value={r.name}>{r.name}</option> ))}
 								</select>
 								<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
 									<TextareaAutosize
-										className="supports-[field-sizing:content]:field-sizing-content min-w-24 max-w-[calc(100vw-7.5ch)] xl:max-w-[calc(100vw-30ch)] block resize-none rounded-lg leading-8 font-mono bg-base-100 p-0 px-2"
+										className="supports-[field-sizing:content]:field-sizing-content min-w-24 max-w-[calc(100vw-5.5ch)] xl:max-w-[calc(100vw-ch)] block resize-none bg-base-100 rounded-lg font-mono leading-8 p-0 px-2"
 										name="chars"
 										rows={1}
 										cols={70}
 										value={inputChars}
+										onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
 										onKeyDown={e => {
 											e.stopPropagation()
 											if (e.key === 'Enter' || e.key === 'Escape') {
@@ -244,22 +246,21 @@ export default function Header({ radixes, updateRadixes }: {
 												}
 											}
 										}}
-										onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
 									/>
 								</div>
-								<span className="flex flex-row join justify-center">
-									<button className="btn btn-sm btn-outline btn-success join-item" type="reset">Reset</button>
-									<button className="btn btn-sm btn-outline btn-error join-item" type="submit">Set</button>
+								<span className="join flex flex-row justify-center">
+									<button className="join-item btn btn-sm btn-outline btn-success" type="reset">Reset</button>
+									<button className="join-item btn btn-sm btn-outline btn-error" type="submit">Set</button>
 								</span>
 							</form>{ inputRadix !== undefined &&
-							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ Array.from(radixes[inputRadix]?.values.entries()).map(([k, v]) =>
+							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ radixes.find(r => r.name === inputRadix)?.values.entries().map(([k, v]) =>
 								<span key={k} className="font-mono p-1">
 									{k}:{Number(v)}
 								</span>) }
 							</div>}
 						</div>
 					</div>
-				</div>
+				{/* </div>	 */}
 			</div>
 		</div>
 	</header>
@@ -283,7 +284,7 @@ const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', to
 	</span>
 
 const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], radixes: Radix[], toggleRadixes: ToggleRadixes }) =>
-	<div className="flex flex-col items-center md:max-w-[21rem] xl:max-w-none">
+	<div className="flex flex-col items-center min-[690px]:max-w-1/2 xl:max-w-1/4">
 		<div className="card card-border p-1 m-1">
 			<div className="flex justify-between items-center gap-2">
 				<button

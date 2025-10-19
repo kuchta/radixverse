@@ -350,7 +350,7 @@ export function str2num(str: string, radix: Radix): bigint {
 	const sum = radix.system === 'sum'
 	const balsum = radix.system === 'balsum'
 	let v: bigint | undefined
-	const ret = Array.from(s).reduce((acc, c) => {
+	const ret = Iterator.from(s).reduce((acc, c) => {
 		if (c === '…') return acc
 		v = values.get(c)
 		if (v == null) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
