@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-# Grant GITHUB_TOKEN the permissions required to make a Pages deployment
 permissions:
   pages: write
   id-token: write

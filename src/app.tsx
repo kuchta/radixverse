@@ -75,7 +75,7 @@ function useStore(updateError: (error: Error) => void) {
 			if (searchParams.has('clear-settings')) localStorage.clear()
 			if (searchParams.has('r')) {
 				const searchRadixes = searchParams.getAll('r')
-				radixes.forEach(r => r.enabled = searchRadixes.includes(r.name))
+				radixes.forEach(r => { r.enabled = searchRadixes.includes(r.name) })
 				updateRadixes(radixes)
 				setEnabledRadixes(radixes.filter(r => r.enabled))
 			}

@@ -1,6 +1,7 @@
 import Table, { Tables } from './Table'
-import { type Radix } from '../utils'
+import type { Radix } from '../utils'
 
+const isNaN = Number.isNaN
 
 export default function Multiply({ radixes }: { radixes: Radix[] }) {
 	return <Tables>

@@ -1,5 +1,5 @@
 {
-	"[typescript]": { "editor.defaultFormatter": "denoland.vscode-deno" },
+	"[typescript]": { "editor.defaultFormatter": "vscode.typescript-language-features" },
 	"deno.enable": false,
 	"deno.lint": true,
 	"typescript.tsdk": "node_modules/typescript/lib",
