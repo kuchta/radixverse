@@ -235,12 +235,12 @@ const tests: Tests = [{
 
 test('num2str', async (test) => {
 	for (const t of tests) {
-		await test.test(`num2str(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => assertStrictEquals(num2str(n, t.radix), s)))
+		await test.test(`num2str(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => { assertStrictEquals(num2str(n, t.radix), s) }))
 	}
 })
 
 test('str2num', async (test) => {
 	for (const t of tests) {
-		await test.test(`str2num(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => assertStrictEquals(str2num(s, t.radix), n)))
+		await test.test(`str2num(${t.radix.name})`, () => t.pairs.forEach(([ n, s ]) => { assertStrictEquals(str2num(s, t.radix), n) }))
 	}
 })

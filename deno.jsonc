@@ -4,39 +4,37 @@
 	"exports": "./src/utils.ts",
 	"nodeModulesDir": "auto",
 	"tasks": {
-		"start": "deno run -A npm:vite --host",
-		"preview": "deno run -A npm:vite preview",
-		"check": "deno check src/**/*.ts src/**/*.tsx",
+		"start": "vite --host --port 10000",
+		"preview": "vite preview --port 10000",
+		"check": "deno check --all src/**/*.ts src/**/*.tsx",
 		"lint": "deno lint",
 		"test": "deno test",
-		"build": "deno run -A npm:vite build",
-		"pre-commit": "deno task lint && deno task test && deno task build",
-		"deploy": "deno run npm:@fleek-platform/cli sites deploy"
-	},
-	"publish": {
-		"include": [
-			"README.md",
-			"deno.json",
-			"package.json",
-			"src/utils.ts"
-		]
-	},
-	"include": [ "src/**/*.ts", "src/**/*.tsx" ],
-	"unstable": [ "sloppy-imports" ],
-	"lint": {
-		"include": ["src/"],
-		"rules": {
-			"tags": [ "recommended" ],
-			"exclude": [
-				"no-cond-assign",
-				"no-sloppy-imports",
-				"jsx-button-has-type"
-			]
+		"build": "vite build",
+		"pre-commit": "deno task check && deno task lint && deno task test && deno task build",
+		"deploy": {
+			"command": "deno deploy dist",
+			"dependencies": [ "build" ]
 		}
 	},
+	"unstable": [ "sloppy-imports" ],
+	// "exclude": [ ".history", /*"dist", "dev-dist"*/ ],
 	"compilerOptions": {
 		"jsx": "react-jsx",
-		"lib": [ "ESNext", "DOM", "DOM.Iterable" ],
+		"jsxImportSource": "react",
+		"lib": [ "ESNext", "DOM", "DOM.Iterable", "deno.ns" ],
 		"types": [ "node", "vite/client" ]
+	},
+	"lint": {
+		"rules": {
+			"tags": [ "recommended" ],
+			"exclude": [ "no-cond-assign", "no-process-global", "no-sloppy-imports", "jsx-button-has-type" ]
+		}
+	},
+	"publish": {
+		"include": [ "README.md", "deno.json", "package.json", "src/utils.ts" ]
+	},
+	"deploy": {
+		"org": "kuchta",
+		"app": "radixverse"
 	}
 }

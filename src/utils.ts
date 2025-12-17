@@ -269,7 +269,7 @@ export function num2str(num: bigint, radix: Radix, maxLength = 28): string {
 			i = 0
 			if (!value) continue
 			while (n >= value) {
-				if (v = values.get(value)) ret.push(v)
+				if ((v = values.get(value))) ret.push(v)
 				if (++i === maxLength) {
 					ret.unshift('…')
 					n %= value

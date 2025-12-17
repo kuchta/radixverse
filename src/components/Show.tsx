@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import Table, { Tables } from './Table'
-import { type Radix } from '../utils'
+import type { Radix } from '../utils'
 
 
 export default function Show({ radixes }: { radixes: Radix[] }) {

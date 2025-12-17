@@ -28,7 +28,7 @@ export default function Table({ radix, numbers, low, high, mainRow, columns, row
 	return <div className="card bg-white max-w-full shadow-xl">
 		<div className="flex justify-end items-center mx-2">
 			<div className="flex-1 flex justify-center">
-				<span className="tooltip tooltip-top whitespace-pre before:content-[attr(data-tip)] before:max-w-[50rem]" data-tip={ getCharsForTooltip(radix) }>
+				<span className="tooltip tooltip-top whitespace-pre before:content-[attr(data-tip)] before:max-w-200" data-tip={ getCharsForTooltip(radix) }>
 					<span className="card-title badge badge-lg badge-outline m-2">{radix.name}</span>
 				</span>
 			</div>{ edit &&
@@ -41,8 +41,8 @@ export default function Table({ radix, numbers, low, high, mainRow, columns, row
 		<div className="card-body overflow-scroll p-2">
 			<table className="table table-xs table-fixed text-sm w-auto">
 				<tbody>{ numbers.map((row, rowIndex) =>
-					<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={`row-${rowIndex}`}>{ row.map((number, colIndex) =>
-						<td className="text-right px-[2px] py-[2px] w-8" key={`col-${colIndex}`}>
+					<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={`row-start-${row[0]}`}>{ row.map((number) =>
+						<td className="text-right px-0.5 py-0.5 w-8" key={`col-${number}`}>
 							{ renderValue(number, radix, low, space) }
 						</td>)}
 					</tr>)}
@@ -53,7 +53,7 @@ export default function Table({ radix, numbers, low, high, mainRow, columns, row
 }
 
 function renderValue(val: number, radix: Radix, low: number, space: number) {
-	if (isNaN(val)) return <span/>
+	if (Number.isNaN(val)) return <span/>
 	return <div className="relative" /*tooltip" data-tip={(low === 0 ? val : val - low) / space * 300}*/>
 		<div
 			className="font-mono font-semibold text-xl text-right whitespace-nowrap"
@@ -61,7 +61,7 @@ function renderValue(val: number, radix: Radix, low: number, space: number) {
 			>
 			{ num2str(BigInt(val), radix) }
 		</div>
-		<span className="text-[0.6em] leading-[2px] text-center absolute right-0 top-0.5">{val}</span>
+		<span className="text-[0.6em] leading-0.5 text-center absolute right-0 top-0.5">{val}</span>
 	</div>
 }
 
