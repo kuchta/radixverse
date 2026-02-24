@@ -3,18 +3,19 @@
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
 		"erasableSyntaxOnly": true,
-		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react-jsx",
-		"lib": [ "ESNext", "DOM", "DOM.Iterable" ],
+		"jsxImportSource": "react",
+		"lib": [ "ESNext", "DOM" ],
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
 		"noEmit": true,
 		"noFallthroughCasesInSwitch": true,
 		"resolveJsonModule": true,
+		"rootDir": "./src",
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ESNext",
+		"target": "es2024",
 		"types": [ "node", "vite/client" ],
 		"verbatimModuleSyntax": true
 	}

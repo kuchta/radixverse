@@ -1,4 +1,5 @@
 name: Deploy to Deno Deploy
+
 on:
   push:
     branches: [ main ]
@@ -15,28 +16,22 @@ jobs:
       contents: read # Needed to clone the repository
 
     steps:
-      - name: Clone repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Deno
+      - name: Setup Runtime
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
+      - name: Install dependencies
+        run: deno install
 
-      - name: Install step
-        run: "deno install"
+      - name: Build
+        run: deno task build
 
-      - name: Build step
-        run: "deno task build"
-
-      - name: Upload to Deno Deploy
+      - name: Upload
         uses: denoland/deployctl@v1
         with:
-          project: "radixverse"
-          entrypoint: "dist"
-          root: "dist"
+          project: radixverse
+          entrypoint: deno-deploy-serve.ts

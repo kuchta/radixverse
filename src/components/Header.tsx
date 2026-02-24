@@ -108,7 +108,7 @@ export default function Header({ radixes, updateRadixes }: {
 	const toggleRadixes: ToggleRadixes = (radix, enabled) => {
 		switch (radix) {
 			case 'all':
-				radixes.forEach(r => r.enabled = enabled)
+				radixes.forEach(r => { r.enabled = enabled })
 				break
 			case 'odd':
 				radixes.forEach(r => { if (r.radix % 2n === 1n) r.enabled = enabled })
@@ -134,7 +134,7 @@ export default function Header({ radixes, updateRadixes }: {
 	return <header className="p-2">
 		<div className="navbar bg-base-100 p-0">
 			<div className="navbar-start">
-				<button className="text-left text-4xl tracking-wide pl-2" onClick={toggleSettings} tabIndex={-1}>
+				<button className="text-left text-4xl tracking-wide pl-2" type="button" onClick={toggleSettings} tabIndex={-1}>
 					<span style={{ color: 'hsl(0 80% 40%)'}}>R</span>
 					<span style={{ color: 'hsl(36 80% 40%)'}}>a</span>
 					<span style={{ color: 'hsl(72 80% 40%)'}}>d</span>
@@ -151,6 +151,7 @@ export default function Header({ radixes, updateRadixes }: {
 				<li>
 					<button
 						className={`menu-dropdown-toggle ${settingsExpanded ? 'menu-dropdown-show' : ''}`}
+						type="button"
 						onClick={toggleSettings}
 						tabIndex={0}
 					>Settings</button>
@@ -160,7 +161,7 @@ export default function Header({ radixes, updateRadixes }: {
 						<summary>Themes</summary>
 						<menu className="dropdown-content rounded-field bg-base-100 shadow-sm p-2 mt-0">{ themes.map(t =>
 							<li key={t}>
-								<button className={t === theme ? 'menu-active': ''} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</button>
+								<button className={t === theme ? 'menu-active' : undefined} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</button>
 							</li>)}
 						</menu>
 					</details>
@@ -173,7 +174,7 @@ export default function Header({ radixes, updateRadixes }: {
 					>Themes</div>
 					<menu className="dropdown-content menu-vertical items-stretch rounded-field bg-base-100 shadow-sm p-2 mt-1">{ themes.map(t =>
 						<li key={t}>
-							<a className={`${t === theme ? 'menu-active': ''}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
+							<a className={`${t === theme ? 'menu-active' : undefined}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
 						</li>)}
 					</menu>
 				</li>
@@ -191,7 +192,7 @@ export default function Header({ radixes, updateRadixes }: {
 						popover="auto"
 					>{ themes.map(t =>
 						<li key={t}>
-							<a className={`${t === theme ? 'menu-active': ''}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
+							<a className={t === theme ? 'menu-active' : undefined} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
 						</li>)}
 					</menu>
 				</li> */}
@@ -201,10 +202,10 @@ export default function Header({ radixes, updateRadixes }: {
 			<div className="collapse-content px-0">
 				{/* <div className="card card-border p-2"> */}
 					<div className="card-actions flex-row-reverse grow m-1">
-						<button className="btn btn-xs btn-error" onClick={() => { localStorage.clear(); navigate(0) }}>
+						<button className="btn btn-xs btn-error" type="button" onClick={() => { localStorage.clear(); navigate(0) }}>
 							Clear settings
 						</button>
-					<div className="flex flex-wrap flex-grow justify-center gap-2 m-1">
+					<div className="flex flex-wrap grow justify-center gap-2 m-1">
 						<RadixesSelect who="all" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="odd" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
@@ -270,13 +271,15 @@ const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', to
 	<span className="join">
 		<button
 			className="btn btn-xs btn-outline btn-success join-item"
+			type="button"
 			onClick={() => toggleRadixes(who, true)}
 		>
 			Add
 		</button>
-		<button className="btn btn-xs btn-outline btn-neutral join-item pointer-events-none cursor-default">{ capitalize(who) }</button>
+		<button className="btn btn-xs btn-outline btn-neutral join-item pointer-events-none cursor-default" type="button">{ capitalize(who) }</button>
 		<button
 			className="btn btn-xs btn-outline btn-error join-item"
+			type="button"
 			onClick={() => toggleRadixes(who, false)}
 		>
 			Remove
@@ -289,6 +292,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 			<div className="flex justify-between items-center gap-2">
 				<button
 					className="btn btn-xs btn-outline btn-success m-1"
+					type="button"
 					onClick={() => toggleRadixes(who, true)}
 				>
 					Add
@@ -296,6 +300,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 				<div className="card-title">{ capitalize(who) }</div>
 				<button
 					className="btn btn-xs btn-outline btn-error m-1"
+					type="button"
 					onClick={() => toggleRadixes(who, false)}
 				>
 					Remove
@@ -304,6 +309,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 			<div className="card-actions justify-center">{ radixes.filter(r => r.system === who).map(radix =>
 				<button
 					className={`btn btn-xs btn-outline btn-neutral ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
+					type="button"
 					key={radix.name}
 					onClick={() => toggleRadixes(radix, !radix.enabled)}
 				>

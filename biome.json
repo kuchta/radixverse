@@ -1,0 +1,35 @@
+{
+	"files": {
+		"includes": [
+			"src/**/*.js",
+			"src/**/*.ts",
+			"src/**/*.jsx",
+			"src/**/*.tsx",
+			"src/**/*.css"
+		]
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"linter": {
+		"rules": {
+			"correctness": {
+				"useExhaustiveDependencies": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off"
+			},
+			"suspicious": {
+				"noAssignInExpressions": "off",
+				"noShadowRestrictedNames": "off"
+			},
+			"a11y": {
+				"useButtonType": "off",
+				"noNoninteractiveTabindex": "off",
+				"noStaticElementInteractions": "off"
+			}
+		}
+	}
+}

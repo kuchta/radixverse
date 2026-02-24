@@ -1,5 +1,7 @@
 import type { FormEvent, ClipboardEvent, ComponentProps } from 'react'
-import { useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useRef } from 'react'
+import { getErrorMessage } from 'react-error-boundary'
+
 
 import { type Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '../utils'
 
@@ -43,30 +45,30 @@ export default function Convert({ radixes, value, updateValue }: {
 	return <main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
 		<div className="flex relative lg:left-32 max-w-fit gap-1">
 			<span className="tooltip tooltip-top" data-tip="Increment">
-				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} onClick={() => updateValue(value + 1n)}>+</button>
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} type="button" onClick={() => updateValue(value + 1n)}>+</button>
 			</span>
 			<span className="tooltip tooltip-top" data-tip="Reset">
-				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} onClick={() => updateValue(0n)}>␡</button>
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} type="button" onClick={() => updateValue(0n)}>␡</button>
 			</span>
 			<span className="tooltip tooltip-top" data-tip="Decrement">
-				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} onClick={() => updateValue(value - 1n)}>-</button>
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} type="button" onClick={() => updateValue(value - 1n)}>-</button>
 			</span>
 		</div>{ radixes.map((radix, index) =>
 		<div key={radix.name}>
 			<span className="hidden lg:inline-block text-center w-32">
-				<span className="tooltip tooltip-right whitespace-pre before:content-[attr(data-tip)] before:max-w-[50rem]" data-tip={ getCharsForTooltip(radix) }>
+				<span className="tooltip tooltip-right whitespace-pre before:content-[attr(data-tip)] before:max-w-200" data-tip={ getCharsForTooltip(radix) }>
 					<span className="badge badge-neutral badge-outline badge-lg align-middle">{radix.name}</span>
 				</span>
 			</span>
 			<span className="hidden md:inline-flex gap-1">
 				<div className="tooltip tooltip-top" data-tip="Filling shift left">
-					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" type="button" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
 				</div>
 				<div className="tooltip tooltip-top" data-tip="Shift left">
-					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n || radix.system === 'bijective' || radix.system === 'sum'} onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n || radix.system === 'bijective' || radix.system === 'sum'} type="button" onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
 				</div>
 				<div className="tooltip tooltip-top" data-tip="Shift right">
-					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n } onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n } type="button" onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
 				</div>
 			</span>
 			<span> = </span>
@@ -84,13 +86,13 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 }) {
 	const [ strVal, setStrVal ] = useState(num2str(value, radix))
 	const [ editing, setEditing ] = useState(false)
-	const [ error, setError ] = useState<string>()
+	const [ error, setError ] = useState<unknown>()
 	const [ errorLevel, setErrorLevel ] = useState<'error' | 'warning'>('error')
 	const ref = useRef<HTMLSpanElement>(null)
 
 	useEffect(() => { if (!editing) setStrVal(num2str(value, radix)) }, [ editing, value, radix ])
 
-	const updateError = (error: string, errorLvl: typeof errorLevel) => {
+	const updateError = (error: unknown, errorLvl: typeof errorLevel) => {
 		setError(error)
 		setErrorLevel(errorLvl)
 		setTimeout(() => setError(undefined), 10000)
@@ -120,7 +122,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 			setError(undefined)
 		} catch (error) {
 			console.error(error)
-			updateError((error as Error).message, 'error')
+			updateError(error, 'error')
 			e.currentTarget.innerText = strVal
 			position -= 1
 		}
@@ -152,13 +154,14 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 			}
 		} catch (error) {
 			console.error(error)
-			updateError((error as Error).message, 'error')
+			updateError(error, 'error')
 		}
 		setCaretPosition(position)
 	}
 
 	return <>
-		<span className={`font-mono font-medium break-all outline-none${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={error}
+		<span className={`font-mono font-medium break-all outline-none${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={getErrorMessage(error) ?? 'Unknown error'}
+			role="textbox"
 			tabIndex={0}
 			contentEditable
 			suppressContentEditableWarning
@@ -177,12 +180,17 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 		<sub className="lg:hidden align-middle text-[0.6rem]">{radix.name}</sub>
 		<span className="text-[0.5em]">
 			<span> #{strVal.length} </span>
-			<DigitSum number={value} radix={radix}/>
+			<span className="whitespace-nowrap">∑</span> { getDigitSumArray(value, radix).map(([sum, system]) =>
+			<Fragment key={system}>
+				<span>=</span>
+				<span className="font-mono font-medium">{sum}</span>
+				<sub className="text-nowrap">{system}</sub>
+			</Fragment> )}
 		</span>
 	</>
 }
 
-function DigitSum({ number, radix }: { number: bigint, radix: Radix }) {
+function getDigitSumArray(number: bigint, radix: Radix) : [string, string][] {
 	let num = num2str(number, radix)
 
 	let neg = false
@@ -194,13 +202,15 @@ function DigitSum({ number, radix }: { number: bigint, radix: Radix }) {
 	let n = Iterator.from(num).reduce((a, v) => a + str2num(v, radix), 0n)
 	if (neg) n = -n
 
-	return <span>
-		<span className="whitespace-nowrap">∑=<span className="font-medium">{num2str(n, radix)}</span></span>
-		<sub className="text-nowrap">{radix.name}</sub>{ !(radix.system === 'standard' && radix.radix === 10n) &&
-		<>
-			<span>=</span>
-			<span className="font-mono font-medium">{num2str(radix.system === 'sum' ? number : n, radix = createRadix(10))}</span>
-			<sub className="text-nowrap">{radix.name}</sub>
-		</>}
-	</span>
+	num = num2str(n, radix)
+
+	if (radix.system === 'standard' && radix.radix === 10n) {
+		if (num.length === 1 || neg && num.length === 2) {
+			return [[ num, radix.name ]]
+		} else {
+			return [[ num, radix.name ], ...getDigitSumArray(n, radix)]
+		}
+	} else {
+		return [[ num, radix.name ], ...getDigitSumArray(n, createRadix(10, 'standard'))]
+	}
 }

@@ -1,16 +1,17 @@
+import { defineConfig } from 'eslint/config'
 import js from '@eslint/js'
 import css from '@eslint/css'
-import { tailwindSyntax } from "@eslint/css/syntax";
 import tslint from 'typescript-eslint'
-import stylistic from '@stylistic/eslint-plugin'
-import globals from 'globals'
+import stylisticPlugin from '@stylistic/eslint-plugin'
 import importPlugin from 'eslint-plugin-import'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import reactCompilerPlugin from 'eslint-plugin-react-compiler'
+import globals from 'globals'
+import { tailwind4 } from "tailwind-csstree"
 
 
-export default tslint.config({
+export default defineConfig({
 	files: ['**/*.{js,jsx,ts,tsx}'],
 	extends: [
 		js.configs.recommended,
@@ -18,7 +19,7 @@ export default tslint.config({
 	],
 	plugins: {
 		'@typescript-eslint': tslint.plugin,
-		'@stylistic': stylistic,
+		'@stylistic': stylisticPlugin,
 		import: importPlugin,
 		react: reactPlugin,
 		'react-hooks': reactHooksPlugin,
@@ -59,6 +60,6 @@ export default tslint.config({
 	files: [ '**/*.css' ],
 	plugins: { css },
 	language: 'css/css',
-	languageOptions: { customSyntax: tailwindSyntax },
+	languageOptions: { customSyntax: tailwind4 },
 	rules: { 'css/use-baseline': 'warn' }
 })

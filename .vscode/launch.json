@@ -10,8 +10,8 @@
 			"type": "chrome",
 			"preLaunchTask": "start",
 			"runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-			"postDebugTask": "stop",
-			"url": "http://localhost:5173",
+			// "postDebugTask": "stop",
+			"url": "http://localhost:10000",
 			"webRoot": "${workspaceFolder}"
 		},
 		{

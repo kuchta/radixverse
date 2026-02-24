@@ -2,7 +2,7 @@
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
 
 import Header from './components/Header'
 import Show from './components/Show'
@@ -32,13 +32,13 @@ createRoot(document.getElementById('root')!).render(
 )
 
 function App() {
-	const [ error, setError ] = useState<Error>()
-	const updateError = (error: Error) => { setError(error); setTimeout(() => setError(undefined), 10000) }
+	const [ error, setError ] = useState<unknown>()
+	const updateError = (error: unknown) => { setError(error); setTimeout(() => setError(undefined), 10000) }
 	const { radixes, enabledRadixes, updateRadixes, value, updateValue } = useStore(updateError)
 	const { pathname, search } = useLocation()
 
 	return <ErrorBoundary onError={updateError} FallbackComponent={ErrorToast}>
-		{ error && <ErrorToast error={error}/> }
+		{ getErrorMessage(error) && <ErrorToast error={error}/> }
 		<Header radixes={radixes} updateRadixes={updateRadixes}/>
 		<nav className="tabs tabs-bordered justify-center mb-4 z-10">
 			<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
@@ -55,15 +55,15 @@ function App() {
 	</ErrorBoundary>
 }
 
-function ErrorToast({ error }: { error: Error }) {
+function ErrorToast({ error }: { error: unknown}) {
 	return <div className="toast toast-top toast-center z-50">
 		<div className="alert alert-error">
-			<pre>{ error?.message }</pre>
+			<pre>{ getErrorMessage(error) ?? 'Unknown error' }</pre>
 		</div>
 	</div>
 }
 
-function useStore(updateError: (error: Error) => void) {
+function useStore(updateError: (error: unknown) => void) {
 	const [ radixes, setRadixes ] = useState(getRadixesLS(updateError) ?? createRadixes(getCharsLS()))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(r => r.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
@@ -75,7 +75,7 @@ function useStore(updateError: (error: Error) => void) {
 			if (searchParams.has('clear-settings')) localStorage.clear()
 			if (searchParams.has('r')) {
 				const searchRadixes = searchParams.getAll('r')
-				radixes.forEach(r => r.enabled = searchRadixes.includes(r.name))
+				radixes.forEach(r => { r.enabled = searchRadixes.includes(r.name) })
 				updateRadixes(radixes)
 				setEnabledRadixes(radixes.filter(r => r.enabled))
 			}
@@ -83,7 +83,7 @@ function useStore(updateError: (error: Error) => void) {
 			const sRadix = searchParams.get('radix')
 			if (sRadix) {
 				const r = radixes.find(r => r.name === sRadix)
-				if (r == null) throw new Error(`Unknown radix "${r}" in the URL`)
+				if (r == null) throw new Error(`Unknown radix "${sRadix}" in the URL`)
 				setRadix(radix = r)
 			}
 			const sValue = searchParams.get('value')
@@ -94,7 +94,7 @@ function useStore(updateError: (error: Error) => void) {
 			}
 		} catch (error) {
 			console.error(error)
-			updateError(error as Error)
+			updateError(error)
 		}
 	}, [])
 
@@ -124,7 +124,7 @@ function useStore(updateError: (error: Error) => void) {
 				setSearchParams(searchParams)
 			} catch (error) {
 				console.error(error)
-				updateError(error as Error)
+				updateError(error)
 			}
 		}
 		setValue(value)
