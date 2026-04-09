@@ -1,21 +1,17 @@
 {
-	"include": [ "src/**/*.ts", "src/**/*.tsx" ],
+	"exclude": [ ".history", "deno-deploy-serve.ts" ],
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
 		"erasableSyntaxOnly": true,
-		"forceConsistentCasingInFileNames": true,
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",
 		"lib": [ "ESNext", "DOM" ],
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
 		"noEmit": true,
 		"noFallthroughCasesInSwitch": true,
 		"resolveJsonModule": true,
-		"rootDir": "./src",
 		"skipLibCheck": true,
-		"strict": true,
-		"target": "es2024",
 		"types": [ "node", "vite/client" ],
 		"verbatimModuleSyntax": true
 	}

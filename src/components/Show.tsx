@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 
-import Table, { Tables } from './Table'
-import type { Radix } from '../utils'
+import Table, { Tables } from './Table.tsx'
+import type { Radix } from '#/utils.ts'
 
 
 export default function Show({ radixes }: { radixes: Radix[] }) {
-	return <Tables>{ radixes.map(radix => <ShowTable radix={radix} key={`show-${radix.name}`}/>) }</Tables>
+	return <Tables>{ radixes.map(radix => <ShowTable radix={radix} key={radix.name}/>) }</Tables>
 }
 
 function ShowTable({ radix }: { radix: Radix }) {
@@ -13,7 +13,7 @@ function ShowTable({ radix }: { radix: Radix }) {
 	const [ columns, setColumns ] = useState<number>()
 	const [ rows, setRows ] = useState<number>()
 
-	useEffect(() => setProps(computeProps(radix, columns, rows)), [ radix, columns, rows ])
+	useEffect(() => { setProps(computeProps(radix, columns, rows)) }, [ radix, columns, rows ])
 
 	return <Table radix={radix} {...props} updateColumns={setColumns} updateRows={setRows}/>
 }

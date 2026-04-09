@@ -1,8 +1,6 @@
 {
-	"name": "@kuchta/radixverse",
-	"version": "0.0.4",
-	"exports": "./src/utils.ts",
 	"nodeModulesDir": "auto",
+	"exclude": [ ".history" ],
 	"tasks": {
 		"start": "vite --host --port 10000",
 		"preview": "vite preview --port 10000",
@@ -16,8 +14,6 @@
 			"dependencies": [ "build" ]
 		}
 	},
-	"unstable": [ "sloppy-imports" ],
-	"exclude": [ ".history", "dist", "dev-dist" ],
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",

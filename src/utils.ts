@@ -33,7 +33,7 @@ export function getThemeLS(): string | undefined {
 	return localStorage.getItem(LS_THEME) ?? undefined
 }
 
-export function setThemeLS(theme: string) {
+export function setThemeLS(theme: string): void {
 	localStorage.setItem(LS_THEME, theme)
 }
 
@@ -41,7 +41,7 @@ export function getCharsLS(): string | undefined {
 	return localStorage.getItem(LS_CHARS) ?? undefined
 }
 
-export function setCharsLS(chars?: string) {
+export function setCharsLS(chars?: string): void {
 	if (chars) {
 		localStorage.setItem(LS_CHARS, chars)
 	} else {
@@ -51,33 +51,32 @@ export function setCharsLS(chars?: string) {
 
 export function getRadixesLS(updateError: (error: unknown) => void): Radix[] | undefined {
 	const item = localStorage.getItem(LS_RADIXES)
-	if (item == null) return
+	if (item == undefined) return
 
 	try {
 		const radixes = JSON.parse(item) as Radix[]
 		return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name, false))
 	} catch (error) {
-		console.error(error)
 		updateError(error)
 		localStorage.removeItem(LS_RADIXES)
 	}
 }
 
-export function setRadixesLS(radixes: Radix[]) {
+export function setRadixesLS(radixes: Radix[]): void {
 	const rs = radixes.map(r => ({ name: r.name, radix: Number(r.radix), system: r.system, chars: r.chars, enabled: r.enabled }))
 	localStorage.setItem(LS_RADIXES, JSON.stringify(rs))
 }
 
 export function createRadixes(chars = defaultChars): Radix[] {
 	const charsArray = chars !== defaultChars ? Array.from(chars) : undefined
-	return Array.from(Array(35)).flatMap((_, i) => {
+	return [ ...Array<undefined>(35) ].flatMap((_, i) => {
 		const radix = i + 2
 		const ret = [ createRadix(radix, 'standard', charsArray) ]
 		if (radix < 36) ret.push(createRadix(radix, 'bijective', charsArray))
 		if (radix & 1) ret.push(createRadix(radix, 'balanced', charsArray))
 		if (radix <= 26) ret.push(createRadix(radix, 'sum', charsArray))
 		// if (radix <= 27 && radix & 1) ret.push(createRadix(radix, 'balsum', charsArray))
-		// if (radix % 2 === 0) ret.push(createRadix(radix, 'clock', chars))
+		// if ((radix & 1) === 0) ret.push(createRadix(radix, 'clock', chars))
 		return ret
 	})
 }
@@ -85,7 +84,7 @@ export function createRadixes(chars = defaultChars): Radix[] {
 export function createRadix(radix: number, system: Radix['system'] = 'standard', chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
 	if (allChars) {
 		if (chars !== defaultCharsArray && chars.length < defaultCharsArray.length) throw new Error(`chars must have at least ${defaultCharsArray.length} characters, ${chars.length} provided`)
-		if (chars.length % 2 === 0) throw new Error('chars must have odd number of characters')
+		if ((chars.length & 1) === 0) throw new Error('chars must have odd number of characters')
 	}
 
 	let ret: Radix
@@ -110,7 +109,7 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 			ret = createClockRadix(radix, chars, enabled, name, allChars)
 			break
 		default:
-			throw new Error(`createRadix: Unknown system: "${system}"`)
+			throw new Error(`createRadix: Unknown system: "${String(system)}"`)
 	}
 
 	// console.log('Created radix:', ret)
@@ -161,7 +160,7 @@ function createBijectiveRadix(radix: number, chars = defaultCharsArray, enabled?
 }
 
 function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
-	if (radix % 2 === 0) throw new Error(`createRadix: Radix(balanced) must be odd: ${radix}`)
+	if ((radix & 1) === 0) throw new Error(`createRadix: Radix(balanced) must be odd: ${radix}`)
 	if (!allChars && chars.length !== radix) invalidNumberOfCharacters(radix, 'balanced', radix, chars.length)
 
 	const zeroAt = (chars.length - 1) / 2
@@ -249,7 +248,7 @@ function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: b
 }
 
 function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
-	if (radix % 2 !== 0) throw new Error(`createRadix: Radix(clock) must be even: ${radix}`)
+	if (radix & 1) throw new Error(`createRadix: Radix(clock) must be even: ${radix}`)
 	let zeroAt: number
 	if (allChars) {
 		zeroAt = (chars.length - 1) / 2
@@ -300,17 +299,18 @@ export function num2str(num: bigint, radix: Radix, maxLength = 28): string {
 	if (sum) {
 		let i: number
 		let v: string | undefined
-		const values = radix.reversedValues
-		for (const value of values.keys()) {
+		const { reversedValues } = radix
+		for (const value of reversedValues.keys()) {
 			i = 0
-			if (!value) continue
-			while (n >= value) {
-				if ((v = values.get(value))) ret.push(v)
-				if (++i === maxLength) {
-					ret.unshift('…')
-					n %= value
-				} else {
-					n -= value
+			if (value) {
+				while (n >= value) {
+					if ((v = reversedValues.get(value))) ret.push(v)
+					if (++i === maxLength) {
+						ret.unshift('…')
+						n %= value
+					} else {
+						n -= value
+					}
 				}
 			}
 		}
@@ -338,10 +338,10 @@ export function num2str(num: bigint, radix: Radix, maxLength = 28): string {
 		const bij = system === 'bijective'
 		const high = BigInt(radix.high)
 
-		let d: bigint
-		let q: bigint
-		let i = 1n
-		for (; n > 0n; i *= rad) {
+		// let d: bigint
+		// let q: bigint
+		// let i = 1n
+		for (let d: bigint, q: bigint, i = 1n; n > 0n; i *= rad) {
 			d = n % rad
 			if (bij) {
 				q = d === 0n ? n / rad - 1n : n / rad
@@ -385,11 +385,10 @@ export function str2num(str: string, radix: Radix): bigint {
 	const { radix: rad, values } = radix
 	const sum = radix.system === 'sum'
 	const balsum = radix.system === 'balsum'
-	let v: bigint | undefined
 	const ret = Iterator.from(s).reduce((acc, c) => {
 		if (c === '…') return acc
-		v = values.get(c)
-		if (v == null) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
+		const v = values.get(c)
+		if (v == undefined) throw new Error(`Non-Base character encountered: "${c}". ${allowedCharaters(radix)}`)
 		return sum || balsum ? acc + v : acc * rad + v
 	}, 0n)
 
@@ -422,5 +421,5 @@ export function sanitizeInput(input: string, radix: Radix): string[] {
 }
 
 export function getCharsForTooltip(radix: Radix): string {
-	return Array.from(radix.values.entries()).slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([k, v], i) => `${k}:${v}${(i+1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n': ' '}`).join('')
+	return [ ...radix.values.entries() ].slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([k, v], i) => `${k}:${v}${(i+1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n': ' '}`).join('')
 }

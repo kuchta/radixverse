@@ -2,22 +2,22 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "start",
 			"type": "npm",
 			"script": "start",
-			"label": "start",
+			// "isBackground": true, // Don't use this if you want to debug the task
+			// "problemMatcher": []
+		},
+		{
+			"type": "npm",
+			"script": "preview",
 			"isBackground": true,
+			"problemMatcher": []
 		},
 		{
 			"type": "npm",
 			"script": "check",
 			"problemMatcher": ["$tsc"]
-		},
-		{
-			"type": "npm",
-			"script": "check-watch",
-			"group": "build",
-			"isBackground": true,
-			"problemMatcher": ["$tsc-watch"]
 		},
 		{
 			"type": "npm",
@@ -29,11 +29,6 @@
 			"script": "build",
 			"group": "build",
 			"problemMatcher": ["$tsc"]
-		},
-		{
-			"type": "npm",
-			"script": "preview",
-			"isBackground": true
 		},
 		{
 			"type": "npm",

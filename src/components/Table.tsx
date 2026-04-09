@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LiaEditSolid } from 'react-icons/lia'
 
-import { type Radix, num2str, getCharsForTooltip } from '../utils'
+import { type Radix, num2str, getCharsForTooltip } from '#/utils.ts'
 
 
 export function Tables({ children }: { children: React.ReactNode[] }) {
@@ -35,15 +35,15 @@ export default function Table({ radix, numbers, low, high, mainRow, columns, row
 			<div className="flex justify-end">
 				<EditRowsOrColumns rows={rows} update={updateRows} setEdit={setEdit}/>/
 				<EditRowsOrColumns columns={columns} update={updateColumns} setEdit={setEdit}/>
-			</div>}{ (updateColumns || updateRows) &&
-			<LiaEditSolid onClick={() => setEdit(!edit)}/>}
+			</div>}{ (updateColumns ?? updateRows) &&
+			<LiaEditSolid onClick={() => { setEdit(!edit) }}/>}
 		</div>
 		<div className="card-body overflow-scroll p-2">
 			<table className="table table-xs table-fixed text-sm w-auto">
 				<tbody>{ numbers.map((row, rowIndex) =>
-					<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={`row-start-${row[0]}`}>{ row.map((number) =>
-						<td className="text-right px-0.5 py-0.5 w-8" key={`col-${number}`}>
-							{ renderValue(number, radix, low, space) }
+					<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={row[0]}>{ row.map((number) =>
+						<td className="text-right px-0.5 py-0.5 w-8" key={number}>
+							<Value value={number} radix={radix} low={low} space={space}/>
 						</td>)}
 					</tr>)}
 				</tbody>
@@ -52,16 +52,16 @@ export default function Table({ radix, numbers, low, high, mainRow, columns, row
 	</div>
 }
 
-function renderValue(val: number, radix: Radix, low: number, space: number) {
-	if (Number.isNaN(val)) return <span/>
-	return <div className="relative" /*tooltip" data-tip={(low === 0 ? val : val - low) / space * 300}*/>
+function Value({value, radix, low, space}: { value: number, radix: Radix, low: number, space: number }) {
+	if (Number.isNaN(value)) return <span/>
+	return <div className="relative">
 		<div
 			className="font-mono font-semibold text-xl text-right whitespace-nowrap"
-			style={{ color: `hsl(${(low === 0 ? val : val - low) / space * 300} 80% 40%)`}}
+			style={{ color: `hsl(${(low === 0 ? value : value - low) / space * 300} 80% 40%)`}}
 			>
-			{ num2str(BigInt(val), radix) }
+			{ num2str(BigInt(value), radix) }
 		</div>
-		<span className="text-[0.6em] leading-0.5 text-center absolute right-0 top-0.5">{val}</span>
+		<span className="text-[0.6em] leading-0.5 text-center absolute right-0 top-0.5">{value}</span>
 	</div>
 }
 
@@ -73,7 +73,7 @@ function EditRowsOrColumns({ columns, rows, update, setEdit }: { columns?: numbe
 			className="input input-xs w-[4em]"
 			type="number"
 			value={columns ?? rows}
-			onChange={e => update(Number(e.target.value))}
+			onChange={e => { update(Number(e.target.value)) }}
 			onKeyDown={e => { if (e.key === 'Escape') setEdit(false) }}
 		/>
 	</div>

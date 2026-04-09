@@ -1,14 +1,14 @@
 
 import { createRoot } from 'react-dom/client'
+import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
-import { useState, useEffect } from 'react'
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
 
-import Header from './components/Header'
-import Show from './components/Show'
-import Add from './components/Add'
-import Multiply from './components/Multiply'
-import Convert from './components/Convert'
+import Header from './components/Header.tsx'
+import Show from './components/Show.tsx'
+import Add from './components/Add.tsx'
+import Multiply from './components/Multiply.tsx'
+import Convert from './components/Convert.tsx'
 import {
 	type Radix,
 	createRadixes,
@@ -20,12 +20,18 @@ import {
 	str2num,
 	allowedCharaters,
 	sanitizeInput
-} from './utils'
+} from '#/utils.ts'
 
 import './app.css'
 
 
-createRoot(document.getElementById('root')!).render(
+export type UpdateRadixes = (radixes: Radix[]) => void
+export type UpdateValue = (value: bigint, radix?: Radix) => void
+export type ClearSettings = () => void
+
+const BIG_INT_0 = 0n
+
+createRoot(document.querySelector('#root')!).render(
 	<BrowserRouter basename={import.meta.env.BASE_URL}>
 		<App/>
 	</BrowserRouter>
@@ -33,13 +39,13 @@ createRoot(document.getElementById('root')!).render(
 
 function App() {
 	const [ error, setError ] = useState<unknown>()
-	const updateError = (error: unknown) => { setError(error); setTimeout(() => setError(undefined), 10000) }
-	const { radixes, enabledRadixes, updateRadixes, value, updateValue } = useStore(updateError)
+	const updateError = (error: unknown) => { setError(error); setTimeout(() => { setError(undefined) }, 10_000) }
+	const { radixes, enabledRadixes, updateRadixes, value, updateValue, clearSettings } = useStore(updateError)
 	const { pathname, search } = useLocation()
 
 	return <ErrorBoundary onError={updateError} FallbackComponent={ErrorToast}>
 		{ getErrorMessage(error) && <ErrorToast error={error}/> }
-		<Header radixes={radixes} updateRadixes={updateRadixes}/>
+		<Header radixes={radixes} updateRadixes={updateRadixes} clearSettings={clearSettings}/>
 		<nav className="tabs tabs-bordered justify-center mb-4 z-10">
 			<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
 			<Link className={`tab ${pathname.includes('add') ? 'tab-active' : ''}`} to={`add${search}`}>Add</Link>
@@ -67,68 +73,78 @@ function useStore(updateError: (error: unknown) => void) {
 	const [ radixes, setRadixes ] = useState(getRadixesLS(updateError) ?? createRadixes(getCharsLS()))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(r => r.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
-	const [ _value, setValue ] = useState(0n)
-	const [ _radix, setRadix ] = useState(createRadix(10))
+	const [ value, setValue ] = useState(BIG_INT_0)
+	const [ radix, setRadix ] = useState(createRadix(10))
+
+	const updateValue = useCallback<UpdateValue>((value, r = radix) => {
+		if (value === BIG_INT_0) {
+			searchParams.delete('radix')
+			searchParams.delete('value')
+		} else {
+			if (r.name === '10') {
+				searchParams.delete('radix')
+			} else {
+				searchParams.set('radix', r.name)
+			}
+			searchParams.set('value', num2str(value, r))
+		}
+		setValue(value)
+		setRadix(r)
+		setSearchParams(searchParams)
+	}, [ radix, searchParams, setSearchParams ])
+
+	const updateRadixes = useCallback<UpdateRadixes>((radixes) => {
+		setRadixes(radixes)
+
+		const enabledRadixes = radixes.filter(v => v.enabled)
+		setEnabledRadixes(enabledRadixes)
+
+		searchParams.delete('r')
+		enabledRadixes.forEach(r => { searchParams.append('r', r.name) })
+		setSearchParams(searchParams)
+
+		setRadixesLS(radixes)
+	}, [ searchParams ])
+
+	const clearSettings = useCallback<ClearSettings>(() => {
+		localStorage.clear()
+
+		const radixes = createRadixes()
+		setRadixes(radixes)
+
+		const enabledRadixes = radixes.filter(v => v.enabled)
+		setEnabledRadixes(enabledRadixes)
+
+		searchParams.delete('r')
+		enabledRadixes.forEach(r => { searchParams.append('r', r.name) })
+		setSearchParams(searchParams)
+	}, [ searchParams ])
 
 	useEffect(() => {
-		try {
-			if (searchParams.has('clear-settings')) localStorage.clear()
-			if (searchParams.has('r')) {
-				const searchRadixes = searchParams.getAll('r')
-				radixes.forEach(r => { r.enabled = searchRadixes.includes(r.name) })
-				updateRadixes(radixes)
-				setEnabledRadixes(radixes.filter(r => r.enabled))
+		if (searchParams.has('clear-settings')) localStorage.clear()
+		if (searchParams.has('r')) {
+			const searchRadixes = searchParams.getAll('r')
+			radixes.forEach(r => { r.enabled = searchRadixes.includes(r.name) })
+			updateRadixes(radixes)
+			setEnabledRadixes(radixes.filter(r => r.enabled))
+		}
+		let r: Radix | undefined = radix
+		const sRadix = searchParams.get('radix')
+		if (sRadix) {
+			r = radixes.find(r => r.name === sRadix)
+			if (r == undefined) {
+				updateError(new Error(`Unknown radix "${sRadix}" in the URL`))
+				return
 			}
-			let radix = _radix
-			const sRadix = searchParams.get('radix')
-			if (sRadix) {
-				const r = radixes.find(r => r.name === sRadix)
-				if (r == null) throw new Error(`Unknown radix "${sRadix}" in the URL`)
-				setRadix(radix = r)
-			}
-			const sValue = searchParams.get('value')
-			if (sValue) {
-				const [ value, rest ] = sanitizeInput(sValue, radix)
-				setValue(str2num(value, radix))
-				if (rest) throw new Error(`Non-Base characters "${rest}" for radix "${radix.name}" has been filtered out. ${allowedCharaters(radix)}`)
-			}
-		} catch (error) {
-			console.error(error)
-			updateError(error)
+			setRadix(r)
+		}
+		const sValue = searchParams.get('value')
+		if (sValue) {
+			const [ value, rest ] = sanitizeInput(sValue, r)
+			setValue(str2num(value, r))
+			if (rest) throw new Error(`Non-Base characters "${rest}" for radix "${r.name}" has been filtered out. ${allowedCharaters(r)}`)
 		}
 	}, [])
 
-	const updateRadixes = (radixes: Radix[]) => {
-		setRadixesLS(radixes)
-		setRadixes(radixes)
-		const enabledRadixes = radixes.filter(v => v.enabled)
-		setEnabledRadixes(enabledRadixes)
-		searchParams.delete('r')
-		setSearchParams([ ...searchParams, ...enabledRadixes.map(r => ['r', r.name]) ] as [string, string][])
-		updateValue(_value, radixes.find(r => r.name === _radix.name))
-	}
-
-	const updateValue = (value: bigint, radix?: Radix) => {
-		if (value === 0n) {
-			searchParams.delete('radix')
-			searchParams.delete('value')
-			setSearchParams(searchParams)
-		} else {
-			try {
-				const r = radix ?? _radix ?? createRadix(10, 'standard')
-				if (radix) {
-					setRadix(radix)
-					searchParams.set('radix', r.name)
-				}
-				searchParams.set('value', num2str(value, r))
-				setSearchParams(searchParams)
-			} catch (error) {
-				console.error(error)
-				updateError(error)
-			}
-		}
-		setValue(value)
-	}
-
-	return { radixes, enabledRadixes, updateRadixes, value: _value, updateValue }
+	return { radixes, enabledRadixes, updateRadixes, value, updateValue, clearSettings }
 }

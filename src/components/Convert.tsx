@@ -1,57 +1,56 @@
-import type { FormEvent, ClipboardEvent, ComponentProps } from 'react'
-import { Fragment, useState, useEffect, useRef } from 'react'
+import  { type ComponentProps, type InputEventHandler, type ClipboardEventHandler, useState, useEffectEvent, useEffect, useRef  } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
 
+import type { UpdateValue } from '#/app.tsx'
+import { type Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '#/utils.ts'
 
-import { type Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '../utils'
-
+const BIG_INT_0 = 0n
+const BIG_INT_1 = 1n
 
 export default function Convert({ radixes, value, updateValue }: {
 	radixes: Radix[],
 	value: bigint,
-	updateValue: (value: bigint, radix?: Radix) => void
+	updateValue: UpdateValue
 }) {
 	const plusButtonRef = useRef<HTMLButtonElement>(null)
 	const deleteButtonRef = useRef<HTMLButtonElement>(null)
 	const minusButtonRef = useRef<HTMLButtonElement>(null)
-	const valueRef = useRef(value)
 
-	useEffect(() => { valueRef.current = value }, [ value ])
+	const keyDown = useEffectEvent((e: KeyboardEvent) => {
+		switch (e.key) {
+			case 'Backspace':
+			case 'Delete':
+				deleteButtonRef.current?.focus()
+				updateValue(BIG_INT_0)
+				break
+			case '+':
+			case '=':
+				plusButtonRef.current?.focus()
+				updateValue(value + BIG_INT_1)
+				break
+			case '-':
+			case '_':
+				minusButtonRef.current?.focus()
+				updateValue(value - BIG_INT_1)
+				break
+		}
+	})
 
 	useEffect(() => {
-		const keyDown: (e: KeyboardEvent) => void = (e: KeyboardEvent) => {
-			switch (e.key) {
-				case 'Backspace':
-				case 'Delete':
-					deleteButtonRef.current?.focus()
-					updateValue(0n)
-					break
-				case '+':
-				case '=':
-					plusButtonRef.current?.focus()
-					updateValue(valueRef.current + 1n)
-					break
-				case '-':
-				case '_':
-					minusButtonRef.current?.focus()
-					updateValue(valueRef.current - 1n)
-					break
-			}
-		}
 		document.addEventListener('keydown', keyDown)
-		return () => document.removeEventListener('keydown', keyDown)
+		return () => { document.removeEventListener('keydown', keyDown) }
 	}, [])
 
 	return <main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
 		<div className="flex relative lg:left-32 max-w-fit gap-1">
 			<span className="tooltip tooltip-top" data-tip="Increment">
-				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} type="button" onClick={() => updateValue(value + 1n)}>+</button>
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} type="button" onClick={() => { updateValue(value + BIG_INT_1) }}>+</button>
 			</span>
 			<span className="tooltip tooltip-top" data-tip="Reset">
-				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} type="button" onClick={() => updateValue(0n)}>␡</button>
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} type="button" onClick={() => { updateValue(BIG_INT_0) }}>␡</button>
 			</span>
 			<span className="tooltip tooltip-top" data-tip="Decrement">
-				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} type="button" onClick={() => updateValue(value - 1n)}>-</button>
+				<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} type="button" onClick={() => { updateValue(value - BIG_INT_1) }}>-</button>
 			</span>
 		</div>{ radixes.map((radix, index) =>
 		<div key={radix.name}>
@@ -62,13 +61,13 @@ export default function Convert({ radixes, value, updateValue }: {
 			</span>
 			<span className="hidden md:inline-flex gap-1">
 				<div className="tooltip tooltip-top" data-tip="Filling shift left">
-					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" type="button" onClick={() => updateValue(filling_shl(value, radix), radix)}>⋘</button>
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" type="button" onClick={() => { updateValue(filling_shl(value, radix), radix) }}>⋘</button>
 				</div>
 				<div className="tooltip tooltip-top" data-tip="Shift left">
-					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n || radix.system === 'bijective' || radix.system === 'sum'} type="button" onClick={() => updateValue(shl(value, radix), radix)}>≪</button>
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === BIG_INT_0 || radix.system === 'bijective' || radix.system === 'sum'} type="button" onClick={() => { updateValue(shl(value, radix), radix) }}>≪</button>
 				</div>
 				<div className="tooltip tooltip-top" data-tip="Shift right">
-					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === 0n } type="button" onClick={() => updateValue(shr(value, radix), radix)}>≫</button>
+					<button className="btn btn-circle btn-xs lg:btn-sm inline-block align-middle" disabled={ value === BIG_INT_0 } type="button" onClick={() => { updateValue(shr(value, radix), radix) }}>≫</button>
 				</div>
 			</span>
 			<span> = </span>
@@ -82,7 +81,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 	radix: Radix,
 	radixIndex: number,
 	numRadixes: number
-	updateValue: (value: bigint, radix?: Radix) => void
+	updateValue: UpdateValue
 }) {
 	const [ strVal, setStrVal ] = useState(num2str(value, radix))
 	const [ editing, setEditing ] = useState(false)
@@ -90,27 +89,23 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 	const [ errorLevel, setErrorLevel ] = useState<'error' | 'warning'>('error')
 	const ref = useRef<HTMLSpanElement>(null)
 
-	useEffect(() => { if (!editing) setStrVal(num2str(value, radix)) }, [ editing, value, radix ])
-
 	const updateError = (error: unknown, errorLvl: typeof errorLevel) => {
 		setError(error)
 		setErrorLevel(errorLvl)
-		setTimeout(() => setError(undefined), 10000)
+		setTimeout(() => { setError(undefined) }, 10_000)
 	}
-
-	const getCaretPosition = () => getSelection()?.getRangeAt(0).startOffset ?? 0
 
 	const setCaretPosition = (position: number) => {
 		setTimeout(() => { if (ref.current) getSelection()?.setPosition(ref.current.childNodes[0], position) }, 0)
 	}
 
-	const handleInput = (e: FormEvent<HTMLSpanElement>) => {
+	const handleInput: InputEventHandler<HTMLSpanElement> = (e) => {
 		e.stopPropagation()
 
-		const s = e.currentTarget.innerText.toUpperCase()
+		const s = e.currentTarget.textContent.toUpperCase()
 		if (s === '') {
 			setStrVal('')
-			updateValue(0n)
+			updateValue(BIG_INT_0)
 			return
 		}
 
@@ -121,43 +116,36 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 			updateValue(n, radix)
 			setError(undefined)
 		} catch (error) {
-			console.error(error)
 			updateError(error, 'error')
-			e.currentTarget.innerText = strVal
+			e.currentTarget.textContent = strVal
 			position -= 1
 		}
 		setCaretPosition(position)
 	}
 
-	const handlePaste = (e: ClipboardEvent<HTMLSpanElement>) => {
+	const handlePaste: ClipboardEventHandler<HTMLSpanElement> = (e) => {
 		e.preventDefault()
 
-		let position = getCaretPosition()
+		const [ input, rest ] = sanitizeInput(e.clipboardData.getData('text'), radix)
+		if (rest) {
+			updateError(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`, 'warning')
+		}
+
+		const position = getCaretPosition()
+		const range = getSelection()?.getRangeAt(0)
+
+		const newV = range?.startContainer === ref.current ? input : Array.from(strVal).toSpliced(position, range ? range.endOffset - range.startOffset : 0, input).join('')
+
 		try {
-			const [ input, rest ] = sanitizeInput(e.clipboardData.getData('text'), radix)
-			const range = getSelection()?.getRangeAt(0)
-			let newV: string
-			if (range?.startContainer === ref.current) {
-				newV = input
-			} else {
-				const selectionRange = range ? range.endOffset - range.startOffset : 0
-				newV = Array.from(strVal).toSpliced(position, selectionRange, input).join('')
-			}
-			const n = str2num(newV, radix)
+			updateValue(str2num(newV, radix), radix)
 			setStrVal(newV)
-			updateValue(n, radix)
-			position += input.length
-			if (rest) {
-				updateError(`Non-Base characters "${rest}" has been filtered out. ${allowedCharaters(radix)}`, 'warning')
-			} else {
-				setError(undefined)
-			}
+			setCaretPosition(position + input.length)
 		} catch (error) {
-			console.error(error)
 			updateError(error, 'error')
 		}
-		setCaretPosition(position)
 	}
+
+	useEffect(() => { if (!editing) setStrVal(num2str(value, radix)) }, [ editing, value, radix ])
 
 	return <>
 		<span className={`font-mono font-medium break-all outline-none${error ? ` tooltip tooltip-open tooltip-${errorLevel}` : ''}`} data-tip={getErrorMessage(error) ?? 'Unknown error'}
@@ -170,7 +158,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 			onInput={handleInput}
 			onPaste={handlePaste}
 			onDoubleClick={() => { if (ref.current) getSelection()?.selectAllChildren(ref.current) }}
-			onFocus={() => setEditing(true)}
+			onFocus={() => { setEditing(true) }}
 			onBlur={() => { setEditing(false); setError(undefined); setStrVal(num2str(value, radix)) }}
 			style={{ color: `hsl(${radixIndex / numRadixes * 300} 80% 40%)` }}
 			ref={ref}
@@ -179,13 +167,15 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 		</span>
 		<sub className="lg:hidden align-middle text-[0.6rem]">{radix.name}</sub>
 		<span className="text-[0.5em]">
-			<span> #{strVal.length} </span>
-			<span className="whitespace-nowrap">∑</span> { getDigitSumArray(value, radix).map(([sum, system]) =>
-			<Fragment key={system}>
+			<span>
+				<span> #{strVal.length} </span>
+			</span> { getDigitSumArray(value, radix).map(([sum, system]) =>
+			<span key={`${system}-${sum}`}>
+				<span className="whitespace-nowrap">∑</span>
 				<span>=</span>
 				<span className="font-mono font-medium">{sum}</span>
 				<sub className="text-nowrap">{system}</sub>
-			</Fragment> )}
+			</span> )}
 		</span>
 	</>
 }
@@ -205,12 +195,10 @@ function getDigitSumArray(number: bigint, radix: Radix) : [string, string][] {
 	num = num2str(n, radix)
 
 	if (radix.system === 'standard' && radix.radix === 10n) {
-		if (num.length === 1 || neg && num.length === 2) {
-			return [[ num, radix.name ]]
-		} else {
-			return [[ num, radix.name ], ...getDigitSumArray(n, radix)]
-		}
-	} else {
-		return [[ num, radix.name ], ...getDigitSumArray(n, createRadix(10, 'standard'))]
+		return (num.length === 1 || neg && num.length === 2) ? [[ num, radix.name ]] : [[ num, radix.name ], ...getDigitSumArray(n, radix)]
 	}
+
+	return [[ num, radix.name ], ...getDigitSumArray(n, createRadix(10, 'standard'))]
 }
+
+const getCaretPosition = () => getSelection()?.getRangeAt(0).startOffset ?? 0

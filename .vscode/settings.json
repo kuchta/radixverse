@@ -1,7 +1,13 @@
 {
-	"deno.enable": true,
+	"deno.enable": false,
 	"deno.lint": true,
-	"typescript.tsdk": "node_modules/typescript/lib",
+	"editor.defaultFormatter": "oxc.oxc-vscode",
 	"editor.formatOnSaveMode": "modificationsIfAvailable",
-	"typescript.tsserver.experimental.enableProjectDiagnostics": false
+	"js": {
+		"ts.tsdk.path": "node_modules/typescript/lib",
+		"ts.tsserver.experimental.enableProjectDiagnostics": true
+	},
+	"oxc.enable": true,
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"typescript.tsserver.experimental.enableProjectDiagnostics": false,
 }

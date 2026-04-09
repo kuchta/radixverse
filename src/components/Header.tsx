@@ -1,135 +1,120 @@
-import { type FormEvent, useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { type ReactEventHandler, type KeyboardEventHandler, useState, useMemo, useEffectEvent, useEffect, useRef, useCallback } from 'react'
+import { getErrorMessage } from 'react-error-boundary'
+
 import TextareaAutosize from 'react-textarea-autosize'
-import themeObject from 'daisyui/theme/object'
-// import themeObject from 'flyonui/theme/object'
+import themeObject from 'daisyui/theme/object.js'
 
-import { type Radix, defaultChars, getThemeLS, setThemeLS, getCharsLS, setCharsLS, createRadix } from '../utils'
+import type { UpdateRadixes, ClearSettings } from '#/app.tsx'
+import { type Radix, createRadix, getThemeLS, setThemeLS, defaultChars, getCharsLS, setCharsLS } from '#/utils.ts'
 
-const themes = Object.keys(themeObject).sort()
 
 type ToggleRadixes = (radix: 'all' | 'odd' | 'even' | Radix['system'] | Radix, enabled: boolean) => void
+const themes = Object.keys(themeObject).toSorted()
 
-let allChars = getCharsLS() ?? defaultChars
-
-export default function Header({ radixes, updateRadixes }: {
+export default function Header({ radixes, updateRadixes, clearSettings }: {
 	radixes: Radix[],
-	updateRadixes: (radixes: Radix[]) => void,
+	updateRadixes: UpdateRadixes,
+	clearSettings: ClearSettings,
 }) {
-	const navigate = useNavigate()
-	const [ theme, setTheme ] = useState(getThemeLS)
 	const [ settingsExpanded, setSettingsExpanded ] = useState(false)
-	const [ inputRadix, setInputRadix ] = useState<string>()
+	const [ theme, setTheme ] = useState(getThemeLS)
+	const [ allChars, setAllChars ] = useState(getCharsLS() ?? defaultChars)
+	const [ inputRadix, setInputRadix ] = useState<Radix>()
 	const [ inputChars, setInputChars ] = useState(allChars)
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
 	const formRef = useRef<HTMLFormElement>(null)
 
-	useEffect(() => {
-		const keyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) }
-		document.addEventListener('keydown', keyDown)
+	const radixesSystems = useMemo(() => [ ...new Set(radixes.map(r => r.system)) ], [ radixes ])
+	const groupedRadixes = useMemo(() => Object.values(Object.groupBy(radixes, r => r.system)), [ radixes ])
+	const toggleRadixes = useMemo(() => createToggleRadixes(radixes, updateRadixes), [ radixes, updateRadixes ])
+	const toggleSettings = useCallback(() => { setSettingsExpanded(!settingsExpanded) }, [ settingsExpanded ])
 
-		return () => {
-			document.removeEventListener('keydown', keyDown)
-		}
+	const updateTheme = useCallback((theme: string) => {
+		document.documentElement.setAttribute('data-theme', theme)
+		setTheme(theme)
+		setThemeLS(theme)
 	}, [])
 
-	const toggleSettings = () => {
-		updateInputRadix(inputRadix)
-		setInputCharsError(undefined)
-		setSettingsExpanded(!settingsExpanded)
-	}
+	const updateInputRadix = useCallback((radix?: string) => {
+		let r: Radix | undefined
+		let chars: string
 
-	const updateTheme = (theme: string) => {
-		document.documentElement.setAttribute('data-theme', theme)
-		setThemeLS(theme)
-		setTheme(theme)
-	}
-
-	const updateInputRadix = (radix?: string) => {
-		setInputRadix(radix)
-		if (radix === 'All') {
-			setInputChars(allChars)
+		if (radix == undefined || radix === 'All') {
+			chars = allChars
 		} else {
-			const r = radixes.find(r => r.name === radix)
+			r = radixes.find(r => r.name === radix)
 			if (r) {
-				setInputChars(r.chars.join(''))
+				chars = r.chars.join('')
+			} else {
+				throw new Error(`Radix ${radix} not found`)
 			}
 		}
-	}
+		setInputRadix(r)
+		setInputChars(chars)
+	}, [ allChars, radixes ])
 
-	const handleRadixCharsSubmit = (e: FormEvent<HTMLFormElement>) => {
+	const handleInputCharsSubmit = useCallback<ReactEventHandler<HTMLFormElement>>((e) => {
 		e.preventDefault()
 		setInputCharsError(undefined)
 
-		try {
-			if (inputRadix == null) {
-				if (e.type === 'submit') {
-					updateRadixesChars(undefined, inputChars)
-					allChars = inputChars
-				} else {
-					if (allChars !== defaultChars) {
-						allChars = defaultChars
-						updateRadixesChars()
-					}
-					setInputChars(allChars)
-				}
+		let rs = radixes
+		let charsArray: string[]
+		if (inputRadix) { // specific radix
+			if (e.type === 'submit') {
+				charsArray = inputChars.split('')
 			} else {
-				updateRadixesChars(inputRadix, e.type === 'submit' ? inputChars : undefined)
-				if (e.type === 'reset') {
-					const r = radixes.find(r => r.name === inputRadix)
-					if (r) {
-						setInputChars(r.chars.join(''))
-					}
-				}
+				charsArray = inputRadix.chars
+				setInputChars(inputRadix.chars.join(''))
 			}
-		} catch (error) {
-			console.error(error)
-			setInputCharsError((error as Error).message)
-		}
-	}
-
-	const updateRadixesChars = (radix?: string, chars?: string) => {
-		const charsArray = chars ? Array.from(chars) : undefined
-
-		if (radix == null) {
-			radixes = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
-			setCharsLS(chars !== defaultChars ? chars : undefined)
-		} else {
-			const i = radixes.findIndex(r => r.name === radix)
+			const i = radixes.findIndex(r => r.name === inputRadix.name)
 			const r = radixes[i]
-			radixes[i] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, !charsArray)
+			rs = [ ...radixes ]
+			try {
+				rs[i] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, false)
+			} catch (error) {
+				setInputCharsError(getErrorMessage(error))
+			}
+		} else { // all radixes
+			if (e.type === 'submit') {
+				setAllChars(inputChars)
+				setCharsLS(inputChars)
+				charsArray = Array.from(inputChars)
+			} else {
+				setInputChars(defaultChars)
+				setAllChars(defaultChars)
+				setCharsLS(undefined)
+				charsArray = Array.from(defaultChars)
+			}
+
+			try {
+				rs = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
+			} catch (error) {
+				setInputCharsError(getErrorMessage(error))
+			}
 		}
+		updateRadixes(rs)
+	}, [ inputRadix, inputChars, radixes, updateRadixes ])
 
-		updateRadixes(radixes)
-
-		return radixes
-	}
-
-	const toggleRadixes: ToggleRadixes = (radix, enabled) => {
-		switch (radix) {
-			case 'all':
-				radixes.forEach(r => { r.enabled = enabled })
-				break
-			case 'odd':
-				radixes.forEach(r => { if (r.radix % 2n === 1n) r.enabled = enabled })
-				break
-			case 'even':
-				radixes.forEach(r => { if (r.radix % 2n === 0n) r.enabled = enabled })
-				break
-			case 'standard':
-			case 'bijective':
-			case 'balanced':
-			case 'clock':
-			case 'sum':
-			case 'balsum':
-				radixes.forEach(r => { if (r.system === radix) r.enabled = enabled })
-				break
-			default:
-				radix.enabled = enabled
+	const handleInputCharsKeyDown = useCallback<KeyboardEventHandler<HTMLTextAreaElement>>(e => {
+		e.stopPropagation()
+		if (e.key === 'Enter' || e.key === 'Escape') {
+			e.preventDefault()
+			if (e.key === 'Enter') {
+				formRef.current?.requestSubmit()
+			} else {
+				setInputCharsError(undefined)
+				updateInputRadix(inputRadix?.name)
+				e.currentTarget.blur()
+			}
 		}
+	}, [ inputRadix, updateInputRadix ])
 
-		updateRadixes(radixes)
-	}
+	const keyDown = useEffectEvent((e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) })
+
+	useEffect(() => {
+		document.addEventListener('keydown', keyDown)
+		return () => { document.removeEventListener('keydown', keyDown) }
+	}, [])
 
 	return <header className="p-2">
 		<div className="navbar bg-base-100 p-0">
@@ -161,7 +146,7 @@ export default function Header({ radixes, updateRadixes }: {
 						<summary>Themes</summary>
 						<menu className="dropdown-content rounded-field bg-base-100 shadow-sm p-2 mt-0">{ themes.map(t =>
 							<li key={t}>
-								<button className={t === theme ? 'menu-active' : undefined} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</button>
+								<button className={t === theme ? 'menu-active' : undefined} onClick={() => { updateTheme(t) }} tabIndex={0}>{capitalize(t)}</button>
 							</li>)}
 						</menu>
 					</details>
@@ -202,7 +187,7 @@ export default function Header({ radixes, updateRadixes }: {
 			<div className="collapse-content px-0">
 				{/* <div className="card card-border p-2"> */}
 					<div className="card-actions flex-row-reverse grow m-1">
-						<button className="btn btn-xs btn-error" type="button" onClick={() => { localStorage.clear(); navigate(0) }}>
+						<button className="btn btn-xs btn-error" type="button" onClick={clearSettings}>
 							Clear settings
 						</button>
 					<div className="flex flex-wrap grow justify-center gap-2 m-1">
@@ -211,20 +196,21 @@ export default function Header({ radixes, updateRadixes }: {
 						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
 					</div>
 					</div>
-					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center m-1">{ [ ...new Set(radixes.map(r => r.system)) ].map(rs =>
+					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center m-1">{ radixesSystems.map(rs =>
 						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
 					</div>
 					<div className="flex flex-col justify-center items-center m-1">
 						<div className="card card-border gap-2 p-2">
-							<form className="flex flex-col xl:flex-row justify-center items-center h-fit gap-1" onReset={handleRadixCharsSubmit} onSubmit={handleRadixCharsSubmit} ref={formRef}>
+							<form className="flex flex-col xl:flex-row justify-center items-center h-fit gap-1" onReset={handleInputCharsSubmit} onSubmit={handleInputCharsSubmit} ref={formRef}>
 								<select
 									className="select select-sm rounded-md bg-base-100 w-fit pl-2 pr-10 mr-1"
 									name="radix"
-									onChange={e => updateInputRadix(e.target.value) }
+									onChange={e => { updateInputRadix(e.target.value) }}
 								>
-									<option value={undefined}>All</option> {
-										Object.values(Object.groupBy(radixes, ({ system }) => system)).flatMap((it, i) => i < radixes.length - 1 ? [it, i] : [it]).map(rxs => typeof rxs === 'number' ? <hr key={rxs}/> : rxs.map(r =>
-									<option key={r.name} value={r.name}>{r.name}</option> ))}
+									<option>All</option> { groupedRadixes.map(rgs =>
+									<optgroup label={rgs[0].system} key={rgs[0].system} className="font-bold">{ rgs.map(r =>
+										<option value={r.name} key={r.name}>{r.name}</option> )}
+									</optgroup>)}
 								</select>
 								<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
 									<TextareaAutosize
@@ -234,27 +220,15 @@ export default function Header({ radixes, updateRadixes }: {
 										cols={70}
 										value={inputChars}
 										onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
-										onKeyDown={e => {
-											e.stopPropagation()
-											if (e.key === 'Enter' || e.key === 'Escape') {
-												e.preventDefault()
-												if (e.key === 'Enter') {
-													formRef.current?.requestSubmit()
-												} else {
-													updateInputRadix(inputRadix)
-													e.currentTarget.blur()
-													setInputCharsError(undefined)
-												}
-											}
-										}}
+										onKeyDown={handleInputCharsKeyDown}
 									/>
 								</div>
 								<span className="join flex flex-row justify-center">
 									<button className="join-item btn btn-sm btn-outline btn-success" type="reset">Reset</button>
 									<button className="join-item btn btn-sm btn-outline btn-error" type="submit">Set</button>
 								</span>
-							</form>{ inputRadix !== undefined &&
-							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ radixes.find(r => r.name === inputRadix)?.values.entries().map(([k, v]) =>
+							</form>{ inputRadix &&
+							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ inputRadix.values.entries().map(([k, v]) =>
 								<span key={k} className="font-mono p-1">
 									{k}:{Number(v)}
 								</span>) }
@@ -272,7 +246,7 @@ const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', to
 		<button
 			className="btn btn-xs btn-outline btn-success join-item"
 			type="button"
-			onClick={() => toggleRadixes(who, true)}
+			onClick={() => { toggleRadixes(who, true) }}
 		>
 			Add
 		</button>
@@ -280,7 +254,7 @@ const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', to
 		<button
 			className="btn btn-xs btn-outline btn-error join-item"
 			type="button"
-			onClick={() => toggleRadixes(who, false)}
+			onClick={() => { toggleRadixes(who, false) }}
 		>
 			Remove
 		</button>
@@ -293,7 +267,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 				<button
 					className="btn btn-xs btn-outline btn-success m-1"
 					type="button"
-					onClick={() => toggleRadixes(who, true)}
+					onClick={() => { toggleRadixes(who, true) }}
 				>
 					Add
 				</button>
@@ -301,7 +275,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 				<button
 					className="btn btn-xs btn-outline btn-error m-1"
 					type="button"
-					onClick={() => toggleRadixes(who, false)}
+					onClick={() => { toggleRadixes(who, false) }}
 				>
 					Remove
 				</button>
@@ -311,13 +285,39 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 					className={`btn btn-xs btn-outline btn-neutral ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
 					type="button"
 					key={radix.name}
-					onClick={() => toggleRadixes(radix, !radix.enabled)}
+					onClick={() => { toggleRadixes(radix, !radix.enabled) }}
 				>
 					{ String(radix.radix) }
 				</button>) }
 			</div>
 		</div>
 	</div>
+
+const createToggleRadixes: (radixes: Radix[], updateRadixes: UpdateRadixes) => ToggleRadixes = (radixes, updateRadixes) => (radix, enabled) => {
+	switch (radix) {
+		case 'all':
+			radixes.forEach(r => { r.enabled = enabled })
+			break
+		case 'odd':
+			radixes.forEach(r => { if ((r.radix & 1n) === 1n) r.enabled = enabled })
+			break
+		case 'even':
+			radixes.forEach(r => { if ((r.radix & 1n) === 0n) r.enabled = enabled })
+			break
+		case 'standard':
+		case 'bijective':
+		case 'balanced':
+		case 'clock':
+		case 'sum':
+		case 'balsum':
+			radixes.forEach(r => { if (r.system === radix) r.enabled = enabled })
+			break
+		default:
+			radix.enabled = enabled
+	}
+	updateRadixes(radixes)
+}
+
 
 function capitalize(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1)
