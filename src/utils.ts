@@ -15,13 +15,13 @@ const LS_CHARS = 'chars'
 const LS_RADIXES = 'radixes'
 
 export const defaultChars = baseBal71
-const defaultCharsArray: string[] = Array.from(defaultChars)
+const defaultCharsArray = Array.from(defaultChars)
 
 export type Radix = {
 	name: string
 	radix: bigint
 	system: 'standard' | 'bijective' | 'balanced' | 'clock' | 'sum' | 'balsum'
-	chars: string[]
+	chars: string
 	enabled: boolean
 	values: Map<string, bigint>
 	reversedValues: Map<bigint, string>
@@ -67,52 +67,50 @@ export function setRadixesLS(radixes: Radix[]): void {
 	localStorage.setItem(LS_RADIXES, JSON.stringify(rs))
 }
 
-export function createRadixes(chars = defaultChars): Radix[] {
-	const charsArray = chars !== defaultChars ? Array.from(chars) : undefined
+export function createRadixes(chars?: string): Radix[] {
 	return [ ...Array<undefined>(35) ].flatMap((_, i) => {
 		const radix = i + 2
-		const ret = [ createRadix(radix, 'standard', charsArray) ]
-		if (radix < 36) ret.push(createRadix(radix, 'bijective', charsArray))
-		if (radix & 1) ret.push(createRadix(radix, 'balanced', charsArray))
-		if (radix <= 26) ret.push(createRadix(radix, 'sum', charsArray))
+		const ret = [ createRadix(radix, 'standard', chars) ]
+		if (radix < 36) ret.push(createRadix(radix, 'bijective', chars))
+		if (radix & 1) ret.push(createRadix(radix, 'balanced', chars))
+		if (radix <= 26) ret.push(createRadix(radix, 'sum', chars))
 		// if (radix <= 27 && radix & 1) ret.push(createRadix(radix, 'balsum', charsArray))
 		// if ((radix & 1) === 0) ret.push(createRadix(radix, 'clock', chars))
 		return ret
 	})
 }
 
-export function createRadix(radix: number, system: Radix['system'] = 'standard', chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
+export function createRadix(radix: number, system: Radix['system'] = 'standard', chars = defaultChars, enabled?: boolean, name?: string, allChars = true): Radix {
 	if (allChars) {
-		if (chars !== defaultCharsArray && chars.length < defaultCharsArray.length) throw new Error(`chars must have at least ${defaultCharsArray.length} characters, ${chars.length} provided`)
+		if (chars !== defaultChars && chars.length < defaultChars.length) throw new Error(`chars must have at least ${defaultChars.length} characters, ${chars.length} provided`)
 		if ((chars.length & 1) === 0) throw new Error('chars must have odd number of characters')
 	}
 
 	let ret: Radix
+	const charsArray = Array.from(chars)
 
 	switch (system) {
 		case 'standard':
-			ret = createStandardRadix(radix, chars, enabled, name, allChars)
+			ret = createStandardRadix(radix, charsArray, enabled, name, allChars)
 			break
 		case 'bijective':
-			ret = createBijectiveRadix(radix, chars, enabled, name, allChars)
+			ret = createBijectiveRadix(radix, charsArray, enabled, name, allChars)
 			break
 		case 'balanced':
-			ret = createBalancedRadix(radix, chars, enabled, name, allChars)
+			ret = createBalancedRadix(radix, charsArray, enabled, name, allChars)
 			break
 		case 'sum':
-			ret = createSumRadix(radix, chars, enabled, name, allChars)
+			ret = createSumRadix(radix, charsArray, enabled, name, allChars)
 			break
 		case 'balsum':
-			ret = createBalsumRadix(radix, chars, enabled, name, allChars)
+			ret = createBalsumRadix(radix, charsArray, enabled, name, allChars)
 			break
 		case 'clock':
-			ret = createClockRadix(radix, chars, enabled, name, allChars)
+			ret = createClockRadix(radix, charsArray, enabled, name, allChars)
 			break
 		default:
 			throw new Error(`createRadix: Unknown system: "${String(system)}"`)
 	}
-
-	// console.log('Created radix:', ret)
 
 	return ret
 }
@@ -129,7 +127,7 @@ function createStandardRadix(radix: number, chars = defaultCharsArray, enabled?:
 		name: name ?? `${radix}`,
 		system: 'standard',
 		radix: BigInt(radix),
-		chars,
+		chars: chars.join(''),
 		values: new Map(values),
 		reversedValues: new Map(values.map(([c, v]) => [v, c])),
 		low: 0,
@@ -150,7 +148,7 @@ function createBijectiveRadix(radix: number, chars = defaultCharsArray, enabled?
 		name: name ?? `bij-${radix}`,
 		system: 'bijective',
 		radix: BigInt(radix),
-		chars,
+		chars: chars.join(''),
 		values: new Map(values),
 		reversedValues: new Map(values.map(([c, v]) => [v, c])),
 		low: 1,
@@ -173,7 +171,7 @@ function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?:
 		name: name ?? `bal-${radix}`,
 		system: 'balanced',
 		radix: BigInt(radix),
-		chars,
+		chars: chars.join(''),
 		values: new Map(values),
 		reversedValues: new Map(values.map(([c, v]) => [v, c])),
 		low: -half,
@@ -202,7 +200,7 @@ function createSumRadix(radix: number, chars = defaultCharsArray, enabled?: bool
 		name: name ?? `sum-${radix}`,
 		system: 'sum',
 		radix: BigInt(radix),
-		chars,
+		chars: chars.join(''),
 		values: new Map(values),
 		reversedValues: new Map(values.reverse().map(([c, v]) => [v, c])),
 		low: 1,
@@ -238,7 +236,7 @@ function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: b
 		name: name ?? `balsum-${radix}`,
 		system: 'balsum',
 		radix: BigInt(radix),
-		chars,
+		chars: chars.join(''),
 		values: new Map(values),
 		reversedValues: new Map(values.map(([c, v]) => [v, c])),
 		low: -high,
@@ -265,7 +263,7 @@ function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: bo
 		name: name ?? `clock-${radix}`,
 		system: 'clock',
 		radix: BigInt(radix),
-		chars,
+		chars: chars.join(''),
 		values: new Map(values),
 		reversedValues: new Map(values.map(([c, v]) => [v, c])),
 		low: -half + 1,
@@ -409,12 +407,12 @@ export function shr(value: bigint, radix: Radix): bigint {
 
 export function allowedCharaters(radix: Radix): string {
 	const chars = radix.system === 'bijective' ? radix.chars.slice(1) : radix.chars
-	return  `Allowed characters are "${radix.system === 'balanced' ? chars.join('') : [ '-', ...chars ].join('')}"`
+	return  `Allowed characters are "${radix.system === 'balanced' ? chars : `-${radix.chars}`}".`
 }
 
 export function sanitizeInput(input: string, radix: Radix): string[] {
 	input = input.toUpperCase()
-	const chars = radix.system === 'balanced' ? radix.chars.join('') : [ '-', ...radix.chars ].join('')
+	const chars = radix.system === 'balanced' ? radix.chars : `-${radix.chars}`
 	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
 	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'g'), '')
 	return [ sanitizedInput, rest ]

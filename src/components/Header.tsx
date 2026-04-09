@@ -44,7 +44,7 @@ export default function Header({ radixes, updateRadixes, clearSettings }: {
 		} else {
 			r = radixes.find(r => r.name === radix)
 			if (r) {
-				chars = r.chars.join('')
+				chars = r.chars
 			} else {
 				throw new Error(`Radix ${radix} not found`)
 			}
@@ -58,19 +58,19 @@ export default function Header({ radixes, updateRadixes, clearSettings }: {
 		setInputCharsError(undefined)
 
 		let rs = radixes
-		let charsArray: string[]
+		let chars: string
 		if (inputRadix) { // specific radix
 			if (e.type === 'submit') {
-				charsArray = inputChars.split('')
+				chars = inputChars
 			} else {
-				charsArray = inputRadix.chars
-				setInputChars(inputRadix.chars.join(''))
+				chars = inputRadix.chars
+				setInputChars(inputRadix.chars)
 			}
 			const i = radixes.findIndex(r => r.name === inputRadix.name)
 			const r = radixes[i]
 			rs = [ ...radixes ]
 			try {
-				rs[i] = createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name, false)
+				rs[i] = createRadix(Number(r.radix), r.system, chars, r.enabled, r.name, false)
 			} catch (error) {
 				setInputCharsError(getErrorMessage(error))
 			}
@@ -78,16 +78,16 @@ export default function Header({ radixes, updateRadixes, clearSettings }: {
 			if (e.type === 'submit') {
 				setAllChars(inputChars)
 				setCharsLS(inputChars)
-				charsArray = Array.from(inputChars)
+				chars = inputChars
 			} else {
 				setInputChars(defaultChars)
 				setAllChars(defaultChars)
 				setCharsLS(undefined)
-				charsArray = Array.from(defaultChars)
+				chars = defaultChars
 			}
 
 			try {
-				rs = radixes.map(r => createRadix(Number(r.radix), r.system, charsArray, r.enabled, r.name))
+				rs = radixes.map(r => createRadix(Number(r.radix), r.system, chars, r.enabled, r.name))
 			} catch (error) {
 				setInputCharsError(getErrorMessage(error))
 			}
