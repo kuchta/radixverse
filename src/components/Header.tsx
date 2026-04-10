@@ -1,21 +1,22 @@
-import { type ReactEventHandler, type KeyboardEventHandler, useState, useMemo, useEffectEvent, useEffect, useRef, useCallback } from 'react'
+import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, useContext, useState, useMemo, useEffectEvent, useEffect, useRef, useCallback } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
 
 import TextareaAutosize from 'react-textarea-autosize'
 import themeObject from 'daisyui/theme/object.js'
 
-import type { UpdateRadixes, ClearSettings } from '#/app.tsx'
-import { type Radix, createRadix, getThemeLS, setThemeLS, defaultChars, getCharsLS, setCharsLS } from '#/utils.ts'
+import type { UpdateRadixes } from '#/app.tsx'
+import { AppContext, getCharsLS, LS_CHARS, serializeRadixes, unserializeRadixes } from '#/common.ts'
+import { type Radix, createRadixes, createRadix, defaultChars } from '#/utils.ts'
 
-
+export const LS_THEME = 'theme'
 type ToggleRadixes = (radix: 'all' | 'odd' | 'even' | Radix['system'] | Radix, enabled: boolean) => void
 const themes = Object.keys(themeObject).toSorted()
 
-export default function Header({ radixes, updateRadixes, clearSettings }: {
+export default function Header({ radixes, updateRadixes }: {
 	radixes: Radix[],
 	updateRadixes: UpdateRadixes,
-	clearSettings: ClearSettings,
 }) {
+	const { updateError } = useContext(AppContext)
 	const [ settingsExpanded, setSettingsExpanded ] = useState(false)
 	const [ theme, setTheme ] = useState(getThemeLS)
 	const [ allChars, setAllChars ] = useState(getCharsLS() ?? defaultChars)
@@ -23,6 +24,7 @@ export default function Header({ radixes, updateRadixes, clearSettings }: {
 	const [ inputChars, setInputChars ] = useState(allChars)
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
 	const formRef = useRef<HTMLFormElement>(null)
+	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const radixesSystems = useMemo(() => [ ...new Set(radixes.map(r => r.system)) ], [ radixes ])
 	const groupedRadixes = useMemo(() => Object.values(Object.groupBy(radixes, r => r.system)), [ radixes ])
@@ -34,6 +36,31 @@ export default function Header({ radixes, updateRadixes, clearSettings }: {
 		setTheme(theme)
 		setThemeLS(theme)
 	}, [])
+
+	const clearSettings = useCallback(() => {
+		localStorage.clear()
+		const radixes = createRadixes()
+		updateRadixes(radixes)
+	}, [ updateRadixes ])
+
+	const downloadSettings = useCallback(() => {
+		downloadContent(serializeRadixes(radixes), 'settings.json')
+	}, [ radixes ])
+
+	const uploadSettings = useCallback<ChangeEventHandler<HTMLInputElement, HTMLInputElement>>(async (e) => {
+		const file = e.currentTarget.files?.[0]
+		e.target.value = ''
+		if (!file) return
+
+		try {
+			const content = await file.text()
+			if (typeof content !== 'string') throw new Error('File content is not a text')
+			updateRadixes(unserializeRadixes(content))
+		} catch (error) {
+			updateError(error)
+		}
+
+	}, [ updateRadixes ])
 
 	const updateInputRadix = useCallback((radix?: string) => {
 		let r: Radix | undefined
@@ -53,26 +80,24 @@ export default function Header({ radixes, updateRadixes, clearSettings }: {
 		setInputChars(chars)
 	}, [ allChars, radixes ])
 
-	const handleInputCharsSubmit = useCallback<ReactEventHandler<HTMLFormElement>>((e) => {
+	const inputCharsSubmit = useCallback<ReactEventHandler<HTMLFormElement>>((e) => {
 		e.preventDefault()
 		setInputCharsError(undefined)
 
-		let rs = radixes
+		let rs = [ ...radixes ]
 		let chars: string
 		if (inputRadix) { // specific radix
-			if (e.type === 'submit') {
-				chars = inputChars
-			} else {
-				chars = inputRadix.chars
-				setInputChars(inputRadix.chars)
-			}
 			const i = radixes.findIndex(r => r.name === inputRadix.name)
 			const r = radixes[i]
-			rs = [ ...radixes ]
+
 			try {
-				rs[i] = createRadix(Number(r.radix), r.system, chars, r.enabled, r.name, false)
+				rs[i] = createRadix(Number(r.radix), r.system, e.type === 'submit' ? inputChars : allChars, r.enabled, r.name, e.type === 'reset')
 			} catch (error) {
 				setInputCharsError(getErrorMessage(error))
+			}
+
+			if (e.type === 'reset') {
+				setInputChars(rs[i].chars)
 			}
 		} else { // all radixes
 			if (e.type === 'submit') {
@@ -185,57 +210,64 @@ export default function Header({ radixes, updateRadixes, clearSettings }: {
 		</div>
 		<div className={`collapse ${settingsExpanded ? 'collapse-open' : 'collapse-close'}`}>
 			<div className="collapse-content px-0">
-				{/* <div className="card card-border p-2"> */}
-					<div className="card-actions flex-row-reverse grow m-1">
-						<button className="btn btn-xs btn-error" type="button" onClick={clearSettings}>
+				<div className="card-actions flex-row-reverse grow m-1">
+					<span className="join">
+						<button className="btn btn-xs btn-outline btn-success join-item" type="button" onClick={downloadSettings}>
+							Download settings
+						</button>
+						<button className="btn btn-xs btn-outline btn-warning join-item" onClick={() => fileInputRef.current?.click()} type="button">
+							<input type="file" accept="application/json" onChange={uploadSettings} ref={fileInputRef} style={{display: 'none'}}/>
+							Upload settings
+						</button>
+						<button className="btn btn-xs btn-outline btn-error join-item" type="button" onClick={clearSettings}>
 							Clear settings
 						</button>
+					</span>
 					<div className="flex flex-wrap grow justify-center gap-2 m-1">
 						<RadixesSelect who="all" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="odd" toggleRadixes={toggleRadixes} />
 						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
 					</div>
+				</div>
+				<div className="card flex-row flex-wrap xl:flex-nowrap justify-center m-1">{ radixesSystems.map(rs =>
+					<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
+				</div>
+				<div className="flex flex-col justify-center items-center m-1">
+					<div className="card card-border gap-2 p-2">
+						<form className="flex flex-col xl:flex-row justify-center items-center h-fit gap-1" onReset={inputCharsSubmit} onSubmit={inputCharsSubmit} ref={formRef}>
+							<select
+								className="select select-sm rounded-md bg-base-100 w-fit pl-2 pr-10 mr-1"
+								name="radix"
+								onChange={e => { updateInputRadix(e.target.value) }}
+							>
+								<option>All</option> { groupedRadixes.map(rgs =>
+								<optgroup label={rgs[0].system} key={rgs[0].system} className="font-bold">{ rgs.map(r =>
+									<option value={r.name} key={r.name}>{r.name}</option> )}
+								</optgroup>)}
+							</select>
+							<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
+								<TextareaAutosize
+									className="supports-[field-sizing:content]:field-sizing-content min-w-24 max-w-[calc(100vw-5.5ch)] xl:max-w-[calc(100vw-ch)] block resize-none bg-base-100 rounded-lg font-mono leading-8 p-0 px-2"
+									name="chars"
+									rows={1}
+									cols={70}
+									value={inputChars}
+									onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
+									onKeyDown={handleInputCharsKeyDown}
+								/>
+							</div>
+							<span className="join flex flex-row justify-center">
+								<button className="join-item btn btn-sm btn-outline btn-success" type="reset">Reset</button>
+								<button className="join-item btn btn-sm btn-outline btn-error" type="submit">Set</button>
+							</span>
+						</form>{ inputRadix &&
+						<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ inputRadix.values.entries().map(([k, v]) =>
+							<span key={k} className="font-mono p-1">
+								{k}:{Number(v)}
+							</span>) }
+						</div>}
 					</div>
-					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center m-1">{ radixesSystems.map(rs =>
-						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
-					</div>
-					<div className="flex flex-col justify-center items-center m-1">
-						<div className="card card-border gap-2 p-2">
-							<form className="flex flex-col xl:flex-row justify-center items-center h-fit gap-1" onReset={handleInputCharsSubmit} onSubmit={handleInputCharsSubmit} ref={formRef}>
-								<select
-									className="select select-sm rounded-md bg-base-100 w-fit pl-2 pr-10 mr-1"
-									name="radix"
-									onChange={e => { updateInputRadix(e.target.value) }}
-								>
-									<option>All</option> { groupedRadixes.map(rgs =>
-									<optgroup label={rgs[0].system} key={rgs[0].system} className="font-bold">{ rgs.map(r =>
-										<option value={r.name} key={r.name}>{r.name}</option> )}
-									</optgroup>)}
-								</select>
-								<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
-									<TextareaAutosize
-										className="supports-[field-sizing:content]:field-sizing-content min-w-24 max-w-[calc(100vw-5.5ch)] xl:max-w-[calc(100vw-ch)] block resize-none bg-base-100 rounded-lg font-mono leading-8 p-0 px-2"
-										name="chars"
-										rows={1}
-										cols={70}
-										value={inputChars}
-										onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
-										onKeyDown={handleInputCharsKeyDown}
-									/>
-								</div>
-								<span className="join flex flex-row justify-center">
-									<button className="join-item btn btn-sm btn-outline btn-success" type="reset">Reset</button>
-									<button className="join-item btn btn-sm btn-outline btn-error" type="submit">Set</button>
-								</span>
-							</form>{ inputRadix &&
-							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ inputRadix.values.entries().map(([k, v]) =>
-								<span key={k} className="font-mono p-1">
-									{k}:{Number(v)}
-								</span>) }
-							</div>}
-						</div>
-					</div>
-				{/* </div>	 */}
+				</div>
 			</div>
 		</div>
 	</header>
@@ -282,27 +314,28 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 			</div>
 			<div className="card-actions justify-center">{ radixes.filter(r => r.system === who).map(radix =>
 				<button
-					className={`btn btn-xs btn-outline btn-neutral ${radix.enabled ? 'btn-active' : ''} w-12 m-1`}
+					className={`btn btn-xs btn-outline btn-neutral ${radix.enabled ? 'btn-active' : ''} w-12 m-1 p-0`}
 					type="button"
 					key={radix.name}
 					onClick={() => { toggleRadixes(radix, !radix.enabled) }}
 				>
-					{ String(radix.radix) }
+					{ radix.name }
 				</button>) }
 			</div>
 		</div>
 	</div>
 
 const createToggleRadixes: (radixes: Radix[], updateRadixes: UpdateRadixes) => ToggleRadixes = (radixes, updateRadixes) => (radix, enabled) => {
+	const rs = [ ...radixes ]
 	switch (radix) {
 		case 'all':
-			radixes.forEach(r => { r.enabled = enabled })
+			rs.forEach(r => { r.enabled = enabled })
 			break
 		case 'odd':
-			radixes.forEach(r => { if ((r.radix & 1n) === 1n) r.enabled = enabled })
+			rs.forEach(r => { if ((r.radix & 1n) === 1n) r.enabled = enabled })
 			break
 		case 'even':
-			radixes.forEach(r => { if ((r.radix & 1n) === 0n) r.enabled = enabled })
+			rs.forEach(r => { if ((r.radix & 1n) === 0n) r.enabled = enabled })
 			break
 		case 'standard':
 		case 'bijective':
@@ -310,15 +343,45 @@ const createToggleRadixes: (radixes: Radix[], updateRadixes: UpdateRadixes) => T
 		case 'clock':
 		case 'sum':
 		case 'balsum':
-			radixes.forEach(r => { if (r.system === radix) r.enabled = enabled })
+			rs.forEach(r => { if (r.system === radix) r.enabled = enabled })
 			break
 		default:
 			radix.enabled = enabled
 	}
-	updateRadixes(radixes)
+	updateRadixes(rs)
 }
 
+function downloadContent(content: string, fileName = 'settings.json', mimeType = 'application/json' ) {
+    const url = URL.createObjectURL(new Blob([ content ], { type: mimeType }))
+    const link = document.createElement('a')
+
+    document.body.append(link)
+
+    link.href = url
+    link.download = fileName
+    link.click()
+
+	link.remove()
+
+    URL.revokeObjectURL(url)
+}
 
 function capitalize(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
+function getThemeLS(): string | undefined {
+	return localStorage.getItem(LS_THEME) ?? undefined
+}
+
+function setThemeLS(theme: string): void {
+	localStorage.setItem(LS_THEME, theme)
+}
+
+function setCharsLS(chars?: string): void {
+	if (chars) {
+		localStorage.setItem(LS_CHARS, chars)
+	} else {
+		localStorage.removeItem(LS_CHARS)
+	}
 }

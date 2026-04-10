@@ -1,8 +1,10 @@
-import  { type ComponentProps, type InputEventHandler, type ClipboardEventHandler, useState, useEffectEvent, useEffect, useRef  } from 'react'
+import { type ComponentProps, type InputEventHandler, type ClipboardEventHandler, useState, useEffectEvent, useEffect, useRef  } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
 
 import type { UpdateValue } from '#/app.tsx'
-import { type Radix, num2str, str2num, filling_shl, shl, shr, allowedCharaters, sanitizeInput, createRadix, getCharsForTooltip } from '#/utils.ts'
+import { sanitizeInput } from "#/common.ts"
+import { getCharsForTooltip } from './Table.tsx'
+import { type Radix, num2str, str2num, allowedCharaters, createRadix,  } from '#/utils.ts'
 
 const BIG_INT_0 = 0n
 const BIG_INT_1 = 1n
@@ -202,3 +204,15 @@ function getDigitSumArray(number: bigint, radix: Radix) : [string, string][] {
 }
 
 const getCaretPosition = () => getSelection()?.getRangeAt(0).startOffset ?? 0
+
+function filling_shl(value: bigint, radix: Radix): bigint {
+	return value ? value > 0 ? value * radix.radix + 1n : value * radix.radix - 1n : 1n
+}
+
+function shl(value: bigint, radix: Radix): bigint {
+	return value * radix.radix
+}
+
+function shr(value: bigint, radix: Radix): bigint {
+	return radix.system === 'sum' ? str2num(num2str(value, radix).slice(1), radix) : str2num(num2str(value, radix).slice(0, -1), radix)
+}

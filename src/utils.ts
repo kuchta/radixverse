@@ -10,10 +10,6 @@ const baseBal71 = baseMinus26 + baseMinus9 + zero + base9 + base26
 // const base36cz = 'AÁBCČDĎEÉFGHIÍJKLMNŇOÓPQRŘSŠTŤUÚVXZŽ'
 // const base42 = [ 'A', 'Á', 'B', 'C', 'Č', 'D', 'Ď', 'E', 'É', 'Ě', 'F', 'G', 'H', 'Ch', 'I', 'Í', 'J', 'K', 'L', 'M', 'N', 'Ň', 'O', 'Ó', 'P', 'Q', 'R', 'Ř', 'S', 'Š', 'T', 'Ť', 'U', 'Ú', 'Ů', 'V', 'W', 'X', 'Y', 'Ý', 'Z', 'Ž' ]
 
-const LS_THEME = 'theme'
-const LS_CHARS = 'chars'
-const LS_RADIXES = 'radixes'
-
 export const defaultChars = baseBal71
 const defaultCharsArray = Array.from(defaultChars)
 
@@ -27,44 +23,6 @@ export type Radix = {
 	reversedValues: Map<bigint, string>
 	low: number
 	high: number
-}
-
-export function getThemeLS(): string | undefined {
-	return localStorage.getItem(LS_THEME) ?? undefined
-}
-
-export function setThemeLS(theme: string): void {
-	localStorage.setItem(LS_THEME, theme)
-}
-
-export function getCharsLS(): string | undefined {
-	return localStorage.getItem(LS_CHARS) ?? undefined
-}
-
-export function setCharsLS(chars?: string): void {
-	if (chars) {
-		localStorage.setItem(LS_CHARS, chars)
-	} else {
-		localStorage.removeItem(LS_CHARS)
-	}
-}
-
-export function getRadixesLS(updateError: (error: unknown) => void): Radix[] | undefined {
-	const item = localStorage.getItem(LS_RADIXES)
-	if (item == undefined) return
-
-	try {
-		const radixes = JSON.parse(item) as Radix[]
-		return radixes.map(r => createRadix(r.radix as unknown as number, r.system, r.chars, r.enabled, r.name, false))
-	} catch (error) {
-		updateError(error)
-		localStorage.removeItem(LS_RADIXES)
-	}
-}
-
-export function setRadixesLS(radixes: Radix[]): void {
-	const rs = radixes.map(r => ({ name: r.name, radix: Number(r.radix), system: r.system, chars: r.chars, enabled: r.enabled }))
-	localStorage.setItem(LS_RADIXES, JSON.stringify(rs))
 }
 
 export function createRadixes(chars?: string): Radix[] {
@@ -393,31 +351,7 @@ export function str2num(str: string, radix: Radix): bigint {
 	return neg ? -ret : ret
 }
 
-export function filling_shl(value: bigint, radix: Radix): bigint {
-	return value ? value > 0 ? value * radix.radix + 1n : value * radix.radix - 1n : 1n
-}
-
-export function shl(value: bigint, radix: Radix): bigint {
-	return value * radix.radix
-}
-
-export function shr(value: bigint, radix: Radix): bigint {
-	return radix.system === 'sum' ? str2num(num2str(value, radix).slice(1), radix) : str2num(num2str(value, radix).slice(0, -1), radix)
-}
-
 export function allowedCharaters(radix: Radix): string {
 	const chars = radix.system === 'bijective' ? radix.chars.slice(1) : radix.chars
 	return  `Allowed characters are "${radix.system === 'balanced' ? chars : `-${radix.chars}`}".`
-}
-
-export function sanitizeInput(input: string, radix: Radix): string[] {
-	input = input.toUpperCase()
-	const chars = radix.system === 'balanced' ? radix.chars : `-${radix.chars}`
-	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
-	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'g'), '')
-	return [ sanitizedInput, rest ]
-}
-
-export function getCharsForTooltip(radix: Radix): string {
-	return [ ...radix.values.entries() ].slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([k, v], i) => `${k}:${v}${(i+1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n': ' '}`).join('')
 }

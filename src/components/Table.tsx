@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LiaEditSolid } from 'react-icons/lia'
 
-import { type Radix, num2str, getCharsForTooltip } from '#/utils.ts'
+import { type Radix, num2str } from '#/utils.ts'
 
 
 export function Tables({ children }: { children: React.ReactNode[] }) {
@@ -77,4 +77,8 @@ function EditRowsOrColumns({ columns, rows, update, setEdit }: { columns?: numbe
 			onKeyDown={e => { if (e.key === 'Escape') setEdit(false) }}
 		/>
 	</div>
+}
+
+export function getCharsForTooltip(radix: Radix): string {
+	return [ ...radix.values.entries() ].slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([k, v], i) => `${k}:${v}${(i+1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n': ' '}`).join('')
 }

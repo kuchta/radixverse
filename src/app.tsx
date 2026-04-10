@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
 
+import { LS_RADIXES, AppContext, getCharsLS, sanitizeInput, serializeRadixes, unserializeRadixes } from './common.ts'
 import Header from './components/Header.tsx'
 import Show from './components/Show.tsx'
 import Add from './components/Add.tsx'
@@ -13,13 +14,9 @@ import {
 	type Radix,
 	createRadixes,
 	createRadix,
-	getCharsLS,
-	getRadixesLS,
-	setRadixesLS,
 	num2str,
 	str2num,
 	allowedCharaters,
-	sanitizeInput
 } from '#/utils.ts'
 
 import './app.css'
@@ -27,7 +24,6 @@ import './app.css'
 
 export type UpdateRadixes = (radixes: Radix[]) => void
 export type UpdateValue = (value: bigint, radix?: Radix) => void
-export type ClearSettings = () => void
 
 const BIG_INT_0 = 0n
 
@@ -40,24 +36,26 @@ createRoot(document.querySelector('#root')!).render(
 function App() {
 	const [ error, setError ] = useState<unknown>()
 	const updateError = (error: unknown) => { setError(error); setTimeout(() => { setError(undefined) }, 10_000) }
-	const { radixes, enabledRadixes, updateRadixes, value, updateValue, clearSettings } = useStore(updateError)
+	const { radixes, enabledRadixes, updateRadixes, value, updateValue } = useStore(updateError)
 	const { pathname, search } = useLocation()
 
 	return <ErrorBoundary onError={updateError} FallbackComponent={ErrorToast}>
-		{ getErrorMessage(error) && <ErrorToast error={error}/> }
-		<Header radixes={radixes} updateRadixes={updateRadixes} clearSettings={clearSettings}/>
-		<nav className="tabs tabs-bordered justify-center mb-4 z-10">
-			<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
-			<Link className={`tab ${pathname.includes('add') ? 'tab-active' : ''}`} to={`add${search}`}>Add</Link>
-			<Link className={`tab ${pathname.includes('multiply') ? 'tab-active' : ''}`} to={`multiply${search}`}>Multiply</Link>
-			<Link className={`tab ${pathname.includes('convert') ? 'tab-active' : ''}`} to={`convert${search}`}>Convert</Link>
-		</nav>
-		<Routes>
-			<Route path="/" element={<Show radixes={enabledRadixes}/>}/>
-			<Route path="add" element={<Add radixes={enabledRadixes}/>}/>
-			<Route path="multiply" element={<Multiply radixes={enabledRadixes}/>}/>
-			<Route path="convert" element={<Convert radixes={enabledRadixes} value={value} updateValue={updateValue}/>}/>
-		</Routes>
+		<AppContext value={{ updateError }}>
+			{ getErrorMessage(error) && <ErrorToast error={error}/> }
+			<Header radixes={radixes} updateRadixes={updateRadixes}/>
+			<nav className="tabs tabs-bordered justify-center mb-4 z-10">
+				<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
+				<Link className={`tab ${pathname.includes('add') ? 'tab-active' : ''}`} to={`add${search}`}>Add</Link>
+				<Link className={`tab ${pathname.includes('multiply') ? 'tab-active' : ''}`} to={`multiply${search}`}>Multiply</Link>
+				<Link className={`tab ${pathname.includes('convert') ? 'tab-active' : ''}`} to={`convert${search}`}>Convert</Link>
+			</nav>
+			<Routes>
+				<Route path="/" element={<Show radixes={enabledRadixes}/>}/>
+				<Route path="add" element={<Add radixes={enabledRadixes}/>}/>
+				<Route path="multiply" element={<Multiply radixes={enabledRadixes}/>}/>
+				<Route path="convert" element={<Convert radixes={enabledRadixes} value={value} updateValue={updateValue}/>}/>
+			</Routes>
+		</AppContext>
 	</ErrorBoundary>
 }
 
@@ -103,21 +101,7 @@ function useStore(updateError: (error: unknown) => void) {
 		enabledRadixes.forEach(r => { searchParams.append('r', r.name) })
 		setSearchParams(searchParams)
 
-		setRadixesLS(radixes)
-	}, [ searchParams ])
-
-	const clearSettings = useCallback<ClearSettings>(() => {
-		localStorage.clear()
-
-		const radixes = createRadixes()
-		setRadixes(radixes)
-
-		const enabledRadixes = radixes.filter(v => v.enabled)
-		setEnabledRadixes(enabledRadixes)
-
-		searchParams.delete('r')
-		enabledRadixes.forEach(r => { searchParams.append('r', r.name) })
-		setSearchParams(searchParams)
+		localStorage.setItem(LS_RADIXES, serializeRadixes(radixes))
 	}, [ searchParams ])
 
 	useEffect(() => {
@@ -142,9 +126,21 @@ function useStore(updateError: (error: unknown) => void) {
 		if (sValue) {
 			const [ value, rest ] = sanitizeInput(sValue, r)
 			setValue(str2num(value, r))
-			if (rest) throw new Error(`Non-Base characters "${rest}" for radix "${r.name}" has been filtered out. ${allowedCharaters(r)}`)
+			if (rest) updateError(new Error(`Non-Base characters "${rest}" for radix "${r.name}" has been filtered out. ${allowedCharaters(r)}`))
 		}
 	}, [])
 
-	return { radixes, enabledRadixes, updateRadixes, value, updateValue, clearSettings }
+	return { radixes, enabledRadixes, updateRadixes, value, updateValue }
+}
+
+function getRadixesLS(updateError: (error: unknown) => void): Radix[] | undefined {
+	const item = localStorage.getItem(LS_RADIXES)
+	if (item == undefined) return
+
+	try {
+		return unserializeRadixes(item)
+	} catch (error) {
+		updateError(error)
+		localStorage.removeItem(LS_RADIXES)
+	}
 }
