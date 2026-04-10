@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 
-import Table, { Tables } from './Table.tsx'
+import Table, { Tables } from './table.tsx'
 import type { Radix } from '#/utils.ts'
 
 const { isNaN } = Number

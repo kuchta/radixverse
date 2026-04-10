@@ -5,11 +5,11 @@ import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
 
 import { LS_RADIXES, AppContext, getCharsLS, sanitizeInput, serializeRadixes, unserializeRadixes } from './common.ts'
-import Header from './components/Header.tsx'
-import Show from './components/Show.tsx'
-import Add from './components/Add.tsx'
-import Multiply from './components/Multiply.tsx'
-import Convert from './components/Convert.tsx'
+import Header from './components/header.tsx'
+import Show from './components/show.tsx'
+import Add from './components/add.tsx'
+import Multiply from './components/multiply.tsx'
+import Convert from './components/convert.tsx'
 import {
 	type Radix,
 	createRadixes,

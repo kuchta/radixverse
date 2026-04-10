@@ -3,7 +3,7 @@ import { getErrorMessage } from 'react-error-boundary'
 
 import type { UpdateValue } from '#/app.tsx'
 import { sanitizeInput } from "#/common.ts"
-import { getCharsForTooltip } from './Table.tsx'
+import { getCharsForTooltip } from './table.tsx'
 import { type Radix, num2str, str2num, allowedCharaters, createRadix,  } from '#/utils.ts'
 
 const BIG_INT_0 = 0n
