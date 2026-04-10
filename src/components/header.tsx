@@ -1,12 +1,12 @@
-import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, useContext, useState, useMemo, useEffectEvent, useEffect, useRef, useCallback } from 'react'
+import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, useContext, useState, useMemo, useRef, /* useEffectEvent, useEffect */ } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
-
 import TextareaAutosize from 'react-textarea-autosize'
 import themeObject from 'daisyui/theme/object.js'
 
 import type { UpdateRadixes } from '#/app.tsx'
 import { AppContext, getCharsLS, LS_CHARS, serializeRadixes, unserializeRadixes } from '#/common.ts'
 import { type Radix, createRadixes, createRadix, defaultChars } from '#/utils.ts'
+
 
 export const LS_THEME = 'theme'
 type ToggleRadixes = (radix: 'all' | 'odd' | 'even' | Radix['system'] | Radix, enabled: boolean) => void
@@ -29,40 +29,39 @@ export default function Header({ radixes, updateRadixes }: {
 	const radixesSystems = useMemo(() => [ ...new Set(radixes.map(r => r.system)) ], [ radixes ])
 	const groupedRadixes = useMemo(() => Object.values(Object.groupBy(radixes, r => r.system)), [ radixes ])
 	const toggleRadixes = useMemo(() => createToggleRadixes(radixes, updateRadixes), [ radixes, updateRadixes ])
-	const toggleSettings = useCallback(() => { setSettingsExpanded(!settingsExpanded) }, [ settingsExpanded ])
+	const toggleSettings = () => { setSettingsExpanded(!settingsExpanded) }
 
-	const updateTheme = useCallback((theme: string) => {
+	const updateTheme = (theme: string) => {
 		document.documentElement.setAttribute('data-theme', theme)
 		setTheme(theme)
 		setThemeLS(theme)
-	}, [])
+	}
 
-	const clearSettings = useCallback(() => {
+	const clearSettings = () => {
 		localStorage.clear()
 		const radixes = createRadixes()
 		updateRadixes(radixes)
-	}, [ updateRadixes ])
+	}
 
-	const downloadSettings = useCallback(() => {
+	const downloadSettings = () => {
 		downloadContent(serializeRadixes(radixes), 'settings.json')
-	}, [ radixes ])
+	}
 
-	const uploadSettings = useCallback<ChangeEventHandler<HTMLInputElement, HTMLInputElement>>(async (e) => {
+	const uploadSettings: ChangeEventHandler<HTMLInputElement, HTMLInputElement> = async (e) => {
 		const file = e.currentTarget.files?.[0]
 		e.target.value = ''
 		if (!file) return
 
 		try {
 			const content = await file.text()
-			if (typeof content !== 'string') throw new Error('File content is not a text')
+			if (typeof content !== 'string') return updateError(new Error('File content is not a text'))
 			updateRadixes(unserializeRadixes(content))
 		} catch (error) {
 			updateError(error)
 		}
+	}
 
-	}, [ updateRadixes ])
-
-	const updateInputRadix = useCallback((radix?: string) => {
+	const updateInputRadix = (radix?: string) => {
 		let r: Radix | undefined
 		let chars: string
 
@@ -73,54 +72,59 @@ export default function Header({ radixes, updateRadixes }: {
 			if (r) {
 				chars = r.chars
 			} else {
-				throw new Error(`Radix ${radix} not found`)
+				return updateError(new Error(`Radix ${radix} not found`))
 			}
 		}
 		setInputRadix(r)
 		setInputChars(chars)
-	}, [ allChars, radixes ])
+	}
 
-	const inputCharsSubmit = useCallback<ReactEventHandler<HTMLFormElement>>((e) => {
+	const inputCharsSubmit: ReactEventHandler<HTMLFormElement> = e => {
 		e.preventDefault()
 		setInputCharsError(undefined)
 
+		if (e.type === 'submit' && Array.from(inputChars).length !== new Set(inputChars).size) {
+			return setInputCharsError('input must contain only unique characters')
+		}
+
 		let rs = [ ...radixes ]
 		let chars: string
+		let error = false
 		if (inputRadix) { // specific radix
+			let isAllChars: boolean
+			if (e.type === 'submit') {
+				chars = inputChars
+				isAllChars = false
+			} else {
+				chars = allChars
+				isAllChars = true
+			}
 			const i = radixes.findIndex(r => r.name === inputRadix.name)
 			const r = radixes[i]
-
 			try {
-				rs[i] = createRadix(Number(r.radix), r.system, e.type === 'submit' ? inputChars : allChars, r.enabled, r.name, e.type === 'reset')
-			} catch (error) {
-				setInputCharsError(getErrorMessage(error))
+				rs[i] = createRadix(Number(r.radix), r.system, chars, r.enabled, r.name, isAllChars)
+				setInputRadix(rs[i])
+			} catch (e) {
+				setInputCharsError(getErrorMessage(e))
+				error = true
 			}
-
-			if (e.type === 'reset') {
-				setInputChars(rs[i].chars)
-			}
+			if (e.type === 'reset') setInputChars(rs[i].chars)
 		} else { // all radixes
-			if (e.type === 'submit') {
-				setAllChars(inputChars)
-				setCharsLS(inputChars)
-				chars = inputChars
-			} else {
-				setInputChars(defaultChars)
-				setAllChars(defaultChars)
-				setCharsLS(undefined)
-				chars = defaultChars
-			}
-
+			chars = (e.type === 'submit') ? inputChars : defaultChars
 			try {
 				rs = radixes.map(r => createRadix(Number(r.radix), r.system, chars, r.enabled, r.name))
-			} catch (error) {
-				setInputCharsError(getErrorMessage(error))
+				setAllChars(chars)
+				setCharsLS(chars)
+			} catch (e) {
+				setInputCharsError(getErrorMessage(e))
+				error = true
 			}
+			if (e.type === 'reset') setInputChars(defaultChars)
 		}
-		updateRadixes(rs)
-	}, [ inputRadix, inputChars, radixes, updateRadixes ])
+		if (!error) updateRadixes(rs)
+	}
 
-	const handleInputCharsKeyDown = useCallback<KeyboardEventHandler<HTMLTextAreaElement>>(e => {
+	const handleInputCharsKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = e => {
 		e.stopPropagation()
 		if (e.key === 'Enter' || e.key === 'Escape') {
 			e.preventDefault()
@@ -132,14 +136,14 @@ export default function Header({ radixes, updateRadixes }: {
 				e.currentTarget.blur()
 			}
 		}
-	}, [ inputRadix, updateInputRadix ])
+	}
 
-	const keyDown = useEffectEvent((e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) })
+	// const keyDown = useEffectEvent((e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) })
 
-	useEffect(() => {
-		document.addEventListener('keydown', keyDown)
-		return () => { document.removeEventListener('keydown', keyDown) }
-	}, [])
+	// useEffect(() => {
+	// 	document.addEventListener('keydown', keyDown)
+	// 	return () => { document.removeEventListener('keydown', keyDown) }
+	// }, [])
 
 	return <header className="p-2">
 		<div className="navbar bg-base-100 p-0">

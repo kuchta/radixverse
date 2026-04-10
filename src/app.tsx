@@ -1,6 +1,6 @@
 
 import { createRoot } from 'react-dom/client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
 
@@ -35,9 +35,15 @@ createRoot(document.querySelector('#root')!).render(
 
 function App() {
 	const [ error, setError ] = useState<unknown>()
-	const updateError = (error: unknown) => { setError(error); setTimeout(() => { setError(undefined) }, 10_000) }
+	const updateError = (error: unknown) => { setError(error); setTimeout(() => { setError(undefined) }, 30_000) }
 	const { radixes, enabledRadixes, updateRadixes, value, updateValue } = useStore(updateError)
 	const { pathname, search } = useLocation()
+
+	useEffect(() => {
+		const keyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setError(undefined) }
+		document.addEventListener('keydown', keyDown)
+		return () => { document.removeEventListener('keydown', keyDown) }
+	}, [])
 
 	return <ErrorBoundary onError={updateError} FallbackComponent={ErrorToast}>
 		<AppContext value={{ updateError }}>
@@ -74,7 +80,7 @@ function useStore(updateError: (error: unknown) => void) {
 	const [ value, setValue ] = useState(BIG_INT_0)
 	const [ radix, setRadix ] = useState(createRadix(10))
 
-	const updateValue = useCallback<UpdateValue>((value, r = radix) => {
+	const updateValue: UpdateValue = (value, r = radix) => {
 		if (value === BIG_INT_0) {
 			searchParams.delete('radix')
 			searchParams.delete('value')
@@ -89,9 +95,9 @@ function useStore(updateError: (error: unknown) => void) {
 		setValue(value)
 		setRadix(r)
 		setSearchParams(searchParams)
-	}, [ radix, searchParams, setSearchParams ])
+	}
 
-	const updateRadixes = useCallback<UpdateRadixes>((radixes) => {
+	const updateRadixes: UpdateRadixes = (radixes) => {
 		setRadixes(radixes)
 
 		const enabledRadixes = radixes.filter(v => v.enabled)
@@ -102,7 +108,7 @@ function useStore(updateError: (error: unknown) => void) {
 		setSearchParams(searchParams)
 
 		localStorage.setItem(LS_RADIXES, serializeRadixes(radixes))
-	}, [ searchParams ])
+	}
 
 	useEffect(() => {
 		if (searchParams.has('clear-settings')) localStorage.clear()

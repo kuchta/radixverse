@@ -36,18 +36,15 @@ export default defineConfig(
 		importPlugin.flatConfigs.recommended,
 		reactPlugin.configs.flat,
 		reactHooksPlugin.default.configs.flat,
-		// @ts-expect-error Types of property 'sourceCode' are incompatible.
 		reactCompilerPlugin.configs.recommended,
 	],
 	plugins: {
 		'@typescript-eslint': tslint.plugin,
-		// @ts-expect-error Types of property 'create' are incompatible
 		'@stylistic': stylisticPlugin,
 		import: importPlugin,
 		react: reactPlugin,
 		// @ts-expect-error no properties in common with type 'Plugin'
 		'react-hooks': reactHooksPlugin,
-		// @ts-expect-error Types of property 'plugins' are incompatible.
 		'react-compiler': reactCompilerPlugin,
 	},
 	settings: {
