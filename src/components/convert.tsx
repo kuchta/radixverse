@@ -1,10 +1,11 @@
 import { type ComponentProps, type InputEventHandler, type ClipboardEventHandler, useState, useEffectEvent, useEffect, useRef  } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
 
+import { type Radix, num2str, str2num, allowedCharaters, createRadix,  } from '#/radixes.ts'
 import type { UpdateValue } from '#/app.tsx'
 import { sanitizeInput } from "#/common.ts"
 import { getCharsForTooltip } from './table.tsx'
-import { type Radix, num2str, str2num, allowedCharaters, createRadix,  } from '#/utils.ts'
+
 
 const BIG_INT_0 = 0n
 const BIG_INT_1 = 1n

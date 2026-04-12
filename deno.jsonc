@@ -1,4 +1,7 @@
 {
+	"name": "@kuchta/radixverse",
+	"version": "0.1.0",
+	"exports": "./src/radixes.ts",
 	"nodeModulesDir": "auto",
 	"exclude": [ ".history" ],
 	"tasks": {
@@ -27,7 +30,7 @@
 		}
 	},
 	"publish": {
-		"include": [ "README.md", "deno.json", "package.json", "src/utils.ts" ]
+		"include": [ "README.md", "deno.json", "package.json", "src/radixes.ts" ]
 	},
 	"deploy": {
 		"org": "kuchta",

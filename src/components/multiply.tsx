@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react"
 
+import type { Radix } from '#/radixes.ts'
 import Table, { Tables } from './table.tsx'
-import type { Radix } from '#/utils.ts'
 
 const { isNaN } = Number
 
 export default function Multiply({ radixes }: { radixes: Radix[] }) {
-	return <Tables>{ radixes.map(radix => <MultiplyTable radix={radix} key={radix.name}/>) }</Tables>
+	return <Tables>{ radixes.map(radix =>
+		<MultiplyTable radix={radix} key={radix.name}/>) }
+	</Tables>
 }
 
 function MultiplyTable({ radix }: { radix: Radix }) {

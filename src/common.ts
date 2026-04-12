@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 import { z } from 'zod'
 
-import { createRadix, type Radix } from "./utils.ts"
+import { createRadix, type Radix } from "./radixes.ts"
 import { getErrorMessage } from "react-error-boundary"
 
 

@@ -1,23 +1,16 @@
-
 import { createRoot } from 'react-dom/client'
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
 
 import { LS_RADIXES, AppContext, getCharsLS, sanitizeInput, serializeRadixes, unserializeRadixes } from './common.ts'
+import { type Radix, createRadixes, createRadix, num2str, str2num, allowedCharaters, } from './radixes.ts'
+
 import Header from './components/header.tsx'
 import Show from './components/show.tsx'
 import Add from './components/add.tsx'
 import Multiply from './components/multiply.tsx'
 import Convert from './components/convert.tsx'
-import {
-	type Radix,
-	createRadixes,
-	createRadix,
-	num2str,
-	str2num,
-	allowedCharaters,
-} from '#/utils.ts'
 
 import './app.css'
 
@@ -77,8 +70,21 @@ function useStore(updateError: (error: unknown) => void) {
 	const [ radixes, setRadixes ] = useState(getRadixesLS(updateError) ?? createRadixes(getCharsLS()))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(r => r.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
-	const [ value, setValue ] = useState(BIG_INT_0)
 	const [ radix, setRadix ] = useState(createRadix(10))
+	const [ value, setValue ] = useState(BIG_INT_0)
+
+	const updateRadixes: UpdateRadixes = (radixes) => {
+		setRadixes(radixes)
+
+		const enabledRadixes = radixes.filter(v => v.enabled)
+		setEnabledRadixes(enabledRadixes)
+
+		searchParams.delete('r')
+		enabledRadixes.forEach(r => { searchParams.append('r', r.name) })
+		setSearchParams(searchParams)
+
+		localStorage.setItem(LS_RADIXES, serializeRadixes(radixes))
+	}
 
 	const updateValue: UpdateValue = (value, r = radix) => {
 		if (value === BIG_INT_0) {
@@ -95,19 +101,6 @@ function useStore(updateError: (error: unknown) => void) {
 		setValue(value)
 		setRadix(r)
 		setSearchParams(searchParams)
-	}
-
-	const updateRadixes: UpdateRadixes = (radixes) => {
-		setRadixes(radixes)
-
-		const enabledRadixes = radixes.filter(v => v.enabled)
-		setEnabledRadixes(enabledRadixes)
-
-		searchParams.delete('r')
-		enabledRadixes.forEach(r => { searchParams.append('r', r.name) })
-		setSearchParams(searchParams)
-
-		localStorage.setItem(LS_RADIXES, serializeRadixes(radixes))
 	}
 
 	useEffect(() => {

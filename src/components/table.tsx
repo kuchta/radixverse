@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LiaEditSolid } from 'react-icons/lia'
 
-import { type Radix, num2str } from '#/utils.ts'
+import { type Radix, num2str } from '#/radixes.ts'
 
 
 export function Tables({ children }: { children: React.ReactNode[] }) {

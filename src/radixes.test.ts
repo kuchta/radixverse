@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import { strictEqual as assertStrictEquals } from 'node:assert'
 
-import { type Radix, createRadix, num2str, str2num } from '#/utils.ts'
+import { type Radix, createRadix, num2str, str2num } from './radixes.ts'
 
 
 type Tests = {

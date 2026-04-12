@@ -3,9 +3,9 @@ import { getErrorMessage } from 'react-error-boundary'
 import TextareaAutosize from 'react-textarea-autosize'
 import themeObject from 'daisyui/theme/object.js'
 
+import { type Radix, createRadixes, createRadix, defaultChars } from '#/radixes.ts'
 import type { UpdateRadixes } from '#/app.tsx'
 import { AppContext, getCharsLS, LS_CHARS, serializeRadixes, unserializeRadixes } from '#/common.ts'
-import { type Radix, createRadixes, createRadix, defaultChars } from '#/utils.ts'
 
 
 export const LS_THEME = 'theme'
@@ -61,7 +61,7 @@ export default function Header({ radixes, updateRadixes }: {
 		}
 	}
 
-	const updateInputRadix = (radix?: string) => {
+	const updateInputRadixAndChars = (radix?: string) => {
 		let r: Radix | undefined
 		let chars: string
 
@@ -83,67 +83,45 @@ export default function Header({ radixes, updateRadixes }: {
 		e.preventDefault()
 		setInputCharsError(undefined)
 
-		if (e.type === 'submit' && Array.from(inputChars).length !== new Set(inputChars).size) {
-			return setInputCharsError('input must contain only unique characters')
-		}
-
-		let rs = [ ...radixes ]
-		let chars: string
-		let error = false
+		let rs: Radix[]
+		let error: string | undefined
 		if (inputRadix) { // specific radix
-			let isAllChars: boolean
-			if (e.type === 'submit') {
-				chars = inputChars
-				isAllChars = false
-			} else {
-				chars = allChars
-				isAllChars = true
-			}
-			const i = radixes.findIndex(r => r.name === inputRadix.name)
-			const r = radixes[i]
+			const { chars, isAllChars } = (e.type === 'submit') ? { chars: inputChars, isAllChars: false } : { chars: allChars, isAllChars: true }
+			rs = [ ...radixes ]
 			try {
+				const i = rs.findIndex(r => r.name === inputRadix.name)
+				const r = rs[i]
 				rs[i] = createRadix(Number(r.radix), r.system, chars, r.enabled, r.name, isAllChars)
 				setInputRadix(rs[i])
+				setInputChars(rs[i].chars)
 			} catch (e) {
-				setInputCharsError(getErrorMessage(e))
-				error = true
+				error = getErrorMessage(e)
 			}
-			if (e.type === 'reset') setInputChars(rs[i].chars)
 		} else { // all radixes
-			chars = (e.type === 'submit') ? inputChars : defaultChars
+			const chars = (e.type === 'submit') ? inputChars : defaultChars
 			try {
 				rs = radixes.map(r => createRadix(Number(r.radix), r.system, chars, r.enabled, r.name))
+				setInputChars(chars)
 				setAllChars(chars)
 				setCharsLS(chars)
 			} catch (e) {
-				setInputCharsError(getErrorMessage(e))
-				error = true
+				error = getErrorMessage(e)
+				rs = radixes
 			}
-			if (e.type === 'reset') setInputChars(defaultChars)
 		}
-		if (!error) updateRadixes(rs)
+		if (error) { setInputCharsError(error) } else { updateRadixes(rs) }
 	}
 
 	const handleInputCharsKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = e => {
-		e.stopPropagation()
-		if (e.key === 'Enter' || e.key === 'Escape') {
+		if (e.key === 'Enter') {
 			e.preventDefault()
-			if (e.key === 'Enter') {
-				formRef.current?.requestSubmit()
-			} else {
-				setInputCharsError(undefined)
-				updateInputRadix(inputRadix?.name)
-				e.currentTarget.blur()
-			}
+			formRef.current?.requestSubmit()
+		} else if (e.key === 'Escape') {
+			updateInputRadixAndChars(inputRadix?.name)
+			setInputCharsError(undefined)
+			e.currentTarget.blur()
 		}
 	}
-
-	// const keyDown = useEffectEvent((e: KeyboardEvent) => { if (e.key === 'Escape') setInputCharsError(undefined) })
-
-	// useEffect(() => {
-	// 	document.addEventListener('keydown', keyDown)
-	// 	return () => { document.removeEventListener('keydown', keyDown) }
-	// }, [])
 
 	return <header className="p-2">
 		<div className="navbar bg-base-100 p-0">
@@ -242,7 +220,7 @@ export default function Header({ radixes, updateRadixes }: {
 							<select
 								className="select select-sm rounded-md bg-base-100 w-fit pl-2 pr-10 mr-1"
 								name="radix"
-								onChange={e => { updateInputRadix(e.target.value) }}
+								onChange={e => { updateInputRadixAndChars(e.target.value) }}
 							>
 								<option>All</option> { groupedRadixes.map(rgs =>
 								<optgroup label={rgs[0].system} key={rgs[0].system} className="font-bold">{ rgs.map(r =>
@@ -256,7 +234,7 @@ export default function Header({ radixes, updateRadixes }: {
 									rows={1}
 									cols={70}
 									value={inputChars}
-									onChange={e => { setInputCharsError(undefined); setInputChars(e.target.value) }}
+									onChange={e => { setInputChars(e.target.value) }}
 									onKeyDown={handleInputCharsKeyDown}
 								/>
 							</div>

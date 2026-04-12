@@ -43,6 +43,9 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 		if (chars !== defaultChars && chars.length < defaultChars.length) throw new Error(`chars must have at least ${defaultChars.length} characters, ${chars.length} provided`)
 		if ((chars.length & 1) === 0) throw new Error('chars must have odd number of characters')
 	}
+	if (Array.from(chars).length !== new Set(chars).size) {
+		throw new Error('chars must be unique')
+	}
 
 	let ret: Radix
 	const charsArray = Array.from(chars)
@@ -73,16 +76,16 @@ export function createRadix(radix: number, system: Radix['system'] = 'standard',
 	return ret
 }
 
-function createStandardRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
+function createStandardRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name = `${radix}`, allChars = true): Radix {
 	if (allChars) {
 		const zeroAt = (chars.length - 1) / 2
 		chars = radix === 26 ? chars.slice(zeroAt + 10, zeroAt + 10 + radix) : chars.slice(zeroAt, zeroAt + radix)
-	} else if (chars.length !== radix) invalidNumberOfCharacters(radix, 'standard', radix, chars.length)
+	} else if (chars.length !== radix) throw invalidNumberOfCharacters(name, radix, chars.length)
 
 	const values = chars.map((c, i) => [c, BigInt(i)] as [string, bigint])
 
 	return {
-		name: name ?? `${radix}`,
+		name,
 		system: 'standard',
 		radix: BigInt(radix),
 		chars: chars.join(''),
@@ -94,16 +97,16 @@ function createStandardRadix(radix: number, chars = defaultCharsArray, enabled?:
 	}
 }
 
-function createBijectiveRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
+function createBijectiveRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name = `bij-${radix}`, allChars = true): Radix {
 	if (allChars) {
 		const zeroAt = (chars.length - 1) / 2
 		chars = radix === 26 ? chars.slice(zeroAt, zeroAt + radix + 10).toSpliced(1, 9) : chars.slice(zeroAt, zeroAt + radix + 1)
-	} else if (chars.length !== radix + 1) invalidNumberOfCharacters(radix, 'bijective', radix + 1, chars.length)
+	} else if (chars.length !== radix + 1) throw invalidNumberOfCharacters(name, radix + 1, chars.length)
 
 	const values = chars.map((c, i) => [c, BigInt(i)] as [string, bigint])
 
 	return {
-		name: name ?? `bij-${radix}`,
+		name,
 		system: 'bijective',
 		radix: BigInt(radix),
 		chars: chars.join(''),
@@ -115,9 +118,9 @@ function createBijectiveRadix(radix: number, chars = defaultCharsArray, enabled?
 	}
 }
 
-function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
+function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name = `bal-${radix}`, allChars = true): Radix {
 	if ((radix & 1) === 0) throw new Error(`createRadix: Radix(balanced) must be odd: ${radix}`)
-	if (!allChars && chars.length !== radix) invalidNumberOfCharacters(radix, 'balanced', radix, chars.length)
+	if (!allChars && chars.length !== radix) throw invalidNumberOfCharacters(name, radix, chars.length)
 
 	const zeroAt = (chars.length - 1) / 2
 	const half = (radix - 1) / 2
@@ -126,7 +129,7 @@ function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?:
 	const values = chars.map((c, i) => [c, BigInt(-half + i)] as [string, bigint])
 
 	return {
-		name: name ?? `bal-${radix}`,
+		name,
 		system: 'balanced',
 		radix: BigInt(radix),
 		chars: chars.join(''),
@@ -138,11 +141,11 @@ function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?:
 	}
 }
 
-function createSumRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
+function createSumRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name = `sum-${radix}`, allChars = true): Radix {
 	if (allChars) {
 		chars = chars.slice((chars.length - 1) / 2).toSpliced(1, 9)
 	}
-	if (chars.length < radix) invalidNumberOfCharacters(radix, 'sum', radix, chars.length, true)
+	if (chars.length < radix) throw invalidNumberOfCharacters(name, radix, chars.length, true)
 
 	const r = radix - 1
 	let order = 1
@@ -155,7 +158,7 @@ function createSumRadix(radix: number, chars = defaultCharsArray, enabled?: bool
 	] as [string, bigint][]
 
 	return {
-		name: name ?? `sum-${radix}`,
+		name,
 		system: 'sum',
 		radix: BigInt(radix),
 		chars: chars.join(''),
@@ -167,13 +170,13 @@ function createSumRadix(radix: number, chars = defaultCharsArray, enabled?: bool
 	}
 }
 
-function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
+function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name = `balsum-${radix}`, allChars = true): Radix {
 	let half = (chars.length - 1) / 2
 	if (allChars) {
 		chars = chars.slice(half + 10).toSpliced((half - 9) / 2, 0, chars[half])
 		half = (chars.length - 1) / 2
 	}
-	if (chars.length < radix) invalidNumberOfCharacters(radix, 'balsum', radix, chars.length, true)
+	if (chars.length < radix) throw invalidNumberOfCharacters(name, radix, chars.length, true)
 
 	const high = (radix - 1) / 2
 	let createValues: (order: number) => (c: string, i: number) => [string, bigint]
@@ -191,7 +194,7 @@ function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: b
 	const values = [...minusValues.toReversed(), [chars[half], 0n], ...plusValues] as [string, bigint][]
 
 	return {
-		name: name ?? `balsum-${radix}`,
+		name,
 		system: 'balsum',
 		radix: BigInt(radix),
 		chars: chars.join(''),
@@ -203,13 +206,13 @@ function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: b
 	}
 }
 
-function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name?: string, allChars = true): Radix {
+function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: boolean, name = `clock-${radix}`, allChars = true): Radix {
 	if (radix & 1) throw new Error(`createRadix: Radix(clock) must be even: ${radix}`)
 	let zeroAt: number
 	if (allChars) {
 		zeroAt = (chars.length - 1) / 2
 	} else {
-		if (chars.length !== radix) invalidNumberOfCharacters(radix, 'clock', radix, chars.length)
+		if (chars.length !== radix) throw invalidNumberOfCharacters(name, radix, chars.length)
 		zeroAt = chars.length / 2 - 1
 	}
 
@@ -218,7 +221,7 @@ function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: bo
 	const values = chars.map((c, i) => [c, BigInt(-half + 1 + i)] as [string, bigint])
 
 	return {
-		name: name ?? `clock-${radix}`,
+		name,
 		system: 'clock',
 		radix: BigInt(radix),
 		chars: chars.join(''),
@@ -228,10 +231,6 @@ function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: bo
 		high: half,
 		enabled: enabled ?? [2, 4, 6, 8, 10, 12, 16, 18, 20, 22, 24, 30, 36].includes(radix),
 	}
-}
-
-function invalidNumberOfCharacters(radix: number, system: Radix['system'], requiredLength: number, providedLength: number, atLeast = false) {
-	throw new Error(`Radix(${system}, ${radix}) needs${atLeast ? ' at least' : ''} ${requiredLength} characarters, ${providedLength} provided`)
 }
 
 // const num2strCache = new Map<Radix, Map<bigint, string>>()
@@ -349,6 +348,10 @@ export function str2num(str: string, radix: Radix): bigint {
 	}, 0n)
 
 	return neg ? -ret : ret
+}
+
+function invalidNumberOfCharacters(name: string, requiredLength: number, providedLength: number, atLeast = false) {
+	return new Error(`radix ${name} needs${atLeast ? ' at least' : ''} ${requiredLength} characarters, ${providedLength} provided`)
 }
 
 export function allowedCharaters(radix: Radix): string {

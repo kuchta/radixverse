@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 
+import type { Radix } from '#/radixes.ts'
 import Table, { Tables } from './table.tsx'
-import type { Radix } from '#/utils.ts'
 
 
 export default function Show({ radixes }: { radixes: Radix[] }) {
-	return <Tables>{ radixes.map(radix => <ShowTable radix={radix} key={radix.name}/>) }</Tables>
+	return <Tables>{ radixes.map(radix =>
+		<ShowTable radix={radix} key={radix.name}/>) }
+	</Tables>
 }
 
 function ShowTable({ radix }: { radix: Radix }) {
