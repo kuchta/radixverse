@@ -9,8 +9,11 @@
 	},
 	"oxc.enable": true,
 	"typescript.tsdk": "node_modules/typescript/lib",
-	"typescript.tsserver.experimental.enableProjectDiagnostics": false,
+	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
 	"[jsonc]": {
 		"editor.defaultFormatter": "oxc.oxc-vscode"
+	},
+	"[svg]": {
+		"editor.defaultFormatter": "jock.svg"
 	},
 }

@@ -1,17 +1,23 @@
 const zero = '0'
 const base9 = '123456789'
-const baseMinus9 = '➒➑➐➏➎➍➌➋➊'
+const baseMinus9 = '➊➋➌➍➎➏➐➑➒'
 // const baseMinus9 = '⑨⑧⑦⑥⑤④③②①'
 const base26 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const baseMinus26 = '🅩🅨🅧🅦🅥🅤🅣🅢🅡🅠🅟🅞🅝🅜🅛🅚🅙🅘🅗🅖🅕🅔🅓🅒🅑🅐'
-// const baseMinus26 = 'ⓏⓎⓍⓌⓋⓊⓉⓈⓇⓆⓅⓄⓃⓂⓁⓀⒿⒾⒽⒼⒻⒺⒹⒸⒷⒶ'
-const baseBal71 = baseMinus26 + baseMinus9 + zero + base9 + base26
+const baseMinus26 = '🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩'
+// const baseMinus26 = 'ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ'
 // const base32cz = 'ABCČDĎEFGHIJKLMNŇOPQRŘSŠTŤUVXYZŽ'
 // const base36cz = 'AÁBCČDĎEÉFGHIÍJKLMNŇOÓPQRŘSŠTŤUÚVXZŽ'
 // const base42 = [ 'A', 'Á', 'B', 'C', 'Č', 'D', 'Ď', 'E', 'É', 'Ě', 'F', 'G', 'H', 'Ch', 'I', 'Í', 'J', 'K', 'L', 'M', 'N', 'Ň', 'O', 'Ó', 'P', 'Q', 'R', 'Ř', 'S', 'Š', 'T', 'Ť', 'U', 'Ú', 'Ů', 'V', 'W', 'X', 'Y', 'Ý', 'Z', 'Ž' ]
 
-export const defaultChars = baseBal71
-const defaultCharsArray = Array.from(defaultChars)
+const defaultCharsArray: string[] = [
+	...Array.from(baseMinus26).reverse(),
+	...Array.from(baseMinus9).reverse(),
+	zero,
+	...Array.from(base9),
+	...Array.from(base26)
+]
+
+export const defaultChars: string = defaultCharsArray.join('')
 
 export type Radix = {
 	name: string

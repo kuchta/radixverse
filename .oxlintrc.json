@@ -54,6 +54,7 @@
 				"eslint/max-statements": [ "warn", 50 ],
 				"eslint/no-bitwise": "off",
 				"eslint/no-console": "off",
+				"no-empty-function": "off",
 				"eslint/no-inline-comments": "off",
 				"eslint/no-magic-numbers": "off",
 				"eslint/no-negated-condition": "off",

@@ -136,7 +136,6 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 
 		const position = getCaretPosition()
 		const range = getSelection()?.getRangeAt(0)
-
 		const newV = range?.startContainer === ref.current ? input : Array.from(strVal).toSpliced(position, range ? range.endOffset - range.startOffset : 0, input).join('')
 
 		try {

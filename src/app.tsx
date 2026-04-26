@@ -105,13 +105,19 @@ function useStore(updateError: (error: unknown) => void) {
 
 	useEffect(() => {
 		if (searchParams.has('clear-settings')) localStorage.clear()
+
 		if (searchParams.has('r')) {
 			const searchRadixes = searchParams.getAll('r')
 			radixes.forEach(r => { r.enabled = searchRadixes.includes(r.name) })
 			updateRadixes(radixes)
 			setEnabledRadixes(radixes.filter(r => r.enabled))
+		} else {
+			enabledRadixes.forEach(r => { searchParams.append('r', r.name) })
+			setSearchParams(searchParams)
 		}
+
 		let r: Radix | undefined = radix
+
 		const sRadix = searchParams.get('radix')
 		if (sRadix) {
 			r = radixes.find(r => r.name === sRadix)
@@ -121,6 +127,7 @@ function useStore(updateError: (error: unknown) => void) {
 			}
 			setRadix(r)
 		}
+
 		const sValue = searchParams.get('value')
 		if (sValue) {
 			const [ value, rest ] = sanitizeInput(sValue, r)

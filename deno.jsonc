@@ -1,6 +1,8 @@
 {
 	"name": "@kuchta/radixverse",
-	"version": "0.1.0",
+	"version": "0.2.0",
+	"repository": "kuchta/radixverse",
+	"homepage": "https://kuchta.github.io/radixverse",
 	"exports": "./src/radixes.ts",
 	"nodeModulesDir": "auto",
 	"exclude": [ ".history" ],
