@@ -20,7 +20,7 @@
 		"start": "vite --host --port 10000",
 		"preview": "vite preview --port 10000",
 		"check": "tsc",
-		"lint": "oxlint",
+		"lint": "eslint",
 		"test": "node --test src/**/*.test.ts",
 		"build": "vite build",
 		"pre-commit": "pnpm check && pnpm lint && pnpm test && pnpm build"
@@ -30,10 +30,11 @@
 		"@eslint/js": "^10.0.1",
 		"@rolldown/plugin-babel": "^0.2.3",
 		"@stylistic/eslint-plugin": "^5.10.0",
-		"@tailwindcss/vite": "4.2.2",
+		"@tailwindcss/vite": "0.0.0-insiders.f3fdda2",
 		"@types/node": "^25.6.0",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
+		"@typescript-eslint/parser": "^8.59.1",
 		"@vitejs/plugin-react": "^6.0.1",
 		"babel-plugin-react-compiler": "^1.0.0",
 		"daisyui": "^5.5.19",
@@ -41,11 +42,11 @@
 		"eslint-plugin-import": "^2.32.0",
 		"eslint-plugin-react": "^7.37.5",
 		"eslint-plugin-react-compiler": "^19.1.0-rc.2",
-		"eslint-plugin-react-hooks": "7.0.0",
+		"eslint-plugin-react-hooks": "^7.1.1",
 		"globals": "^17.5.0",
-		"oxfmt": "^0.46.0",
-		"oxlint": "^1.61.0",
-		"oxlint-tsgolint": "^0.22.0",
+		"oxfmt": "^0.47.0",
+		"oxlint": "^1.62.0",
+		"oxlint-tsgolint": "^0.22.1",
 		"react": "^19.2.5",
 		"react-dom": "^19.2.5",
 		"react-error-boundary": "^6.1.1",
@@ -55,9 +56,14 @@
 		"tailwind-csstree": "^0.3.1",
 		"tailwindcss": "^4.2.4",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.59.0",
+		"typescript-eslint": "^8.59.1",
 		"vite": "^8.0.10",
 		"vite-plugin-pwa": "^1.2.0",
 		"zod": "^4.3.6"
+	},
+	"overrides": {
+		"eslint-plugin-react-hooks": {
+			"zod-validation-error": "3.5.3"
+		}
 	}
 }

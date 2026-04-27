@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
 
 import { LS_RADIXES, AppContext, getCharsLS, sanitizeInput, serializeRadixes, unserializeRadixes } from './common.ts'
-import { type Radix, createRadixes, createRadix, num2str, str2num, allowedCharaters, } from './radixes.ts'
+import { type Radix, createRadixes, createRadix, num2str, str2num, allowedCharaters } from './radixes.ts'
 
 import Header from './components/header.tsx'
 import Show from './components/show.tsx'
@@ -38,32 +38,36 @@ function App() {
 		return () => { document.removeEventListener('keydown', keyDown) }
 	}, [])
 
-	return <ErrorBoundary onError={updateError} FallbackComponent={ErrorToast}>
-		<AppContext value={{ updateError }}>
-			{ getErrorMessage(error) && <ErrorToast error={error}/> }
-			<Header radixes={radixes} updateRadixes={updateRadixes}/>
-			<nav className="tabs tabs-bordered justify-center mb-4 z-10">
-				<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
-				<Link className={`tab ${pathname.includes('add') ? 'tab-active' : ''}`} to={`add${search}`}>Add</Link>
-				<Link className={`tab ${pathname.includes('multiply') ? 'tab-active' : ''}`} to={`multiply${search}`}>Multiply</Link>
-				<Link className={`tab ${pathname.includes('convert') ? 'tab-active' : ''}`} to={`convert${search}`}>Convert</Link>
-			</nav>
-			<Routes>
-				<Route path="/" element={<Show radixes={enabledRadixes}/>}/>
-				<Route path="add" element={<Add radixes={enabledRadixes}/>}/>
-				<Route path="multiply" element={<Multiply radixes={enabledRadixes}/>}/>
-				<Route path="convert" element={<Convert radixes={enabledRadixes} value={value} updateValue={updateValue}/>}/>
-			</Routes>
-		</AppContext>
-	</ErrorBoundary>
+	return (
+		<ErrorBoundary onError={updateError} FallbackComponent={ErrorToast}>
+			<AppContext value={{ updateError }}>
+				{ getErrorMessage(error) && <ErrorToast error={error}/> }
+				<Header radixes={radixes} updateRadixes={updateRadixes}/>
+				<nav className="tabs tabs-bordered justify-center mb-4 z-10">
+					<Link className={`tab ${pathname === '/' ? 'tab-active' : ''}`} to={`/${search}`}>Show</Link>
+					<Link className={`tab ${pathname.includes('add') ? 'tab-active' : ''}`} to={`add${search}`}>Add</Link>
+					<Link className={`tab ${pathname.includes('multiply') ? 'tab-active' : ''}`} to={`multiply${search}`}>Multiply</Link>
+					<Link className={`tab ${pathname.includes('convert') ? 'tab-active' : ''}`} to={`convert${search}`}>Convert</Link>
+				</nav>
+				<Routes>
+					<Route path="/" element={<Show radixes={enabledRadixes}/>}/>
+					<Route path="add" element={<Add radixes={enabledRadixes}/>}/>
+					<Route path="multiply" element={<Multiply radixes={enabledRadixes}/>}/>
+					<Route path="convert" element={<Convert radixes={enabledRadixes} value={value} updateValue={updateValue}/>}/>
+				</Routes>
+			</AppContext>
+		</ErrorBoundary>
+	)
 }
 
-function ErrorToast({ error }: { error: unknown}) {
-	return <div className="toast toast-top toast-center z-50">
-		<div className="alert alert-error">
-			<pre>{ getErrorMessage(error) ?? 'Unknown error' }</pre>
+function ErrorToast({ error }: { error: unknown }) {
+	return (
+		<div className="toast toast-top toast-center z-50">
+			<div className="alert alert-error">
+				<pre>{ getErrorMessage(error) ?? 'Unknown error' }</pre>
+			</div>
 		</div>
-	</div>
+	)
 }
 
 function useStore(updateError: (error: unknown) => void) {
@@ -73,7 +77,7 @@ function useStore(updateError: (error: unknown) => void) {
 	const [ radix, setRadix ] = useState(createRadix(10))
 	const [ value, setValue ] = useState(BIG_INT_0)
 
-	const updateRadixes: UpdateRadixes = (radixes) => {
+	const updateRadixes: UpdateRadixes = radixes => {
 		setRadixes(radixes)
 
 		const enabledRadixes = radixes.filter(v => v.enabled)

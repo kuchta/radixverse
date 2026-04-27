@@ -5,8 +5,8 @@ import { type Radix, createRadix, num2str, str2num } from './radixes.ts'
 
 
 type Tests = {
-    radix: Radix
-    pairs: [ bigint, string ][]
+	radix: Radix,
+	pairs: [ bigint, string ][],
 }[]
 
 const tests: Tests = [{
@@ -110,7 +110,7 @@ const tests: Tests = [{
 		[ 39n, 'LI' ],
 		[ 40n, 'M' ],
 		[ 41n, 'MA' ],
-		[ 46n, 'MF', ],
+		[ 46n, 'MF' ],
 		[ 49n, 'MI' ],
 		[ 50n, 'N' ],
 		[ 51n, 'NA' ],
@@ -233,13 +233,13 @@ const tests: Tests = [{
 	]
 }]
 
-await test('num2str', async (test) => {
-	await Promise.all(tests.map( t => test.test(`num2str(${t.radix.name})`, () => {
+await test('num2str', async test => {
+	await Promise.all(tests.map(t => test.test(`num2str(${t.radix.name})`, () => {
 		t.pairs.forEach(([ n, s ]) => { assertStrictEquals(num2str(n, t.radix), s) })
 	})))
 })
 
-await test('str2num', async (test) => {
+await test('str2num', async test => {
 	await Promise.all(tests.map(t => test.test(`str2num(${t.radix.name})`, () => {
 		t.pairs.forEach(([ n, s ]) => { assertStrictEquals(str2num(s, t.radix), n) })
 	})))

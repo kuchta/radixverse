@@ -5,80 +5,88 @@ import { type Radix, num2str } from '#/radixes.ts'
 
 
 export function Tables({ children }: { children: React.ReactNode[] }) {
-	return <main className="flex flex-wrap justify-center items-start gap-4 overflow-x-clip">
-		{ children }
-	</main>
+	return (
+		<main className="flex flex-wrap justify-center items-start gap-4 overflow-x-clip">
+			{ children }
+		</main>
+	)
 }
 
 export default function Table({ radix, numbers, low, high, mainRow, columns, rows, updateColumns, updateRows }: {
 	radix: Radix,
 	numbers: number[][],
 	low: number,
-	high: number
+	high: number,
 	mainRow?: number,
 	columns?: number,
 	rows?: number,
-	updateColumns?: (columns: number) => void
-	updateRows?: (rows: number) => void
+	updateColumns?: (columns: number) => void,
+	updateRows?: (rows: number) => void,
 }) {
 	const [ edit, setEdit ] = useState(false)
 
 	const space = low === 0 ? high : high - low
 
-	return <div className="card bg-white max-w-full shadow-xl">
-		<div className="flex justify-end items-center mx-2">
-			<div className="flex-1 flex justify-center">
-				<span className="tooltip tooltip-top whitespace-pre before:content-[attr(data-tip)] before:max-w-200" data-tip={ getCharsForTooltip(radix) }>
-					<span className="card-title badge badge-lg badge-outline m-2">{radix.name}</span>
-				</span>
-			</div>{ edit &&
-			<div className="flex justify-end">
-				<EditRowsOrColumns rows={rows} update={updateRows} setEdit={setEdit}/>/
-				<EditRowsOrColumns columns={columns} update={updateColumns} setEdit={setEdit}/>
-			</div>}{ (updateColumns ?? updateRows) &&
-			<LiaEditSolid onClick={() => { setEdit(!edit) }}/>}
+	return (
+		<div className="card bg-white max-w-full shadow-xl">
+			<div className="flex justify-end items-center mx-2">
+				<div className="flex-1 flex justify-center">
+					<span className="tooltip tooltip-top whitespace-pre before:content-[attr(data-tip)] before:max-w-200" data-tip={getCharsForTooltip(radix)}>
+						<span className="card-title badge badge-lg badge-outline m-2">{radix.name}</span>
+					</span>
+				</div>{ edit &&
+				<div className="flex justify-end">
+					<EditRowsOrColumns rows={rows} update={updateRows} setEdit={setEdit}/>
+					<EditRowsOrColumns columns={columns} update={updateColumns} setEdit={setEdit}/>
+				</div>}{ (updateColumns ?? updateRows) &&
+				<LiaEditSolid onClick={() => { setEdit(!edit) }}/>}
+			</div>
+			<div className="card-body overflow-scroll p-2">
+				<table className="table table-xs table-fixed text-sm w-auto">
+					<tbody>{ numbers.map((row, rowIndex) =>
+						<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={row[0]}>{ row.map(number =>
+							<td className="text-right px-0.5 py-0.5 w-8" key={number}>
+								<Value value={number} radix={radix} low={low} space={space}/>
+							</td>)}
+						</tr>)}
+					</tbody>
+				</table>
+			</div>
 		</div>
-		<div className="card-body overflow-scroll p-2">
-			<table className="table table-xs table-fixed text-sm w-auto">
-				<tbody>{ numbers.map((row, rowIndex) =>
-					<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={row[0]}>{ row.map((number) =>
-						<td className="text-right px-0.5 py-0.5 w-8" key={number}>
-							<Value value={number} radix={radix} low={low} space={space}/>
-						</td>)}
-					</tr>)}
-				</tbody>
-			</table>
-		</div>
-	</div>
+	)
 }
 
-function Value({value, radix, low, space}: { value: number, radix: Radix, low: number, space: number }) {
+function Value({ value, radix, low, space }: { value: number, radix: Radix, low: number, space: number }) {
 	if (Number.isNaN(value)) return <span/>
-	return <div className="relative">
-		<div
-			className="font-mono font-semibold text-xl text-right whitespace-nowrap"
-			style={{ color: `hsl(${(low === 0 ? value : value - low) / space * 300} 80% 40%)`}}
+	return (
+		<div className="relative">
+			<div
+				className="font-mono font-semibold text-xl text-right whitespace-nowrap"
+				style={{ color: `hsl(${(low === 0 ? value : value - low) / space * 300} 80% 40%)` }}
 			>
-			{ num2str(BigInt(value), radix) }
+				{ num2str(BigInt(value), radix) }
+			</div>
+			<span className="text-[0.6em] leading-0.5 text-center absolute right-0 top-0.5">{value}</span>
 		</div>
-		<span className="text-[0.6em] leading-0.5 text-center absolute right-0 top-0.5">{value}</span>
-	</div>
+	)
 }
 
 function EditRowsOrColumns({ columns, rows, update, setEdit }: { columns?: number, rows?: number, update?: (value: number) => void, setEdit: (value: boolean) => void }) {
 	if (!update) return
 
-	return <div className="tooltip tooltip-bottom" data-tip={columns ? 'number of columns' : 'number of rows'}>
-		<input
-			className="input input-xs w-[4em]"
-			type="number"
-			value={columns ?? rows}
-			onChange={e => { update(Number(e.target.value)) }}
-			onKeyDown={e => { if (e.key === 'Escape') setEdit(false) }}
-		/>
-	</div>
+	return (
+		<div className="tooltip tooltip-bottom" data-tip={columns ? 'number of columns' : 'number of rows'}>
+			<input
+				className="input input-xs w-[4em]"
+				type="number"
+				value={columns ?? rows}
+				onChange={e => { update(Number(e.target.value)) }}
+				onKeyDown={e => { if (e.key === 'Escape') setEdit(false) }}
+			/>
+		</div>
+	)
 }
 
 export function getCharsForTooltip(radix: Radix): string {
-	return [ ...radix.values.entries() ].slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([k, v], i) => `${k}:${v}${(i+1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n': ' '}`).join('')
+	return [ ...radix.values.entries() ].slice(radix.system === 'sum' || radix.system === 'bijective' ? 1 : 0).map(([ k, v ], i) => `${k}:${v}${(i + 1) % (radix.system === 'sum' ? 9 : 10) === 0 ? '\n' : ' '}`).join('')
 }

@@ -23,7 +23,7 @@ export default defineConfig({
 			devOptions: { enabled: true },
 			injectRegister: 'script',
 			registerType: 'autoUpdate',
-			includeAssets: ['images/*.{ico,png}'],
+			includeAssets: [ 'images/*.{ico,png}' ],
 			manifest: {
 				name,
 				short_name: name,
@@ -33,20 +33,20 @@ export default defineConfig({
 				icons: [{
 					src: 'images/icon-64x64.png',
 					sizes: '64x64',
-					type: 'image/png'
+					type: 'image/png',
 				}, {
 					src: 'images/icon-192x192.png',
 					sizes: '192x192',
-					type: 'image/png'
-				}, {
-					src: 'images/icon-512x512.png',
-					sizes: '512x512',
-					type: 'image/png'
+					type: 'image/png',
 				}, {
 					src: 'images/icon-512x512.png',
 					sizes: '512x512',
 					type: 'image/png',
-					purpose: 'maskable'
+				}, {
+					src: 'images/icon-512x512.png',
+					sizes: '512x512',
+					type: 'image/png',
+					purpose: 'maskable',
 				}]
 			}
 		})

@@ -17,14 +17,6 @@
 	font-feature-settings: "tnum";
 }
 
-@utility monospacize {
-	display: inline-block;
-	width: 5ch;
-	letter-spacing: 0.1ch;
-	/* text-align: center; */
-	white-space: nowrap;
-}
-
 @layer base {
 	@font-face {
 		src: url(/fonts/NotoSansSymbols.ttf);

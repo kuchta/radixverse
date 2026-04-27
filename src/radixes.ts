@@ -14,21 +14,21 @@ const defaultCharsArray: string[] = [
 	...Array.from(baseMinus9).reverse(),
 	zero,
 	...Array.from(base9),
-	...Array.from(base26)
+	...Array.from(base26),
 ]
 
 export const defaultChars: string = defaultCharsArray.join('')
 
 export type Radix = {
-	name: string
-	radix: bigint
-	system: 'standard' | 'bijective' | 'balanced' | 'clock' | 'sum' | 'balsum'
-	chars: string
-	enabled: boolean
-	values: Map<string, bigint>
-	reversedValues: Map<bigint, string>
-	low: number
-	high: number
+	name: string,
+	radix: bigint,
+	system: 'standard' | 'bijective' | 'balanced' | 'clock' | 'sum' | 'balsum',
+	chars: string,
+	enabled: boolean,
+	values: Map<string, bigint>,
+	reversedValues: Map<bigint, string>,
+	low: number,
+	high: number,
 }
 
 export function createRadixes(chars?: string): Radix[] {
@@ -88,7 +88,7 @@ function createStandardRadix(radix: number, chars = defaultCharsArray, enabled?:
 		chars = radix === 26 ? chars.slice(zeroAt + 10, zeroAt + 10 + radix) : chars.slice(zeroAt, zeroAt + radix)
 	} else if (chars.length !== radix) throw invalidNumberOfCharacters(name, radix, chars.length)
 
-	const values = chars.map((c, i) => [c, BigInt(i)] as [string, bigint])
+	const values = chars.map((c, i) => [ c, BigInt(i) ] as [ string, bigint ])
 
 	return {
 		name,
@@ -96,10 +96,10 @@ function createStandardRadix(radix: number, chars = defaultCharsArray, enabled?:
 		radix: BigInt(radix),
 		chars: chars.join(''),
 		values: new Map(values),
-		reversedValues: new Map(values.map(([c, v]) => [v, c])),
+		reversedValues: new Map(values.map(([ c, v ]) => [ v, c ])),
 		low: 0,
 		high: radix - 1,
-		enabled: enabled ?? [2, 10, 12, 26].includes(radix),
+		enabled: enabled ?? [ 2, 10, 12, 26 ].includes(radix),
 	}
 }
 
@@ -109,7 +109,7 @@ function createBijectiveRadix(radix: number, chars = defaultCharsArray, enabled?
 		chars = radix === 26 ? chars.slice(zeroAt, zeroAt + radix + 10).toSpliced(1, 9) : chars.slice(zeroAt, zeroAt + radix + 1)
 	} else if (chars.length !== radix + 1) throw invalidNumberOfCharacters(name, radix + 1, chars.length)
 
-	const values = chars.map((c, i) => [c, BigInt(i)] as [string, bigint])
+	const values = chars.map((c, i) => [ c, BigInt(i) ] as [ string, bigint ])
 
 	return {
 		name,
@@ -117,10 +117,10 @@ function createBijectiveRadix(radix: number, chars = defaultCharsArray, enabled?
 		radix: BigInt(radix),
 		chars: chars.join(''),
 		values: new Map(values),
-		reversedValues: new Map(values.map(([c, v]) => [v, c])),
+		reversedValues: new Map(values.map(([ c, v ]) => [ v, c ])),
 		low: 1,
 		high: radix,
-		enabled: enabled ?? [26].includes(radix),
+		enabled: enabled ?? [ 26 ].includes(radix),
 	}
 }
 
@@ -132,7 +132,7 @@ function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?:
 	const half = (radix - 1) / 2
 	const zeroChar = chars[zeroAt]
 	chars = radix === 27 && allChars ? chars.slice(zeroAt + 10, zeroAt + 36).toSpliced(13, 0, zeroChar) : chars.slice(zeroAt - half, zeroAt + half + 1)
-	const values = chars.map((c, i) => [c, BigInt(-half + i)] as [string, bigint])
+	const values = chars.map((c, i) => [ c, BigInt(-half + i) ] as [ string, bigint ])
 
 	return {
 		name,
@@ -140,10 +140,10 @@ function createBalancedRadix(radix: number, chars = defaultCharsArray, enabled?:
 		radix: BigInt(radix),
 		chars: chars.join(''),
 		values: new Map(values),
-		reversedValues: new Map(values.map(([c, v]) => [v, c])),
+		reversedValues: new Map(values.map(([ c, v ]) => [ v, c ])),
 		low: -half,
 		high: half,
-		enabled: enabled ?? [3, 13, 19, 27].includes(radix),
+		enabled: enabled ?? [ 3, 13, 19, 27 ].includes(radix),
 	}
 }
 
@@ -156,12 +156,12 @@ function createSumRadix(radix: number, chars = defaultCharsArray, enabled?: bool
 	const r = radix - 1
 	let order = 1
 	const values = [
-		[chars[0], 0n],
+		[ chars[0], 0n ],
 		...chars.slice(1).map((c, i) => {
 			if (i % r === 0 && i > 0) order *= r + 1
-			return [c, BigInt(((i % r) + 1) * order)] as [string, bigint]
+			return [ c, BigInt(((i % r) + 1) * order) ] as [ string, bigint ]
 		}),
-	] as [string, bigint][]
+	] as [ string, bigint ][]
 
 	return {
 		name,
@@ -169,10 +169,10 @@ function createSumRadix(radix: number, chars = defaultCharsArray, enabled?: bool
 		radix: BigInt(radix),
 		chars: chars.join(''),
 		values: new Map(values),
-		reversedValues: new Map(values.reverse().map(([c, v]) => [v, c])),
+		reversedValues: new Map(values.reverse().map(([ c, v ]) => [ v, c ])),
 		low: 1,
 		high: radix,
-		enabled: enabled ?? [2, 10].includes(radix),
+		enabled: enabled ?? [ 2, 10 ].includes(radix),
 	}
 }
 
@@ -187,17 +187,17 @@ function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: b
 	const high = (radix - 1) / 2
 	let createValues: (order: number) => (c: string, i: number) => [string, bigint]
 	if (radix === 3) {
-		createValues = (order: number) => (c: string, i: number) => [c, BigInt(3 ** i * order)]
+		createValues = (order: number) => (c: string, i: number) => [ c, BigInt(3 ** i * order) ]
 	} else {
 		createValues = (order: number) => (c: string, i: number) => {
 			if (i > 0 && i % high === 0) order *= radix
-			return [c, BigInt(((i % high) + 1) * order)]
+			return [ c, BigInt(((i % high) + 1) * order) ]
 		}
 	}
 
 	const plusValues = chars.slice(half + 1).map(createValues(1))
 	const minusValues = chars.slice(0, half).toReversed().map(createValues(-1))
-	const values = [...minusValues.toReversed(), [chars[half], 0n], ...plusValues] as [string, bigint][]
+	const values = [ ...minusValues.toReversed(), [ chars[half], 0n ], ...plusValues ] as [ string, bigint ][]
 
 	return {
 		name,
@@ -205,10 +205,10 @@ function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: b
 		radix: BigInt(radix),
 		chars: chars.join(''),
 		values: new Map(values),
-		reversedValues: new Map(values.map(([c, v]) => [v, c])),
+		reversedValues: new Map(values.map(([ c, v ]) => [ v, c ])),
 		low: -high,
 		high,
-		enabled: enabled ?? [3, 27].includes(radix),
+		enabled: enabled ?? [ 3, 27 ].includes(radix),
 	}
 }
 
@@ -224,7 +224,7 @@ function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: bo
 
 	const half = radix / 2
 	chars = chars.slice(zeroAt - half + 1, zeroAt + half + 1)
-	const values = chars.map((c, i) => [c, BigInt(-half + 1 + i)] as [string, bigint])
+	const values = chars.map((c, i) => [ c, BigInt(-half + 1 + i) ] as [string, bigint])
 
 	return {
 		name,
@@ -232,10 +232,10 @@ function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: bo
 		radix: BigInt(radix),
 		chars: chars.join(''),
 		values: new Map(values),
-		reversedValues: new Map(values.map(([c, v]) => [v, c])),
+		reversedValues: new Map(values.map(([ c, v ]) => [ v, c ])),
 		low: -half + 1,
 		high: half,
-		enabled: enabled ?? [2, 4, 6, 8, 10, 12, 16, 18, 20, 22, 24, 30, 36].includes(radix),
+		enabled: enabled ?? [ 2, 4, 6, 8, 10, 12, 16, 18, 20, 22, 24, 30, 36 ].includes(radix),
 	}
 }
 
@@ -362,5 +362,5 @@ function invalidNumberOfCharacters(name: string, requiredLength: number, provide
 
 export function allowedCharaters(radix: Radix): string {
 	const chars = radix.system === 'bijective' ? radix.chars.slice(1) : radix.chars
-	return  `Allowed characters are "${radix.system === 'balanced' ? chars : `-${radix.chars}`}".`
+	return `Allowed characters are "${radix.system === 'balanced' ? chars : `-${radix.chars}`}".`
 }

@@ -1,8 +1,8 @@
 import { createContext } from 'react'
 import { z } from 'zod'
 
-import { createRadix, type Radix } from "./radixes.ts"
-import { getErrorMessage } from "react-error-boundary"
+import { createRadix, type Radix } from './radixes.ts'
+import { getErrorMessage } from 'react-error-boundary'
 
 
 export const LS_CHARS = 'chars'
@@ -11,7 +11,7 @@ export const LS_RADIXES = 'radixes'
 const ExportRadixes = z.array(z.object({
 	name: z.string(),
 	radix: z.number(),
-	system: z.enum(['standard', 'bijective', 'balanced', 'clock', 'sum', 'balsum']),
+	system: z.enum([ 'standard', 'bijective', 'balanced', 'clock', 'sum', 'balsum' ]),
 	chars: z.string(),
 	enabled: z.boolean(),
 }))
@@ -34,7 +34,7 @@ export function serializeRadixes(radixes: Radix[]) {
 	return JSON.stringify(
 		radixes.map(r => ({ name: r.name, radix: Number(r.radix), system: r.system, chars: r.chars, enabled: r.enabled })),
 		undefined,
-		'\t'
+		'\t',
 	)
 }
 

@@ -16,4 +16,7 @@
 	"[svg]": {
 		"editor.defaultFormatter": "jock.svg"
 	},
+	"[typescript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features"
+	},
 }

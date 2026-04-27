@@ -1,7 +1,7 @@
 import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, useContext, useState, useRef, useMemo } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
 import TextareaAutosize from 'react-textarea-autosize'
-import themeObject from 'daisyui/theme/object.js'
+// import themeObject from 'daisyui/theme/object.js'
 
 import { type Radix, createRadixes, createRadix, defaultChars } from '#/radixes.ts'
 import type { UpdateRadixes } from '#/app.tsx'
@@ -10,7 +10,7 @@ import { AppContext, getCharsLS, LS_CHARS, serializeRadixes, unserializeRadixes 
 
 export const LS_THEME = 'theme'
 type ToggleRadixes = (radix: 'all' | 'odd' | 'even' | Radix['system'] | Radix, enabled: boolean) => void
-const themes = Object.keys(themeObject).toSorted()
+// const themes = Object.keys(themeObject).toSorted()
 
 export default function Header({ radixes, updateRadixes }: {
 	radixes: Radix[],
@@ -47,7 +47,7 @@ export default function Header({ radixes, updateRadixes }: {
 		downloadContent(serializeRadixes(radixes), 'settings.json')
 	}
 
-	const uploadSettings: ChangeEventHandler<HTMLInputElement, HTMLInputElement> = async (e) => {
+	const uploadSettings: ChangeEventHandler<HTMLInputElement, HTMLInputElement> = async e => {
 		const file = e.currentTarget.files?.[0]
 		e.target.value = ''
 		if (!file) return
@@ -70,7 +70,7 @@ export default function Header({ radixes, updateRadixes }: {
 		} else {
 			r = radixes.find(r => r.name === radix)
 			if (r) {
-				chars = r.chars
+				({ chars } = r)
 			} else {
 				return updateError(new Error(`Radix ${radix} not found`))
 			}
@@ -123,136 +123,138 @@ export default function Header({ radixes, updateRadixes }: {
 		}
 	}
 
-	return <header className="p-2">
-		<div className="navbar bg-base-100 p-0">
-			<div className="navbar-start">
-				<button className="text-left text-4xl tracking-wide pl-2" type="button" onClick={toggleSettings} tabIndex={-1}>
-					<span style={{ color: 'hsl(0 80% 40%)'}}>R</span>
-					<span style={{ color: 'hsl(36 80% 40%)'}}>a</span>
-					<span style={{ color: 'hsl(72 80% 40%)'}}>d</span>
-					<span style={{ color: 'hsl(108 80% 40%)'}}>i</span>
-					<span style={{ color: 'hsl(144 80% 40%)'}}>x</span>
-					<span style={{ color: 'hsl(180 80% 40%)'}}>V</span>
-					<span style={{ color: 'hsl(216 80% 40%)'}}>e</span>
-					<span style={{ color: 'hsl(252 80% 40%)'}}>r</span>
-					<span style={{ color: 'hsl(288 80% 40%)'}}>s</span>
-					<span style={{ color: 'hsl(324 80% 40%)'}}>e</span>
-				</button>
-			</div>
-			<menu className="navbar-end menu menu-horizontal p-0 z-10">
-				<li>
-					<button
-						className={`menu-dropdown-toggle ${settingsExpanded ? 'menu-dropdown-show' : ''}`}
-						type="button"
-						onClick={toggleSettings}
-						tabIndex={0}
-					>Settings</button>
-				</li>
-				<li>
-					<details className="dropdown dropdown-end">
-						<summary>Themes</summary>
-						<menu className="dropdown-content rounded-field bg-base-100 shadow-sm p-2 mt-0">{ themes.map(t =>
+	return (
+		<header className="p-2">
+			<div className="navbar bg-base-100 p-0">
+				<div className="navbar-start">
+					<button className="text-left text-4xl tracking-wide pl-2" type="button" onClick={toggleSettings} tabIndex={-1}>
+						<span style={{ color: 'hsl(0 80% 40%)' }}>R</span>
+						<span style={{ color: 'hsl(36 80% 40%)' }}>a</span>
+						<span style={{ color: 'hsl(72 80% 40%)' }}>d</span>
+						<span style={{ color: 'hsl(108 80% 40%)' }}>i</span>
+						<span style={{ color: 'hsl(144 80% 40%)' }}>x</span>
+						<span style={{ color: 'hsl(180 80% 40%)' }}>V</span>
+						<span style={{ color: 'hsl(216 80% 40%)' }}>e</span>
+						<span style={{ color: 'hsl(252 80% 40%)' }}>r</span>
+						<span style={{ color: 'hsl(288 80% 40%)' }}>s</span>
+						<span style={{ color: 'hsl(324 80% 40%)' }}>e</span>
+					</button>
+				</div>
+				<menu className="navbar-end menu menu-horizontal p-0 z-10">
+					<li>
+						<button
+							className={`menu-dropdown-toggle ${settingsExpanded ? 'menu-dropdown-show' : ''}`}
+							type="button"
+							onClick={toggleSettings}
+							tabIndex={0}
+						>Settings</button>
+					</li>
+					{/* <li>
+						<details className="dropdown dropdown-end">
+							<summary>Themes</summary>
+							<menu className="dropdown-content rounded-field bg-base-100 shadow-sm p-2 mt-0">{ themes.map(t =>
+								<li key={t}>
+									<button className={t === theme ? 'menu-active' : undefined} onClick={() => { updateTheme(t) }} tabIndex={0}>{capitalize(t)}</button>
+								</li>)}
+							</menu>
+						</details>
+					</li> */}
+					{/* <li className="dropdown dropdown-end">
+						<div
+							role="button"
+							className="menu-dropdown-toggle menu-dropdown-toggle-active"
+							tabIndex={0}
+						>Themes</div>
+						<menu className="dropdown-content menu-vertical items-stretch rounded-field bg-base-100 shadow-sm p-2 mt-1">{ themes.map(t =>
 							<li key={t}>
-								<button className={t === theme ? 'menu-active' : undefined} onClick={() => { updateTheme(t) }} tabIndex={0}>{capitalize(t)}</button>
+								<a className={`${t === theme ? 'menu-active' : undefined}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
 							</li>)}
 						</menu>
-					</details>
-				</li>
-				{/* <li className="dropdown dropdown-end">
-					<div
-						role="button"
-						className="menu-dropdown-toggle menu-dropdown-toggle-active"
-						tabIndex={0}
-					>Themes</div>
-					<menu className="dropdown-content menu-vertical items-stretch rounded-field bg-base-100 shadow-sm p-2 mt-1">{ themes.map(t =>
-						<li key={t}>
-							<a className={`${t === theme ? 'menu-active' : undefined}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
-						</li>)}
-					</menu>
-				</li>
-				<li>
-					<button
-						className="menu-dropdown-toggle peer-open:menu-dropdown-show [anchor-name:--dp-1] px-4 mr-4"
-						popoverTarget="popover"
-						tabIndex={0}
-					>
-						Themes
-					</button>
-					<menu
-						className="peer dropdown menu-vertical items-stretch rounded-field bg-base-100 shadow-sm [position-anchor:--dp-1] [position-area:bottom_span-left]"
-						id="popover"
-						popover="auto"
-					>{ themes.map(t =>
-						<li key={t}>
-							<a className={t === theme ? 'menu-active' : undefined} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
-						</li>)}
-					</menu>
-				</li> */}
-			</menu>
-		</div>
-		<div className={`collapse ${settingsExpanded ? 'collapse-open' : 'collapse-close'}`}>
-			<div className="collapse-content px-0">
-				<div className="card-actions flex-row-reverse grow m-1">
-					<span className="join">
-						<button className="btn btn-xs btn-outline btn-success join-item" type="button" onClick={downloadSettings}>
-							Download settings
+					</li>
+					<li>
+						<button
+							className="menu-dropdown-toggle peer-open:menu-dropdown-show [anchor-name:--dp-1] px-4 mr-4"
+							popoverTarget="popover"
+							tabIndex={0}
+						>
+							Themes
 						</button>
-						<button className="btn btn-xs btn-outline btn-warning join-item" onClick={() => fileInputRef.current?.click()} type="button">
-							<input type="file" accept="application/json" onChange={uploadSettings} ref={fileInputRef} style={{display: 'none'}}/>
-							Upload settings
-						</button>
-						<button className="btn btn-xs btn-outline btn-error join-item" type="button" onClick={clearSettings}>
-							Clear settings
-						</button>
-					</span>
-					<div className="flex flex-wrap grow justify-center gap-2 m-1">
-						<RadixesSelect who="all" toggleRadixes={toggleRadixes} />
-						<RadixesSelect who="odd" toggleRadixes={toggleRadixes} />
-						<RadixesSelect who="even" toggleRadixes={toggleRadixes} />
+						<menu
+							className="peer dropdown menu-vertical items-stretch rounded-field bg-base-100 shadow-sm [position-anchor:--dp-1] [position-area:bottom_span-left]"
+							id="popover"
+							popover="auto"
+						>{ themes.map(t =>
+							<li key={t}>
+								<a className={t === theme ? 'menu-active' : undefined} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
+							</li>)}
+						</menu>
+					</li> */}
+				</menu>
+			</div>
+			<div className={`collapse ${settingsExpanded ? 'collapse-open' : 'collapse-close'}`}>
+				<div className="collapse-content px-0">
+					<div className="card-actions flex-row-reverse grow m-1">
+						<span className="join">
+							<button className="btn btn-xs btn-outline btn-success join-item" type="button" onClick={downloadSettings}>
+								Download settings
+							</button>
+							<button className="btn btn-xs btn-outline btn-warning join-item" onClick={() => fileInputRef.current?.click()} type="button">
+								<input type="file" accept="application/json" onChange={uploadSettings} ref={fileInputRef} style={{ display: 'none' }}/>
+								Upload settings
+							</button>
+							<button className="btn btn-xs btn-outline btn-error join-item" type="button" onClick={clearSettings}>
+								Clear settings
+							</button>
+						</span>
+						<div className="flex flex-wrap grow justify-center gap-2 m-1">
+							<RadixesSelect who="all" toggleRadixes={toggleRadixes}/>
+							<RadixesSelect who="odd" toggleRadixes={toggleRadixes}/>
+							<RadixesSelect who="even" toggleRadixes={toggleRadixes}/>
+						</div>
 					</div>
-				</div>
-				<div className="card flex-row flex-wrap xl:flex-nowrap justify-center m-1">{ radixesSystems.map(rs =>
-					<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
-				</div>
-				<div className="flex flex-col justify-center items-center m-1">
-					<div className="card card-border gap-2 p-2">
-						<form className="flex flex-col xl:flex-row justify-center items-center h-fit gap-1" onReset={inputCharsSubmit} onSubmit={inputCharsSubmit} ref={formRef}>
-							<select
-								className="select select-sm rounded-md bg-base-100 w-fit pl-2 pr-10 mr-1"
-								name="radix"
-								onChange={e => { updateInputRadixAndChars(e.target.value) }}
-							>
-								<option>All</option> { groupedRadixes.map(rgs =>
-								<optgroup label={rgs[0].system} key={rgs[0].system} className="font-bold">{ rgs.map(r =>
-									<option value={r.name} key={r.name}>{r.name}</option> )}
-								</optgroup>)}
-							</select>
-							<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
-								<TextareaAutosize
-									className="supports-[field-sizing:content]:field-sizing-content min-w-24 max-w-[calc(100vw-5.5ch)] xl:max-w-[calc(100vw-ch)] block resize-none bg-base-100 rounded-lg font-mono leading-8 p-0 px-2"
-									name="chars"
-									rows={1}
-									cols={70}
-									value={inputChars}
-									onChange={e => { setInputChars(e.target.value) }}
-									onKeyDown={handleInputCharsKeyDown}
-								/>
-							</div>
-							<span className="join flex flex-row justify-center">
-								<button className="join-item btn btn-sm btn-outline btn-success" type="reset">Reset</button>
-								<button className="join-item btn btn-sm btn-outline btn-error" type="submit">Set</button>
-							</span>
-						</form>{ inputRadix &&
-						<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ inputRadix.values.entries().map(([k, v]) =>
-							<span key={k} className="font-mono p-1">
-								{k}:{Number(v)}
-							</span>) }
-						</div>}
+					<div className="card flex-row flex-wrap xl:flex-nowrap justify-center m-1">{ radixesSystems.map(rs =>
+						<RadixSelect who={rs} radixes={radixes} toggleRadixes={toggleRadixes} key={rs}/>)}
+					</div>
+					<div className="flex flex-col justify-center items-center m-1">
+						<div className="card card-border gap-2 p-2">
+							<form className="flex flex-col xl:flex-row justify-center items-center h-fit gap-1" onReset={inputCharsSubmit} onSubmit={inputCharsSubmit} ref={formRef}>
+								<select
+									className="select select-sm rounded-md bg-base-100 w-fit pl-2 pr-10 mr-1"
+									name="radix"
+									onChange={e => { updateInputRadixAndChars(e.target.value) }}
+								>
+									<option>All</option> { groupedRadixes.map(rgs =>
+									<optgroup label={rgs[0].system} key={rgs[0].system} className="font-bold">{ rgs.map(r =>
+										<option value={r.name} key={r.name}>{r.name}</option>)}
+									</optgroup>)}
+								</select>
+								<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
+									<TextareaAutosize
+										className="supports-[field-sizing:content]:field-sizing-content mi	n-w-24 max-w-[calc(100vw-5.5ch)] xl:max-w-[calc(100vw-ch)] block resize-none bg-base-100 rounded-lg font-mono leading-8 p-0 px-2"
+										name="chars"
+										rows={1}
+										cols={70}
+										value={inputChars}
+										onChange={e => { setInputChars(e.target.value) }}
+										onKeyDown={handleInputCharsKeyDown}
+									/>
+								</div>
+								<span className="join flex flex-row justify-center">
+									<button className="join-item btn btn-sm btn-outline btn-success" type="reset">Reset</button>
+									<button className="join-item btn btn-sm btn-outline btn-error" type="submit">Set</button>
+								</span>
+							</form>{ inputRadix &&
+							<div className="flex flex-row flex-wrap justify-center text-center text-xs">{ inputRadix.values.entries().map(([ k, v ]) =>
+								<span key={k} className="font-mono p-1">
+									{k}:{Number(v)}
+								</span>) }
+							</div>}
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	</header>
+		</header>
+	)
 }
 
 const RadixesSelect = ({ who, toggleRadixes }: { who: 'all' | 'odd' | 'even', toggleRadixes: ToggleRadixes }) =>
@@ -333,19 +335,19 @@ const createToggleRadixes: (radixes: Radix[], updateRadixes: UpdateRadixes) => T
 	updateRadixes(rs)
 }
 
-function downloadContent(content: string, fileName = 'settings.json', mimeType = 'application/json' ) {
-    const url = URL.createObjectURL(new Blob([ content ], { type: mimeType }))
-    const link = document.createElement('a')
+function downloadContent(content: string, fileName = 'settings.json', mimeType = 'application/json') {
+	const url = URL.createObjectURL(new Blob([ content ], { type: mimeType }))
+	const link = document.createElement('a')
 
-    document.body.append(link)
+	document.body.append(link)
 
-    link.href = url
-    link.download = fileName
-    link.click()
+	link.href = url
+	link.download = fileName
+	link.click()
 
 	link.remove()
 
-    URL.revokeObjectURL(url)
+	URL.revokeObjectURL(url)
 }
 
 function capitalize(string: string) {

@@ -6,9 +6,11 @@ import Table, { Tables } from './table.tsx'
 const { isNaN } = Number
 
 export default function Multiply({ radixes }: { radixes: Radix[] }) {
-	return <Tables>{ radixes.map(radix =>
-		<MultiplyTable radix={radix} key={radix.name}/>) }
-	</Tables>
+	return (
+		<Tables>{ radixes.map(radix =>
+			<MultiplyTable radix={radix} key={radix.name}/>) }
+		</Tables>
+	)
 }
 
 function MultiplyTable({ radix }: { radix: Radix }) {
