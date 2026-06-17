@@ -71,10 +71,10 @@ function ErrorToast({ error }: { error: unknown }) {
 }
 
 function useStore(updateError: (error: unknown) => void) {
-	const [ radixes, setRadixes ] = useState(getRadixesLS(updateError) ?? createRadixes(getCharsLS()))
+	const [ radixes, setRadixes ] = useState(() => getRadixesLS(updateError) ?? createRadixes(getCharsLS()))
 	const [ enabledRadixes, setEnabledRadixes ] = useState(radixes.filter(r => r.enabled))
 	const [ searchParams, setSearchParams ] = useSearchParams()
-	const [ radix, setRadix ] = useState(createRadix(10))
+	const [ radix, setRadix ] = useState(() => createRadix(10))
 	const [ value, setValue ] = useState(BIG_INT_0)
 
 	const updateRadixes: UpdateRadixes = radixes => {
@@ -136,7 +136,7 @@ function useStore(updateError: (error: unknown) => void) {
 		if (sValue) {
 			const [ value, rest ] = sanitizeInput(sValue, r)
 			setValue(str2num(value, r))
-			if (rest) updateError(new Error(`Non-Base characters "${rest}" for radix "${r.name}" has been filtered out. ${allowedCharaters(r)}`))
+			if (rest) updateError(new Error(`Non-Base character${rest.length > 1 ? 's' : ''} "${rest}" for radix "${r.name}" has been filtered out. ${allowedCharaters(r)}`))
 		}
 	}, [])
 

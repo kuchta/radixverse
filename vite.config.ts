@@ -13,7 +13,6 @@ export default defineConfig({
 	plugins: [
 		// legacy({
 		// 	modernTargets: 'chrome>=122, edge>=122, safari>=18, firefox>=131, chromeAndroid>=132, iOS>=18',
-		// 	modernPolyfills: [ 'es/iterator' ],
 		// 	renderLegacyChunks: false,
 		// }),
 		react(),

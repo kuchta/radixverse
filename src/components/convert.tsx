@@ -88,7 +88,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 	numRadixes: number,
 	updateValue: UpdateValue,
 }) {
-	const [ strVal, setStrVal ] = useState(num2str(value, radix))
+	const [ strVal, setStrVal ] = useState(() => num2str(value, radix))
 	const [ editing, setEditing ] = useState(false)
 	const [ error, setError ] = useState<unknown>()
 	const [ errorLevel, setErrorLevel ] = useState<'error' | 'warning'>('error')
@@ -116,9 +116,8 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 
 		let position = getCaretPosition()
 		try {
-			const n = str2num(s, radix)
 			setStrVal(s)
-			updateValue(n, radix)
+			updateValue(str2num(s, radix), radix)
 			setError(undefined)
 		} catch (error) {
 			updateError(error, 'error')
@@ -141,8 +140,8 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 		const newV = range?.startContainer === ref.current ? input : Array.from(strVal).toSpliced(position, range ? range.endOffset - range.startOffset : 0, input).join('')
 
 		try {
-			updateValue(str2num(newV, radix), radix)
 			setStrVal(newV)
+			updateValue(str2num(newV, radix), radix)
 			setCaretPosition(position + input.length)
 		} catch (error) {
 			updateError(error, 'error')

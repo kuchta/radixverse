@@ -1,4 +1,4 @@
-import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, useContext, useState, useRef, useMemo } from 'react'
+import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, use, useState, useRef, useMemo } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
 import TextareaAutosize from 'react-textarea-autosize'
 // import themeObject from 'daisyui/theme/object.js'
@@ -16,10 +16,10 @@ export default function Header({ radixes, updateRadixes }: {
 	radixes: Radix[],
 	updateRadixes: UpdateRadixes,
 }) {
-	const { updateError } = useContext(AppContext)
+	const { updateError } = use(AppContext)
 	const [ settingsExpanded, setSettingsExpanded ] = useState(false)
-	const [ theme, setTheme ] = useState(getThemeLS)
-	const [ allChars, setAllChars ] = useState(getCharsLS() ?? defaultChars)
+	// const [ theme, setTheme ] = useState(getThemeLS)
+	const [ allChars, setAllChars ] = useState(() => getCharsLS() ?? defaultChars)
 	const [ inputRadix, setInputRadix ] = useState<Radix>()
 	const [ inputChars, setInputChars ] = useState(allChars)
 	const [ inputCharsError, setInputCharsError ] = useState<string>()
@@ -31,11 +31,11 @@ export default function Header({ radixes, updateRadixes }: {
 	const toggleRadixes = useMemo(() => createToggleRadixes(radixes, updateRadixes), [ radixes, updateRadixes ])
 	const toggleSettings = () => { setSettingsExpanded(!settingsExpanded) }
 
-	const updateTheme = (theme: string) => {
-		document.documentElement.setAttribute('data-theme', theme)
-		setTheme(theme)
-		setThemeLS(theme)
-	}
+	// const updateTheme = (theme: string) => {
+	// 	document.documentElement.setAttribute('data-theme', theme)
+	// 	setTheme(theme)
+	// 	setThemeLS(theme)
+	// }
 
 	const clearSettings = () => {
 		localStorage.clear()
@@ -154,7 +154,7 @@ export default function Header({ radixes, updateRadixes }: {
 							<summary>Themes</summary>
 							<menu className="dropdown-content rounded-field bg-base-100 shadow-sm p-2 mt-0">{ themes.map(t =>
 								<li key={t}>
-									<button className={t === theme ? 'menu-active' : undefined} onClick={() => { updateTheme(t) }} tabIndex={0}>{capitalize(t)}</button>
+									<button className={t === theme ? 'menu-active' : undefined} type="button" onClick={() => { updateTheme(t) }} tabIndex={0}>{capitalize(t)}</button>
 								</li>)}
 							</menu>
 						</details>
@@ -223,7 +223,7 @@ export default function Header({ radixes, updateRadixes }: {
 									name="radix"
 									onChange={e => { updateInputRadixAndChars(e.target.value) }}
 								>
-									<option>All</option> { groupedRadixes.map(rgs =>
+									<option>All</option>{ groupedRadixes.map(rgs =>
 									<optgroup label={rgs[0].system} key={rgs[0].system} className="font-bold">{ rgs.map(r =>
 										<option value={r.name} key={r.name}>{r.name}</option>)}
 									</optgroup>)}

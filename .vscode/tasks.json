@@ -2,7 +2,6 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "start",
 			"type": "npm",
 			"script": "start",
 			// "isBackground": true, // Don't use this if you want to debug the task
@@ -11,8 +10,8 @@
 		{
 			"type": "npm",
 			"script": "preview",
+			"problemMatcher": [],
 			"isBackground": true,
-			"problemMatcher": []
 		},
 		{
 			"type": "npm",
@@ -21,14 +20,32 @@
 		},
 		{
 			"type": "npm",
+			"script": "check:watch",
+			"problemMatcher": ["$tsc"],
+			"isBackground": true,
+		},
+		{
+			"type": "npm",
 			"script": "lint",
-			"problemMatcher": ["$eslint-compact"]
+			"problemMatcher": ["$eslint-stylish"]
+		},
+		{
+			"type": "npm",
+			"script": "lint:watch",
+			"problemMatcher": ["$eslint-stylish"],
+			"isBackground": true,
+		},
+		{
+			"type": "npm",
+			"script": "watch",
+			"problemMatcher": ["$eslint-stylish"],
+			"isBackground": true,
 		},
 		{
 			"type": "npm",
 			"script": "build",
+			"problemMatcher": ["$tsc"],
 			"group": "build",
-			"problemMatcher": ["$tsc"]
 		},
 		{
 			"type": "npm",
@@ -36,9 +53,9 @@
 			"problemMatcher": []
 		},
 		{
+			"type": "shell",
 			"label": "stop",
 			"command": "echo ${input:terminate}",
-			"type": "shell",
 			"problemMatcher": []
 		}
 	],

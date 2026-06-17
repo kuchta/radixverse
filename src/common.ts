@@ -43,7 +43,7 @@ export function unserializeRadixes(content: string): Radix[] {
 		const radixes = ExportRadixes.parse(JSON.parse(content), { reportInput: true })
 		return radixes.map(r => createRadix(r.radix, r.system, r.chars, r.enabled, r.name, false))
 	} catch (error) {
-		if (error instanceof z.ZodError) throw new Error(`Error validating input file:\n\n${z.prettifyError(error)}`, { cause: error })
-		throw new Error(`Error parsing input file:\n\n${getErrorMessage(error)}`, { cause: error })
+		if (error instanceof z.ZodError) throw new Error(`Error validating config:\n\n${z.prettifyError(error)}`, { cause: error })
+		throw new Error(`Error parsing config:\n\n${getErrorMessage(error)}`, { cause: error })
 	}
 }

@@ -17,21 +17,27 @@ function ShowTable({ radix }: { radix: Radix }) {
 	const [ rows, setRows ] = useState<number>()
 	const props = useMemo(() => {
 		const { system, low, high } = radix
-		const bij = system === 'bijective'
-		const clock = system === 'clock'
-		const bal = system === 'balanced' || system === 'balsum'
+		const isBij = system === 'bijective'
+		const isBal = system === 'balanced' || system === 'balsum'
+		const isClock = system === 'clock'
 		const cs = columns ?? high - low + 1
-		const rs = rows ?? cs + (bij ? 1 : 0)
+		const rs = rows ?? cs + (isBij ? 1 : 0)
 
-		const highest = clock ? high * (cs + 1)
-							  : bal ? Math.trunc((rs * cs) / 2)
-									: cs * rs - (low === 0 ? 1 : 0)
-		const lowest = clock ? low * (cs + 1)
-							 : bal ? -highest
-								   : low
-		const mainRow = clock ? rs / 2 - 1
-							  : bal ? Math.trunc(rs / 2)
-									: 0
+		const highest = isClock
+			? high * (cs + 1)
+			: isBal
+				? Math.trunc((rs * cs) / 2)
+				: cs * rs - (low === 0 ? 1 : 0)
+		const lowest = isClock
+			? low * (cs + 1)
+			: isBal
+				? -highest
+				: low
+		const mainRow = isClock
+			? rs / 2 - 1
+			: isBal
+				? Math.trunc(rs / 2)
+				: 0
 
 		const numbers = Array.from(Array(rs), (_, i) => Array.from(Array(cs), (_, j) => i * cs + j + lowest))
 

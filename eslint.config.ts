@@ -4,10 +4,10 @@ import css from '@eslint/css'
 import globals from 'globals'
 import tslint from 'typescript-eslint'
 import stylisticPlugin from '@stylistic/eslint-plugin'
-import importPlugin from 'eslint-plugin-import'
-import reactPlugin from 'eslint-plugin-react'
-import reactHooksPlugin from 'eslint-plugin-react-hooks'
-import reactCompilerPlugin from 'eslint-plugin-react-compiler'
+// import importPlugin from 'eslint-plugin-import'
+// import reactPlugin from 'eslint-plugin-react'
+// import reactHooksPlugin from 'eslint-plugin-react-hooks'
+import reactPlugin from '@eslint-react/eslint-plugin'
 import { tailwind4 } from 'tailwind-csstree'
 
 
@@ -15,8 +15,7 @@ export default defineConfig(
 	globalIgnores([ '.history/**', 'dist/**', 'dev-dist/**', 'deno-deploy-serve.ts' ]),
 	{	linterOptions: { reportUnusedDisableDirectives: 'error' } },
 	{
-		files: [ '**/*.{js,jsx,ts,tsx}' ],
-		ignores: [ '.history/', 'dist/', 'dev-dist/' ],
+		files: [ '**/*.{ts,tsx}' ],
 		languageOptions: {
 			parser: tslint.parser,
 			parserOptions: {
@@ -27,29 +26,20 @@ export default defineConfig(
 				JSX: 'readonly',
 			}
 		},
+		settings: {
+			react: { version: 'detect' },
+		},
 		extends: [
 			js.configs.recommended,
 			tslint.configs.recommended,
 			tslint.configs.recommendedTypeChecked,
 			stylisticPlugin.configs.recommended,
-			// importPlugin.configs.recommended,
-			// reactPlugin.configs.flat,
-			// reactHooksPlugin.configs.recommended,
-			// reactCompilerPlugin.configs.recommended,
+			// importPlugin.flatConfigs.recommended,
+			// reactPlugin.configs.flat.recommended,
+			// reactHooksPlugin.configs.flat.recommended,
+			reactPlugin.configs['disable-conflict-eslint-plugin-react-hooks'],
+			reactPlugin.configs['strict-type-checked'],
 		],
-		plugins: {
-			'@typescript-eslint': tslint.plugin,
-			'@stylistic': stylisticPlugin,
-			'import': importPlugin,
-			// @ts-expect-error Types of parameters 'context' and 'context' are incompatible
-			'react': reactPlugin,
-			// @ts-expect-error no properties in common with type 'Plugin'
-			'react-hooks': reactHooksPlugin,
-			'react-compiler': reactCompilerPlugin,
-		},
-		settings: {
-			react: { version: 'detect' },
-		},
 		rules: {
 			'semi': [ 'error', 'never' ],
 			'no-mixed-spaces-and-tabs': [ 'error', 'smart-tabs' ],
@@ -62,9 +52,12 @@ export default defineConfig(
 			'@stylistic/arrow-parens': [ 'error', 'as-needed' ],
 			'@stylistic/brace-style': [ 'error', '1tbs', { allowSingleLine: true }],
 			'@stylistic/comma-dangle': 'off',
-			'@stylistic/indent': [ 'warn', 'tab' ],
+			'@stylistic/indent': [ 'warn', 'tab', {
+				offsetTernaryExpressions: true,
+				ignoredNodes: [ 'JSXExpressionContainer *' ],
+			}],
 			'@stylistic/indent-binary-ops': 'off',
-			'@stylistic/jsx-closing-tag-location': [ 'error', 'line-aligned' ],
+			'@stylistic/jsx-closing-tag-location': [ 'warn', 'line-aligned' ],
 			'@stylistic/jsx-indent-props': [ 'error', 'tab' ],
 			'@stylistic/jsx-one-expression-per-line': 'off',
 			'@stylistic/jsx-quotes': [ 'warn', 'prefer-double' ],
@@ -97,20 +90,18 @@ export default defineConfig(
 			'@stylistic/no-tabs': 'off',
 			'@stylistic/operator-linebreak': 'off',
 			'@stylistic/quotes': [ 'warn', 'single' ],
+			'@typescript-eslint/no-misused-promises': 'warn',
 			'@typescript-eslint/no-unsafe-argument': 'error',
 			'@typescript-eslint/no-unsafe-assignment': 'error',
 			'@typescript-eslint/no-unsafe-call': 'error',
 			'@typescript-eslint/no-unsafe-member-access': 'error',
 			'@typescript-eslint/no-unsafe-return': 'error',
+			'react/react-in-jsx-scope': 'off',
 		}
 	}, {
 		files: [ '**/*.css' ],
-		ignores: [ '.history/**', 'dist/**', 'dev-dist/**' ],
 		language: 'css/css',
 		languageOptions: { customSyntax: tailwind4 },
-		plugins: { css },
-		extends: [
-			css.configs.recommended
-		],
+		extends: [ css.configs.recommended ],
 	}
 )
