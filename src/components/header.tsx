@@ -1,7 +1,7 @@
 import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, use, useState, useRef, useMemo } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
 import TextareaAutosize from 'react-textarea-autosize'
-// import themeObject from 'daisyui/theme/object.js'
+import themeObject from 'daisyui/theme/object.js'
 
 import { type Radix, createRadixes, createRadix, defaultChars } from '#/radixes.ts'
 import type { UpdateRadixes } from '#/app.tsx'
@@ -10,7 +10,7 @@ import { AppContext, getCharsLS, LS_CHARS, serializeRadixes, unserializeRadixes 
 
 export const LS_THEME = 'theme'
 type ToggleRadixes = (radix: 'all' | 'odd' | 'even' | Radix['system'] | Radix, enabled: boolean) => void
-// const themes = Object.keys(themeObject).toSorted()
+const themes = Object.keys(themeObject).toSorted()
 
 export default function Header({ radixes, updateRadixes }: {
 	radixes: Radix[],
@@ -18,7 +18,7 @@ export default function Header({ radixes, updateRadixes }: {
 }) {
 	const { updateError } = use(AppContext)
 	const [ settingsExpanded, setSettingsExpanded ] = useState(false)
-	// const [ theme, setTheme ] = useState(getThemeLS)
+	const [ theme, setTheme ] = useState(getThemeLS)
 	const [ allChars, setAllChars ] = useState(() => getCharsLS() ?? defaultChars)
 	const [ inputRadix, setInputRadix ] = useState<Radix>()
 	const [ inputChars, setInputChars ] = useState(allChars)
@@ -31,11 +31,11 @@ export default function Header({ radixes, updateRadixes }: {
 	const toggleRadixes = useMemo(() => createToggleRadixes(radixes, updateRadixes), [ radixes, updateRadixes ])
 	const toggleSettings = () => { setSettingsExpanded(!settingsExpanded) }
 
-	// const updateTheme = (theme: string) => {
-	// 	document.documentElement.setAttribute('data-theme', theme)
-	// 	setTheme(theme)
-	// 	setThemeLS(theme)
-	// }
+	const updateTheme = (theme: string) => {
+		document.documentElement.setAttribute('data-theme', theme)
+		setTheme(theme)
+		setThemeLS(theme)
+	}
 
 	const clearSettings = () => {
 		localStorage.clear()
@@ -149,7 +149,7 @@ export default function Header({ radixes, updateRadixes }: {
 							tabIndex={0}
 						>Settings</button>
 					</li>
-					{/* <li>
+					<li>
 						<details className="dropdown dropdown-end">
 							<summary>Themes</summary>
 							<menu className="dropdown-content rounded-field bg-base-100 shadow-sm p-2 mt-0">{ themes.map(t =>
@@ -158,37 +158,7 @@ export default function Header({ radixes, updateRadixes }: {
 								</li>)}
 							</menu>
 						</details>
-					</li> */}
-					{/* <li className="dropdown dropdown-end">
-						<div
-							role="button"
-							className="menu-dropdown-toggle menu-dropdown-toggle-active"
-							tabIndex={0}
-						>Themes</div>
-						<menu className="dropdown-content menu-vertical items-stretch rounded-field bg-base-100 shadow-sm p-2 mt-1">{ themes.map(t =>
-							<li key={t}>
-								<a className={`${t === theme ? 'menu-active' : undefined}`} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
-							</li>)}
-						</menu>
 					</li>
-					<li>
-						<button
-							className="menu-dropdown-toggle peer-open:menu-dropdown-show [anchor-name:--dp-1] px-4 mr-4"
-							popoverTarget="popover"
-							tabIndex={0}
-						>
-							Themes
-						</button>
-						<menu
-							className="peer dropdown menu-vertical items-stretch rounded-field bg-base-100 shadow-sm [position-anchor:--dp-1] [position-area:bottom_span-left]"
-							id="popover"
-							popover="auto"
-						>{ themes.map(t =>
-							<li key={t}>
-								<a className={t === theme ? 'menu-active' : undefined} onClick={() => updateTheme(t)} tabIndex={0}>{capitalize(t)}</a>
-							</li>)}
-						</menu>
-					</li> */}
 				</menu>
 			</div>
 			<div className={`collapse ${settingsExpanded ? 'collapse-open' : 'collapse-close'}`}>

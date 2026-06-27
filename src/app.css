@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-@plugin "daisyui"; /* {
+@plugin "daisyui" {
 	themes: all;
-} */
+}
 
 /* @plugin "flyonui" {
 	themes: all;
