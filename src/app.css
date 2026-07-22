@@ -4,10 +4,6 @@
 	themes: all;
 }
 
-/* @plugin "flyonui" {
-	themes: all;
-} */
-
 @theme {
 	--font-mono: "Noto Sans Symbol";
 }

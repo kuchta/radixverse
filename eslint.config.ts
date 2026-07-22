@@ -37,7 +37,7 @@ export default defineConfig(
 			// importPlugin.flatConfigs.recommended,
 			// reactPlugin.configs.flat.recommended,
 			// reactHooksPlugin.configs.flat.recommended,
-			reactPlugin.configs['disable-conflict-eslint-plugin-react-hooks'],
+			// reactPlugin.configs['disable-conflict-eslint-plugin-react-hooks'],
 			reactPlugin.configs['strict-type-checked'],
 		],
 		rules: {

@@ -199,8 +199,8 @@ export default function Header({ radixes, updateRadixes }: {
 									</optgroup>)}
 								</select>
 								<div className={inputCharsError ? 'tooltip tooltip-error tooltip-open' : undefined} data-tip={inputCharsError}>
-									<TextareaAutosize
-										className="supports-[field-sizing:content]:field-sizing-content mi	n-w-24 max-w-[calc(100vw-5.5ch)] xl:max-w-[calc(100vw-ch)] block resize-none bg-base-100 rounded-lg font-mono leading-8 p-0 px-2"
+									<textarea
+										className="supports-[field-sizing:content]:field-sizing-content min-w-24 max-w-[calc(100vw-5.5ch)] xl:max-w-[calc(100vw-ch)] block resize-none bg-base-100 rounded-lg font-mono leading-8 p-0 px-2"
 										name="chars"
 										rows={1}
 										cols={70}
@@ -268,7 +268,7 @@ const RadixSelect = ({ who, radixes, toggleRadixes }: { who: Radix['system'], ra
 			</div>
 			<div className="card-actions justify-center">{ radixes.filter(r => r.system === who).map(radix =>
 				<button
-					className={`btn btn-xs btn-outline btn-neutral ${radix.enabled ? 'btn-active' : ''} w-12 m-1 p-0`}
+					className={`btn btn-xs ${radix.enabled ? 'btn-neutral' : ''} w-12 m-1 p-0`}
 					type="button"
 					key={radix.name}
 					onClick={() => { toggleRadixes(radix, !radix.enabled) }}

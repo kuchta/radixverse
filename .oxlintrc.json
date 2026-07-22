@@ -1,5 +1,5 @@
 {
-	"$schema": "https://raw.githubusercontent.com/oxc-project/oxc/refs/heads/main/npm/oxlint/configuration_schema.json",
+	"$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
 	"ignorePatterns": [ "eslint.config.ts", "deno-deploy-serve.ts" ],
 	"env": { "builtin": true },
 	"options": {
@@ -13,7 +13,7 @@
 		"perf": "warn",
 		"style": "warn",
 		"restriction": "warn",
-		"nursery": "warn",
+		"nursery": "warn"
 	},
 	"plugins": [
 		"oxc",
@@ -21,14 +21,13 @@
 		"typescript",
 		"unicorn",
 		"import",
+		"promise",
 		"react",
 		"react-perf",
-		"promise",
-		// "node",
 	],
-	"jsPlugins": [
-		{ "name": "react-hooks-js", "specifier": "eslint-plugin-react-hooks" }
-	],
+	// "jsPlugins": [
+	// 	{ "name": "react-hooks-js", "specifier": "eslint-plugin-react-hooks" }
+	// ],
 	"overrides": [{
 		"files": [ "**/*.{js,jsx,ts,tsx}" ],
 		"env": { "browser": true },
@@ -37,6 +36,8 @@
 			"process": "readonly"
 		},
 		"rules": {
+			"oxc/no-async-await": "off",
+			"oxc/no-optional-chaining": "off",
 			"eslint/capitalized-comments": "off",
 			"eslint/complexity": [ "warn", 30 ],
 			"eslint/curly": "off",
@@ -52,7 +53,7 @@
 			"eslint/max-statements": [ "warn", 50 ],
 			"eslint/no-bitwise": "off",
 			"eslint/no-console": "off",
-			"no-empty-function": "off",
+			"eslint/no-empty-function": "off",
 			"eslint/no-inline-comments": "off",
 			"eslint/no-magic-numbers": "off",
 			"eslint/no-negated-condition": "off",
@@ -67,8 +68,6 @@
 			"eslint/sort-imports": "off",
 			"eslint/sort-keys": "off",
 			"eslint/sort-vars": "off",
-			"oxc/no-async-await": "off",
-			"oxc/no-optional-chaining": "off",
 			"typescript/consistent-return": "off",
 			"typescript/consistent-type-definitions": [ "error", "type" ],
 			"typescript/explicit-function-return-type": "off",
@@ -101,18 +100,21 @@
 			"import/no-nodejs-modules": "off",
 			"import/no-unassigned-import": [ "warn", { "allow": [ "**/*.css" ] } ],
 			"promise/always-return": [ "warn", { "ignoreLastCallback": true } ],
+			"promise/prefer-await-to-callbacks": "off",
+			"promise/prefer-await-to-then": "off",
 			"react/button-has-type": "off",
 			"react/exhaustive-deps": "off",
 			"react/forbid-component-props": "off",
 			"react/jsx-filename-extension": [ "warn", { "extensions": [ ".jsx", ".tsx" ] } ],
 			"react/jsx-max-depth": [ "warn", { "max": 10 } ],
+			"react/jsx-no-literals": "off",
 			"react/jsx-props-no-spreading": "off",
 			"react/no-multi-comp": [ "off", { "ignoreStateless": true } ],
 			"react/only-export-components": "off",
 			"react/react-in-jsx-scope": "off",
 			"react-perf/jsx-no-jsx-as-prop": "off",
 			"react-perf/jsx-no-new-function-as-prop": "off",
-			"react-perf/jsx-no-new-object-as-prop": "off",
+			"react-perf/jsx-no-new-object-as-prop": "off"
 		}
 	}]
 }

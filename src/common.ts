@@ -25,8 +25,8 @@ export function getCharsLS(): string | undefined {
 export function sanitizeInput(input: string, radix: Radix): string[] {
 	input = input.toUpperCase()
 	const chars = radix.system === 'balanced' ? radix.chars : `-${radix.chars}`
-	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'g'), '')
-	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'g'), '')
+	const sanitizedInput = input.replaceAll(new RegExp(`[^${chars}]`, 'gu'), '')
+	const rest = input.replaceAll(new RegExp(`[${chars}]`, 'gu'), '')
 	return [ sanitizedInput, rest ]
 }
 
