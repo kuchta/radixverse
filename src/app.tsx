@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation, useSearchParams } from 'react-router-dom'
 import { ErrorBoundary, getErrorMessage } from 'react-error-boundary'
+import { getSerwist } from 'virtual:serwist'
 
 import { LS_RADIXES, AppContext, getCharsLS, sanitizeInput, serializeRadixes, unserializeRadixes } from './common.ts'
 import { type Radix, createRadixes, createRadix, num2str, str2num, allowedCharaters } from './radixes.ts'
@@ -35,6 +36,14 @@ function App() {
 	useEffect(() => {
 		const keyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setError(undefined) }
 		document.addEventListener('keydown', keyDown)
+
+		if ('serviceWorker' in navigator) {
+			getSerwist().then(serwist => {
+				serwist?.addEventListener('installed', () => { console.log('Service worker installed!') })
+				void serwist?.register()
+			}).catch((error: unknown) => { console.error('Failed to register service worker:', error) })
+		}
+
 		return () => { document.removeEventListener('keydown', keyDown) }
 	}, [])
 

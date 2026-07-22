@@ -3,9 +3,8 @@ import { defineConfig } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
-import { VitePWA as pwa } from 'vite-plugin-pwa'
-
-const name = 'RadixVerse'
+// import { VitePWA as pwa } from 'vite-plugin-pwa'
+import { serwist } from '@serwist/vite'
 
 export default defineConfig({
 	base: process.env.BASE_URL ?? '/',
@@ -18,36 +17,19 @@ export default defineConfig({
 		react(),
 		babel({ presets: [ reactCompilerPreset() ] }),
 		tailwindcss(),
-		pwa({
-			devOptions: { enabled: true },
-			injectRegister: 'script',
-			registerType: 'autoUpdate',
-			includeAssets: [ 'images/*.{ico,png}' ],
-			manifest: {
-				name,
-				short_name: name,
-				display: 'standalone',
-				theme_color: '#f1f1f1',
-				background_color: '#f1f1f1',
-				icons: [{
-					src: 'images/icon-64x64.png',
-					sizes: '64x64',
-					type: 'image/png',
-				}, {
-					src: 'images/icon-192x192.png',
-					sizes: '192x192',
-					type: 'image/png',
-				}, {
-					src: 'images/icon-512x512.png',
-					sizes: '512x512',
-					type: 'image/png',
-				}, {
-					src: 'images/icon-512x512.png',
-					sizes: '512x512',
-					type: 'image/png',
-					purpose: 'maskable',
-				}]
-			}
-		})
+		// pwa({
+		// 	devOptions: { enabled: true },
+		// 	injectRegister: 'script',
+		// 	registerType: 'autoUpdate',
+		// 	includeAssets: [ 'images/*.{ico,png}' ],
+		// 	manifest:
+		// })
+		serwist({
+			swSrc: 'src/sw.ts',
+			swDest: 'sw.js',
+			globDirectory: 'dist',
+			injectionPoint: 'self.__SW_MANIFEST',
+			rollupFormat: 'iife',
+		}),
 	]
 })

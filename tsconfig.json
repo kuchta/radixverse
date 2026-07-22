@@ -5,14 +5,14 @@
 		"erasableSyntaxOnly": true,
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",
-		"lib": [ "ESNext", "DOM" ],
+		"lib": [ "ESNext", "DOM", "WebWorker" ],
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
 		"noEmit": true,
 		"noFallthroughCasesInSwitch": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
-		"types": [ "node", "vite/client" ],
+		"types": [ "node", "vite/client", "@serwist/vite/typings" ],
 		"verbatimModuleSyntax": true
 	}
 }
