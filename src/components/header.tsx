@@ -1,6 +1,5 @@
 import { type ReactEventHandler, type ChangeEventHandler, type KeyboardEventHandler, use, useState, useRef, useMemo } from 'react'
 import { getErrorMessage } from 'react-error-boundary'
-import TextareaAutosize from 'react-textarea-autosize'
 import themeObject from 'daisyui/theme/object.js'
 
 import { type Radix, createRadixes, createRadix, defaultChars } from '#/radixes.ts'

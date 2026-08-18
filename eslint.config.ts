@@ -12,8 +12,8 @@ import { tailwind4 } from 'tailwind-csstree'
 
 
 export default defineConfig(
-	globalIgnores([ '.history/**', 'dist/**', 'dev-dist/**', 'deno-deploy-serve.ts' ]),
-	{	linterOptions: { reportUnusedDisableDirectives: 'error' } },
+	globalIgnores([ '.history/**', 'dist/**', 'dev-dist/**', 'deno-serve.ts' ]),
+	{	linterOptions: { reportUnusedDisableDirectives: 'error' }},
 	{
 		files: [ '**/*.{ts,tsx}' ],
 		languageOptions: {
@@ -41,17 +41,21 @@ export default defineConfig(
 			reactPlugin.configs['strict-type-checked'],
 		],
 		rules: {
-			'semi': [ 'error', 'never' ],
-			'no-mixed-spaces-and-tabs': [ 'error', 'smart-tabs' ],
-			'eqeqeq': 'off',
 			'default-case': 'off',
-			'no-cond-assign': 'off',
-			'no-mixed-operators': 'off',
+			'eqeqeq': 'off',
 			'import/no-anonymous-default-export': 'off',
-			'@stylistic/array-bracket-spacing': [ 'error', 'always', { objectsInArrays: false, arraysInArrays: false }],
+			'no-cond-assign': 'off',
+			'no-mixed-spaces-and-tabs': [ 'error', 'smart-tabs' ],
+			'no-mixed-operators': 'off',
+			'semi': [ 'error', 'never' ],
+			'@stylistic/array-bracket-spacing': [ 'error', 'always', {
+				objectsInArrays: false,
+				arraysInArrays: false
+			}],
 			'@stylistic/arrow-parens': [ 'error', 'as-needed' ],
 			'@stylistic/brace-style': [ 'error', '1tbs', { allowSingleLine: true }],
 			'@stylistic/comma-dangle': 'off',
+			'@stylistic/comma-spacing': [ 'error', { before: false, after: true }],
 			'@stylistic/indent': [ 'warn', 'tab', {
 				offsetTernaryExpressions: true,
 				ignoredNodes: [ 'JSXExpressionContainer *' ],
@@ -71,6 +75,14 @@ export default defineConfig(
 				return: 'parens',
 				arrow: 'ignore',
 			}],
+			'@stylistic/key-spacing': [ 'error', { beforeColon: false, afterColon: true }],
+			'@stylistic/list-style': [ 'off', {
+				singleLine: { spacing: 'always' },
+				overrides: {
+					'()': { singleLine: { spacing: 'never' }},
+					'<>': { singleLine: { spacing: 'never' }}
+				}
+			}],
 			'@stylistic/max-statements-per-line': 'off',
 			'@stylistic/member-delimiter-style': [ 'error', {
 				multiline: {
@@ -88,6 +100,10 @@ export default defineConfig(
 			'@stylistic/no-mixed-spaces-and-tabs': [ 'warn', 'smart-tabs' ],
 			'@stylistic/no-multiple-empty-lines': [ 'error', { max: 2 }],
 			'@stylistic/no-tabs': 'off',
+			'@stylistic/object-curly-spacing': [ 'error', 'always', {
+				objectsInObjects: false,
+				arraysInObjects: false
+			}],
 			'@stylistic/operator-linebreak': 'off',
 			'@stylistic/quotes': [ 'warn', 'single' ],
 			'@typescript-eslint/no-misused-promises': 'warn',

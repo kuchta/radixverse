@@ -1,5 +1,5 @@
 {
-	"exclude": [ ".history", "deno-deploy-serve.ts" ],
+	"exclude": [ ".history", "deno-serve.ts" ],
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
 		"erasableSyntaxOnly": true,

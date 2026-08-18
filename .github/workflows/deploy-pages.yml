@@ -26,15 +26,19 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Runtime
-        uses: denoland/setup-deno@v2
+        # uses: denoland/setup-deno@v2
+        uses: oven-sh/setup-bun@v2
         with:
-          deno-version: v2.x
+          # deno-version: v2.x
+          bun-version: latest
 
       - name: Install dependencies
-        run: deno install
+        # run: deno install
+        run: bun install
 
       - name: Build
-        run: deno task build
+        # run: deno task build
+        run: bun run build
         env:
           BASE_URL: ${{ vars.BASE_URL }}
 

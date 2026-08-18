@@ -185,7 +185,7 @@ function createBalsumRadix(radix: number, chars = defaultCharsArray, enabled?: b
 	if (chars.length < radix) throw invalidNumberOfCharacters(name, radix, chars.length, true)
 
 	const high = (radix - 1) / 2
-	let createValues: (order: number) => (c: string, i: number) => [string, bigint]
+	let createValues: (order: number) => (c: string, i: number) => [ string, bigint ]
 	if (radix === 3) {
 		createValues = (order: number) => (c: string, i: number) => [ c, BigInt(3 ** i * order) ]
 	} else {
@@ -224,7 +224,7 @@ function createClockRadix(radix: number, chars = defaultCharsArray, enabled?: bo
 
 	const half = radix / 2
 	chars = chars.slice(zeroAt - half + 1, zeroAt + half + 1)
-	const values = chars.map((c, i) => [ c, BigInt(-half + 1 + i) ] as [string, bigint])
+	const values = chars.map((c, i) => [ c, BigInt(-half + 1 + i) ] as [ string, bigint ])
 
 	return {
 		name,
@@ -338,7 +338,10 @@ export function num2str(num: bigint, radix: Radix, maxLength = 28): string {
 }
 
 export function str2num(str: string, radix: Radix): bigint {
-	if (str === radix.reversedValues.get(0n)) return 0n
+	const zeroChar = radix.reversedValues.get(0n)
+	if (zeroChar == undefined) throw new Error(`Radix does not have a zero character defined.`)
+	if (str === zeroChar) return 0n
+	if (radix.system === 'bijective' && str.includes(zeroChar)) throw new Error(`Bijective radix cannot contain zero character. ${allowedCharaters(radix)}`)
 
 	const neg = str.startsWith('-')
 	const s = neg ? str.slice(1) : str

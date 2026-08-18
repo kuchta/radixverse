@@ -44,7 +44,7 @@ export default function Table({ radix, numbers, low, high, mainRow, columns, row
 			<div className="card-body overflow-scroll p-2">
 				<table className="table table-xs table-fixed text-sm w-auto">
 					<tbody>{ numbers.map((row, rowIndex) =>
-					<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={rowIndex}>{ row.map((number, columnIndex) =>
+						<tr className={`hover row${rowIndex === mainRow ? ' bg-base-200' : ''}`} key={rowIndex}>{ row.map((number, columnIndex) =>
 							<td className="text-right px-0.5 py-0.5 w-8" key={columnIndex}>
 								<Value value={number} radix={radix} low={low} space={space}/>
 							</td>)}

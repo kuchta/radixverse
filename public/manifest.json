@@ -1,5 +1,6 @@
 {
 	"name": "RadixVerse",
+	"start_url": "/radixverse",
 	"short_name": "RadixVerse",
 	"display": "standalone",
 	"theme_color": "#f1f1f1",
@@ -25,6 +26,20 @@
 			"sizes": "512x512",
 			"type": "image/png",
 			"purpose": "maskable"
+		}
+	],
+	"screenshots": [
+		{
+			"src": "images/screenshot-750x1333.png",
+			"sizes": "750x1333",
+			"type": "image/png",
+			"form_factor": "narrow"
+		},
+		{
+			"src": "images/screenshot-2360x1640.png",
+			"sizes": "2360x1640",
+			"type": "image/png",
+			"form_factor": "wide"
 		}
 	]
 }

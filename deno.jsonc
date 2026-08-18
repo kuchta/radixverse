@@ -6,7 +6,7 @@
 	"exports": "./src/radixes.ts",
 	"nodeModulesDir": "auto",
 	"exclude": [ ".history" ],
-	// "tasks": {
+	"tasks": {
 	// 	"start": "vite --host --port 10000",
 	// 	"preview": "vite preview --port 10000",
 	// 	"check": "deno check",
@@ -18,7 +18,24 @@
 	// 		"command": "deno deploy dist",
 	// 		"dependencies": [ "build" ]
 	// 	}
-	// },
+		"serve": "deno run --allow-net --allow-read --allow-env deno-serve.ts",
+		"desktop": "deno desktop ."
+	},
+	"desktop": {
+		"app": {
+			"name": "RadixVerse",
+			"icons": {
+				"macos": "./public/images/icon-512x512.png",
+				"windows": "./public/images/icon-512x512.png",
+				"linux": "./public/images/icon-512x512.png"
+			}
+		},
+		"output": {
+			"macos": "./dist/RadixVerse.dmg",
+			"windows": "./dist/RadixVerse.msi",
+			"linux": "./dist/RadixVerse.AppImage"
+		}
+	},
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"jsxImportSource": "react",

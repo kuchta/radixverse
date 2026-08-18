@@ -3,16 +3,9 @@
 	"deno.lint": true,
 	"editor.defaultFormatter": "oxc.oxc-vscode",
 	"editor.formatOnSaveMode": "modificationsIfAvailable",
-	"js": {
-		"ts.tsdk.path": "node_modules/typescript/lib",
-		"ts.tsserver.experimental.enableProjectDiagnostics": true
-	},
+	"js/ts.tsdk.path": "node_modules/ttypescript/lib",
+	"js/ts.tsserver.experimental.enableProjectDiagnostics": true,
 	"oxc.enable": true,
-	"typescript.tsdk": "node_modules/typescript/lib",
-	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
-	"[jsonc]": {
-		"editor.defaultFormatter": "oxc.oxc-vscode"
-	},
 	"[svg]": {
 		"editor.defaultFormatter": "jock.svg"
 	},

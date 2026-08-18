@@ -9,32 +9,111 @@ import { getCharsForTooltip } from './table.tsx'
 
 const BIG_INT_0 = 0n
 const BIG_INT_1 = 1n
+const BIG_INT_2 = 2n
+const BIG_INT_3 = 3n
+const BIG_INT_4 = 4n
+const BIG_INT_5 = 5n
+const BIG_INT_6 = 6n
+const BIG_INT_7 = 7n
+const BIG_INT_8 = 8n
+const BIG_INT_9 = 9n
+const BIG_INT_10 = 10n
+
 
 export default function Convert({ radixes, value, updateValue }: {
 	radixes: Radix[],
 	value: bigint,
 	updateValue: UpdateValue,
 }) {
-	const plusButtonRef = useRef<HTMLButtonElement>(null)
 	const deleteButtonRef = useRef<HTMLButtonElement>(null)
 	const minusButtonRef = useRef<HTMLButtonElement>(null)
+	const plusButtonRef = useRef<HTMLButtonElement>(null)
+	const divideByTwoButtonRef = useRef<HTMLButtonElement>(null)
+	const divideByTenButtonRef = useRef<HTMLButtonElement>(null)
+	const multiplyByTwoButtonRef = useRef<HTMLButtonElement>(null)
+	const multiplyByTenButtonRef = useRef<HTMLButtonElement>(null)
 
 	const keyDown = useEffectEvent((e: KeyboardEvent) => {
 		switch (e.key) {
 			case 'Backspace':
 			case 'Delete':
 				deleteButtonRef.current?.focus()
+				setTimeout(() => deleteButtonRef.current?.blur(), 500)
 				updateValue(BIG_INT_0)
-				break
-			case '+':
-			case '=':
-				plusButtonRef.current?.focus()
-				updateValue(value + BIG_INT_1)
 				break
 			case '-':
 			case '_':
 				minusButtonRef.current?.focus()
+				setTimeout(() => minusButtonRef.current?.blur(), 500)
 				updateValue(value - BIG_INT_1)
+				break
+			case '+':
+			case '=':
+				plusButtonRef.current?.focus()
+				setTimeout(() => plusButtonRef.current?.blur(), 500)
+				updateValue(value + BIG_INT_1)
+				break
+			case '2':
+				multiplyByTwoButtonRef.current?.focus()
+				setTimeout(() => multiplyByTwoButtonRef.current?.blur(), 500)
+				updateValue(value * BIG_INT_2)
+				break
+			case '@':
+				divideByTwoButtonRef.current?.focus()
+				setTimeout(() => divideByTwoButtonRef.current?.blur(), 500)
+				updateValue(value / BIG_INT_2)
+				break
+			case '3':
+				updateValue(value * BIG_INT_3)
+				break
+			case '#':
+				updateValue(value / BIG_INT_3)
+				break
+			case '4':
+				updateValue(value * BIG_INT_4)
+				break
+			case '$':
+				updateValue(value / BIG_INT_4)
+				break
+			case '5':
+				updateValue(value * BIG_INT_5)
+				break
+			case '%':
+				updateValue(value / BIG_INT_5)
+				break
+			case '6':
+				updateValue(value * BIG_INT_6)
+				break
+			case '^':
+				updateValue(value / BIG_INT_6)
+				break
+			case '7':
+				updateValue(value * BIG_INT_7)
+				break
+			case '&':
+				updateValue(value / BIG_INT_7)
+				break
+			case '8':
+				updateValue(value * BIG_INT_8)
+				break
+			case '*':
+				updateValue(value / BIG_INT_8)
+				break
+			case '9':
+				updateValue(value * BIG_INT_9)
+				break
+			case '(':
+				updateValue(value / BIG_INT_9)
+				break
+			case '0':
+				multiplyByTenButtonRef.current?.focus()
+				setTimeout(() => multiplyByTenButtonRef.current?.blur(), 500)
+				updateValue(value * BIG_INT_10)
+				break
+			case ')':
+				divideByTenButtonRef.current?.focus()
+				setTimeout(() => divideByTenButtonRef.current?.blur(), 500)
+				updateValue(value / BIG_INT_10)
 				break
 		}
 	})
@@ -47,14 +126,26 @@ export default function Convert({ radixes, value, updateValue }: {
 	return (
 		<main className="flex flex-col text-[clamp(1.3rem,2.3vw,2.1rem)] mx-[clamp(0.5rem,1.5vw,2rem)]">
 			<div className="flex relative lg:left-32 max-w-fit gap-1">
-				<span className="tooltip tooltip-top" data-tip="Increment">
-					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} type="button" onClick={() => { updateValue(value + BIG_INT_1) }}>+</button>
+				<span className="tooltip tooltip-top" data-tip="Divide by 10">
+					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={divideByTenButtonRef} type="button" onClick={() => { updateValue(value / BIG_INT_10) }}>/10</button>
+				</span>
+				<span className="tooltip tooltip-top" data-tip="Divide by 2">
+					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={divideByTwoButtonRef} type="button" onClick={() => { updateValue(value / BIG_INT_2) }}>/2</button>
+				</span>
+				<span className="tooltip tooltip-top" data-tip="Minus 1">
+					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} type="button" onClick={() => { updateValue(value - BIG_INT_1) }}>-1</button>
 				</span>
 				<span className="tooltip tooltip-top" data-tip="Reset">
 					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={deleteButtonRef} type="button" onClick={() => { updateValue(BIG_INT_0) }}>␡</button>
 				</span>
-				<span className="tooltip tooltip-top" data-tip="Decrement">
-					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={minusButtonRef} type="button" onClick={() => { updateValue(value - BIG_INT_1) }}>-</button>
+				<span className="tooltip tooltip-top" data-tip="Plus 1">
+					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={plusButtonRef} type="button" onClick={() => { updateValue(value + BIG_INT_1) }}>+1</button>
+				</span>
+				<span className="tooltip tooltip-top" data-tip="Multiply by 2">
+					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={multiplyByTwoButtonRef} type="button" onClick={() => { updateValue(value * BIG_INT_2) }}>*2</button>
+				</span>
+				<span className="tooltip tooltip-top" data-tip="Multiply by 10">
+					<button className="btn btn-circle btn-sm md:btn-xs lg:btn-sm" ref={multiplyByTenButtonRef} type="button" onClick={() => { updateValue(value * BIG_INT_10) }}>*10</button>
 				</span>
 			</div>{ radixes.map((radix, index) =>
 			<div key={radix.name}>
@@ -104,27 +195,66 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 		setTimeout(() => { if (ref.current) getSelection()?.setPosition(ref.current.childNodes[0], position) }, 0)
 	}
 
+	const handleBeforeInput: InputEventHandler<HTMLSpanElement> = e => {
+		e.stopPropagation()
+
+		if (!e.data) return // Delete/backspace operations
+
+		const selection = getSelection()
+		const range = selection?.getRangeAt(0)
+		const currentText = e.currentTarget.textContent
+
+		// When text is selected, it gets replaced, not appended
+		let resultText: string
+		if (range && range.startOffset !== range.endOffset) {
+			// Selection exists - replace it with new character
+			resultText = currentText.slice(0, range.startOffset) + e.data + currentText.slice(range.endOffset)
+		} else {
+			// No selection - append to current text
+			resultText = currentText + e.data
+		}
+
+		const upperS = resultText.toUpperCase()
+
+		try {
+			str2num(upperS, radix)
+			// Valid - allow the insertion
+		} catch (error) {
+			// Invalid - prevent insertion
+			e.preventDefault()
+			updateError(error, 'error')
+		}
+	}
+
 	const handleInput: InputEventHandler<HTMLSpanElement> = e => {
 		e.stopPropagation()
 
 		const s = e.currentTarget.textContent.toUpperCase()
 		if (s === '') {
-			setStrVal('')
 			updateValue(BIG_INT_0)
+			setError(undefined)
 			return
 		}
 
-		let position = getCaretPosition()
+		const selection = getSelection()
+		const currentPos = selection?.getRangeAt(0).startOffset ?? 0
+		const shouldRestoreCursor = selection && e.currentTarget.firstChild
+
 		try {
-			setStrVal(s)
-			updateValue(str2num(s, radix), radix)
+			const parsed = str2num(s, radix)
+			// Convert to uppercase in the DOM without triggering React re-render
+			e.currentTarget.textContent = s
+			// Synchronously restore cursor without setTimeout delay
+			if (shouldRestoreCursor) {
+				selection.collapse(e.currentTarget.firstChild, currentPos)
+			}
+
+			updateValue(parsed, radix)
 			setError(undefined)
 		} catch (error) {
+			// Should not happen since beforeinput prevents invalid input
 			updateError(error, 'error')
-			e.currentTarget.textContent = strVal
-			position -= 1
 		}
-		setCaretPosition(position)
 	}
 
 	const handlePaste: ClipboardEventHandler<HTMLSpanElement> = e => {
@@ -161,6 +291,7 @@ function NumberLine({ value, radix, radixIndex, numRadixes, updateValue }: Compo
 				suppressContentEditableWarning
 				spellCheck={false}
 				onKeyDown={e => { if (e.key === 'Escape' || e.key === 'Enter') { e.currentTarget.blur() } else e.stopPropagation() }}
+				onBeforeInput={handleBeforeInput}
 				onInput={handleInput}
 				onPaste={handlePaste}
 				onDoubleClick={() => { if (ref.current) getSelection()?.selectAllChildren(ref.current) }}

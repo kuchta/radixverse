@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
+// import ttsc from '@ttsc/unplugin/vite'
 // import legacy from '@vitejs/plugin-legacy'
-import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import react /* , { reactCompilerPreset } */ from '@vitejs/plugin-react'
+// import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 // import { VitePWA as pwa } from 'vite-plugin-pwa'
 import { serwist } from '@serwist/vite'
@@ -14,8 +15,9 @@ export default defineConfig({
 		// 	modernTargets: 'chrome>=122, edge>=122, safari>=18, firefox>=131, chromeAndroid>=132, iOS>=18',
 		// 	renderLegacyChunks: false,
 		// }),
-		react(),
-		babel({ presets: [ reactCompilerPreset() ] }),
+		// ttsc(),
+		react({ compiler: true }),
+		// babel({ presets: [ reactCompilerPreset() ] }),
 		tailwindcss(),
 		// pwa({
 		// 	devOptions: { enabled: true },

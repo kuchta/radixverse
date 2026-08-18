@@ -136,9 +136,8 @@ App.tsx `useEffect` runs once to:
 - **Overflow**: Use `Number.isNaN()` to detect overflow before rendering
 
 ## File Reference
-- [src/utils.ts](../src/utils.ts) - All number system logic, serialization
+- [src/utils.ts](../src/radixes.ts) - All number system logic, serialization
 - [src/app.tsx](../src/app.tsx) - Router, URL params, useStore hook
 - [src/components/Table.tsx](../src/components/Table.tsx) - Rendering logic, color mapping
 - [src/components/Show.tsx](../src/components/Show.tsx) - Example of `computeProps()` pattern
 - [vite.config.ts](../vite.config.ts) - PWA plugin, React compiler, Tailwind
-- [biome.json](../biome.json) - Linter rules (ESNext, no exhaustive deps, allow non-null assertions)
